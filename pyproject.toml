@@ -38,7 +38,7 @@ dependencies = [
     "jieba",
     "boto3",
     "redis",
-    "cykhash",
+    # "cykhash",
     "mmh3",
     "pydantic",
     "faiss-cpu",
@@ -62,7 +62,6 @@ exclude = [
 
 [tool.setuptools.package-data]
 "muller.util.sparsehash" = ["build/*.so", "*.so"]
-"muller.util.cykhash" = ["*.so"]
 
 [tool.setuptools.dynamic]
 version = { attr = "muller.__version__" }
