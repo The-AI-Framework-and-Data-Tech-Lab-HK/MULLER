@@ -1,5 +1,5 @@
 import logging
-from muller.client.config import LOG_FILE, LOG_LEVEL, LOG_FORMAT
+from muller.client.config import LOG_LEVEL, LOG_FORMAT
 
 class LoggerHandler(logging.Logger):
 
