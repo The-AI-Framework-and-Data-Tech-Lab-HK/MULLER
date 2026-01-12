@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "muller"
+dynamic = ["version"]
+description = "MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Xueling Lin", email = "heathersherrylin@gmail.com"},
+    {name = "Bingyu Liu", email = "liubingyu62@gmail.com"}
+]
+
+dependencies = [
+    "numpy",
+    "pillow>=9.5.0",
+    "pandas",
+    "humbug>=0.3.1",
+    "tqdm",
+    "lz4",
+    "dynaconf>=3.1.11",
+    "psutil==5.9.8",
+    "av<=12.3.0",
+    "nibabel",
+    "esdk-obs-python",
+    "pathos",
+    "wget",
+    "filetype",
+    "cryptography",
+    "PyJWT",
+    "pyarrow",
+    "werkzeug",
+    "jsonlines",
+    "sortedcontainers",
+    "jieba",
+    "boto3",
+    "redis",
+    "cykhash",
+    "mmh3",
+    "pydantic",
+    "faiss-cpu",
+    "torch"
+]
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+exclude = [
+    "*.tests",
+    "*.tests.*",
+    "tests.*",
+    "tests",
+    "docs*",
+    "scripts*",
+    "thirdparty*"
+]
+
+[tool.setuptools.package-data]
+"muller.util.sparsehash" = ["build/*.so", "*.so"]
+"muller.util.cykhash" = ["*.so"]
+
+[tool.setuptools.dynamic]
+version = { attr = "muller.__version__" }
