@@ -497,3 +497,6 @@ class Sample:
                 f"Error while reading exif data, possibly due to corrupt exif: {e}"
             )
             return {}
+
+SampleValue = Union[np.ndarray, int, float, bool, Sample]
+
