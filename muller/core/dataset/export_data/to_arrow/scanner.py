@@ -46,13 +46,13 @@ class MULLERArrowDatasetScanner(pyarrow.dataset.Scanner):
         if batch_size is None:
             batch_size = self.batch_size
         schema = self.projected_schema
-        gtn_ds = self._dataset.get_gtn_dataset()
-        num_rows = len(gtn_ds)
+        muller_ds = self._dataset.get_muller_dataset()
+        num_rows = len(muller_ds)
         for start in range(0, num_rows, batch_size):
             end = min(start + batch_size, num_rows)
             arrays = []
             for column in self._columns:
-                value = gtn_ds[column][start:end].arrow()
+                value = muller_ds[column][start:end].arrow()
                 arrays.append(value)
             record_batch = pa.RecordBatch.from_arrays(arrays, schema)
             if self._filter is not None:

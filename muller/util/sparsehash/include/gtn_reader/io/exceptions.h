@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace gtn_reader::io {
+namespace muller_reader::io {
 
 struct DirectoryAtPath : std::runtime_error {
     using std::runtime_error::runtime_error;
@@ -20,4 +20,4 @@ struct GetChunkError : std::runtime_error {
         : std::runtime_error("GetChunkError for key: " + k) {}
 };
 
-} // namespace gtn_reader::io
+} // namespace muller_reader::io

@@ -5,7 +5,7 @@ class LoggerHandler(logging.Logger):
 
     def __init__(self, level="DEBUG", file=None,
                  out_format=None):
-        super().__init__("gtn_f")
+        super().__init__("muller")
         self.setLevel(level)
         fmt = logging.Formatter(out_format)
         if file:

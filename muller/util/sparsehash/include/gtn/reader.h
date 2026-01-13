@@ -7,16 +7,16 @@
  */
 
 #pragma once
-#include "gtn/chunk.h"
-#include "gtn/chunk_id_encoder.h"
-#include "gtn_reader/io/file_provider.h"
+#include "muller/chunk.h"
+#include "muller/chunk_id_encoder.h"
+#include "muller_reader/io/file_provider.h"
 #include <optional>
 #include <utility>
 #include <unordered_map>
 #include <deque>
 #include <mutex>
 
-namespace gtn {
+namespace muller {
 
 class Reader {
 public:
@@ -55,7 +55,7 @@ private:
 
     std::string                      root_;
     std::string                      version_;
-    gtn_reader::io::FileProvider     fileProvider_;
+    muller_reader::io::FileProvider     fileProvider_;
     std::string                      tensorName_;
     std::optional<ChunkIdEncoder>    encoder_;
 
@@ -73,4 +73,4 @@ private:
     mutable std::mutex cacheMutex_;  // 线程安全
 };
 
-} // namespace gtn
+} // namespace muller

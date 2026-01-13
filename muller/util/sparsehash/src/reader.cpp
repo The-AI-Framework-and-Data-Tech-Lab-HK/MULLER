@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "gtn/reader.h"
+#include "muller/reader.h"
 #include <sstream>
 #include <cstring>
 #include <string>
@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <unordered_set>
 
-namespace gtn {
+namespace muller {
 
 void Reader::ensureEncoder()
 {
@@ -149,4 +149,4 @@ void Reader::clearCache()
     currentCacheBytes_ = 0;
 }
 
-} // namespace gtn
+} // namespace muller

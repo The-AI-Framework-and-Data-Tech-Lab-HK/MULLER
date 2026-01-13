@@ -14,7 +14,7 @@
 #include <vector>
 #include <vector>
 
-namespace gtn {
+namespace muller {
 
 struct Chunk
 {
@@ -73,4 +73,4 @@ struct Chunk
                              bool             partial  = false);
 };
 
-} // namespace gtn
+} // namespace muller

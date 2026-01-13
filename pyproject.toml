@@ -13,7 +13,6 @@ authors = [
     {name = "Xueling Lin", email = "heathersherrylin@gmail.com"},
     {name = "Bingyu Liu", email = "liubingyu62@gmail.com"}
 ]
-
 dependencies = [
     "numpy",
     "pillow>=9.5.0",
@@ -38,11 +37,17 @@ dependencies = [
     "jieba",
     "boto3",
     "redis",
-    # "cykhash",
+    "cykhash",
     "mmh3",
     "pydantic",
     "faiss-cpu",
     "torch"
+]
+
+[project.optional-dependencies]
+tests = [
+    "pytest",
+    "torchvision"
 ]
 
 [tool.setuptools]

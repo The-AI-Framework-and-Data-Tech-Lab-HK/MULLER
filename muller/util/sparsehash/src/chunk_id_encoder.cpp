@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "gtn/chunk_id_encoder.h"
+#include "muller/chunk_id_encoder.h"
 #include <algorithm>
 #include <fstream>
 #include <sys/stat.h>
@@ -17,7 +17,7 @@
 
 using namespace std::string_view_literals;
 
-namespace gtn {
+namespace muller {
 
 /* ----------------------------------------------------------- */
 /*                     反序列化实现                            */
@@ -147,4 +147,4 @@ ChunkIdEncoder::translateIndexRelativeToChunks(std::size_t globalSampleIdx) {
     return globalSampleIdx - prevLast;
 }
 
-} // namespace gtn
+} // namespace muller

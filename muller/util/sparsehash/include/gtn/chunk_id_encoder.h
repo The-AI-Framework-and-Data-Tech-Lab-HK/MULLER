@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-namespace gtn {
+namespace muller {
 
 struct ChunkIdRow {
     std::uint64_t chunkId{};      // 第一列
@@ -50,4 +50,4 @@ private:
     std::vector<ChunkIdRow> rows_;
     std::size_t             lastRow_{0};   // 近邻缓存
 };
-} // namespace gtn
+} // namespace muller

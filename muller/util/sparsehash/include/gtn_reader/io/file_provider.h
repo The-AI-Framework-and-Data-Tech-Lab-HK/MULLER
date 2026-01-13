@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace gtn_reader::io {
+namespace muller_reader::io {
 
 class FileProvider {
 public:
@@ -47,4 +47,4 @@ private:
     }
 };
 
-} // namespace gtn_reader::io
+} // namespace muller_reader::io

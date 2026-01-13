@@ -60,7 +60,7 @@ class MULLERArrowDataset(pyarrow.dataset.Dataset):
         """
         raise NotImplementedError("partitioning not yet supported")
 
-    def get_gtn_dataset(self):
+    def get_muller_dataset(self):
         """Get MULLER Dataset."""
         return self._ds
 

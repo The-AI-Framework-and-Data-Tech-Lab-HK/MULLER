@@ -58,7 +58,7 @@ PYBIND11_MODULE(custom_hash_map, m) {
     py::class_<IndexProcessor>(m, "IndexProcessor")
         .def(py::init<>())
         .def_static("process_index_parallel", &IndexProcessor::process_index_parallel,
-                   py::arg("root_path"),          // gtn data path
+                   py::arg("root_path"),          // muller data path
                    py::arg("tensor_name"),        // tensor name
                    py::arg("index_folder"),       // shard 落盘的地址
                    py::arg("col_log_folder"),     // 记录落盘成功的空日志文件的地址
@@ -73,7 +73,7 @@ PYBIND11_MODULE(custom_hash_map, m) {
                    py::arg("compulsory_dict_path"),
                    "Process documents and build inverted index shards")
         .def_static("process_index_single", &IndexProcessor::process_index_single,
-                   py::arg("root_path"),          // gtn data path
+                   py::arg("root_path"),          // muller data path
                    py::arg("tensor_name"),        // tensor name
                    py::arg("index_folder"),       // shard 落盘的地址
                    py::arg("col_log_folder"),     // 记录落盘成功的空日志文件的地址

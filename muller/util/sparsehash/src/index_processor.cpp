@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "gtn/reader.h"
+#include "muller/reader.h"
 #include "index_processor.h"
 #include "jieba_utils.h"
 #include "gil_manager.h"
@@ -183,7 +183,7 @@ bool IndexProcessor::process_index_single(
                                            const std::unordered_set<std::string>& full_stop_words)
 {
     auto& jieba = hashmap::JiebaUtils::getJieba();
-    gtn::Reader reader(root_path, version, tensor_name);
+    muller::Reader reader(root_path, version, tensor_name);
 
     reader.setCacheLimit(150LL * 1024 * 1024 * 1024);
 

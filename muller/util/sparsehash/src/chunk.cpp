@@ -6,11 +6,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "gtn/chunk.h"
+#include "muller/chunk.h"
 #include <cstring>
 #include <stdexcept>
 
-namespace gtn {
+namespace muller {
 
 namespace {
 /* —— 辅助：确保剩余字节足够 —— */
@@ -102,4 +102,4 @@ Chunk Chunk::deserialize(const std::byte *src,
     return out;
 }
 
-} // namespace gtn
+} // namespace muller
