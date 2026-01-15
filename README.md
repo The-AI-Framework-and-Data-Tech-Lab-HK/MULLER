@@ -2,8 +2,7 @@
 
 ## MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows
 
-MULLER is a novel Multimodal data lake format designed for collaborative AI data workflows. 
-Specifically, MULLER has the following key features:
+MULLER is a novel Multimodal data lake format designed for collaborative AI data workflows, with the following key features:
 * **Mutimodal data support** with than 12 data types of different modalities, including scalars, vectors, text, images, videos, and audio, with 20+ compression formats (e.g., LZ4, JPG, PNG, MP3, MP4, AVI, WAV).
 * **Efficient data sampling and exploration** through low-latency random access and high-throughput traversal.
 * **Efficient Vectorized hybrid search engine** that jointly queries vector, text, and scalar data.
