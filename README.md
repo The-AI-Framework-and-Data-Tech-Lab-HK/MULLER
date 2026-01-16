@@ -4,10 +4,10 @@
 
 MULLER is a novel Multimodal data lake format designed for collaborative AI data workflows, with the following key features:
 * **Mutimodal data support** with than 12 data types of different modalities, including scalars, vectors, text, images, videos, and audio, with 20+ compression formats (e.g., LZ4, JPG, PNG, MP3, MP4, AVI, WAV).
-* **Efficient data sampling and exploration** through low-latency random access and high-throughput traversal.
-* **Efficient Vectorized hybrid search engine** that jointly queries vector, text, and scalar data.
-* **Git-like data versioning** with support for commit, checkout, diff, conflict detection and resolution, as well as merge. Specifically, to the best of our knowledge, MULLER is the first data lake format to support _fine-grained row-level updates, three-way merges and recursive merges_ across multiple coexisting data branches.
-* **Seamless integration with deep learning frameworks**.
+* **Data sampling, exploration, and Analysis** through low-latency random access and fast scan.
+* **Array-oriented hybrid search engine** that jointly queries vector, text, and scalar data.
+* **Git-like data versioning** with support for commit, checkout, diff, conflict detection and resolution, as well as merge. Specifically, to the best of our knowledge, MULLER is the first data lake format to support _fine-grained row-level updates and three-way merges_ across multiple coexisting data branches.
+* **Seamless integration with LLM/MLLM data training and processing pipelines**.
 
 
 ## Getting Started
