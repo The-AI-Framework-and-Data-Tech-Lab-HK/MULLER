@@ -12,21 +12,23 @@
 
 import json
 import logging
+import os
 import pathlib
+import posixpath
 from typing import Dict, Optional, Union, List
 
 import muller
-from muller.constants import DEFAULT_LOCAL_CACHE_SIZE, DEFAULT_MEMORY_CACHE_SIZE
+from muller.constants import DEFAULT_LOCAL_CACHE_SIZE, DEFAULT_MEMORY_CACHE_SIZE, TENSOR_META_FILENAME
 from muller.core.dataset.dataset import Dataset
 from muller.util.exceptions import (AgreementError,
-                                   CheckoutError,
-                                   LockedException,
-                                   ReadOnlyModeError,
-                                   DatasetCreationError,
-                                   DatasetCorruptionError,
-                                   DatasetAlreadyExistsError,
-                                   DatasetNotExistsError,
-                                   DatasetViewDeletionError)
+                                    CheckoutError,
+                                    LockedException,
+                                    ReadOnlyModeError,
+                                    DatasetCreationError,
+                                    DatasetCorruptionError,
+                                    DatasetAlreadyExistsError,
+                                    DatasetNotExistsError,
+                                    DatasetViewDeletionError, DirectoryAtPathException)
 from muller.util.keys import dataset_exists
 from muller.util.path import process_dataset_path
 from muller.util.path import verify_dataset_name, convert_pathlib_to_string_if_needed
@@ -194,6 +196,20 @@ class DatasetAPI:
             raise e from None
         except Exception as e:
             raise e
+
+    @staticmethod
+    def get_col_info(path: Union[str, pathlib.Path],
+                     col_name: str = None):
+        processed_path, _ = process_dataset_path(path)
+        meta_file = TENSOR_META_FILENAME if col_name == "" else "/".join((col_name, TENSOR_META_FILENAME))
+        try:
+            fpath = DatasetAPI._check_is_file(processed_path, meta_file)
+            with open(fpath, "rb") as file:
+                return file.read()
+        except DirectoryAtPathException:
+            raise
+        except FileNotFoundError as e:
+            raise KeyError(meta_file) from e
 
     @staticmethod
     def empty(
@@ -587,3 +603,12 @@ class DatasetAPI:
                                     scheduler=scheduler, disable_rechunk=disable_rechunk,
                                     progressbar=progressbar, ignore_errors=ignore_errors)
         return ds
+
+    @staticmethod
+    def _check_is_file(ds_path, key):
+        fpath = posixpath.join(ds_path, key)
+        fpath = os.path.expanduser(fpath)
+        fpath = str(pathlib.Path(fpath))
+        if os.path.isdir(fpath):
+            raise DirectoryAtPathException
+        return fpath

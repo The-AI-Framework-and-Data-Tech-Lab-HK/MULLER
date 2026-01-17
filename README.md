@@ -35,3 +35,7 @@ BUILD_CPP=false pip install .
 import muller
 print(muller.__version__)
 ```
+
+## Reproduction steps for the experiment results in the paper
+
+Please refer to [exp_scripts/README.md](https://github.com/spencerr221/MULLER/blob/main/exp_scripts/README.md) for the detailed steps.
