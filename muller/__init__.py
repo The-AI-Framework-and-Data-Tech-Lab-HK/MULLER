@@ -17,7 +17,8 @@ __all__ = [
     "Dataset",
     "__version__",
     "delete",
-    "compute"
+    "compute",
+    "get_col_info"
     ]
 
 __version__ = "0.7.0"
@@ -45,6 +46,7 @@ empty = muller.api.DatasetAPI.empty
 dataset = muller.api.DatasetAPI.dataset
 like = muller.api.DatasetAPI.like
 delete = muller.api.DatasetAPI.delete
+get_col_info = muller.api.DatasetAPI.get_col_info
 create_dataset_from_file = muller.api.DatasetAPI.create_dataset_from_file
 create_dataset_from_dataframes = muller.api.DatasetAPI.create_dataset_from_dataframes
 

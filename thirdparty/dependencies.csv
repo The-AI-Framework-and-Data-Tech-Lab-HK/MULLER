@@ -1,0 +1,5 @@
+cppjieba,master,gitCloneOpenSrc,ssh://git@github.com:yanyiwu/cppjieba.git
+sparsehash,master,gitCloneOpenSrc,ssh://git@github.com:sparsehash/sparsehash.git
+murmurhash,master,gitCloneOpenSrc,ssh://git@github.com:explosion/murmurhash.git
+boost,master,gitCloneOpenSrc,ssh://git@github.com:boostorg/boost.git
+pybind11,master,gitCloneOpenSrc,ssh://git@github.com:pybind/pybind11.git
