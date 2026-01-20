@@ -1,6 +1,0 @@
-cppjieba,master,gitCloneOpenSrc,https://github.com/yanyiwu/cppjieba.git
-sparsehash,master,gitCloneOpenSrc,https://github.com/sparsehash/sparsehash.git
-murmurhash,master,gitCloneOpenSrc,https://github.com/explosion/murmurhash.git
-boost,boost-1.74.0,gitCloneOpenSrc,https://github.com/boostorg/boost.git
-pybind11,master,gitCloneOpenSrc,https://github.com/pybind/pybind11.git
-,,,
