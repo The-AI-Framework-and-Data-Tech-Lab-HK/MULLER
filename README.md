@@ -20,7 +20,7 @@ conda activate muller
 ```
 #### 2. Installation from code
 ```bash
-chmod 777 $YOUR_PATH$/MULLER/muller/util/sparsehash/build_proj.sh
+chmod 777 $YOUR_PATH$/MULLER/muller/util/sparsehash/build_proj.sh  # You may need to change mode of the shell script.
 pip install . 
 ```
 * [Optional] Development Installation
