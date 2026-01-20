@@ -87,7 +87,7 @@ if [ ! -f "${DEPS_CSV}" ]; then
 fi
 
 pids=()
-while IFS=',' read -r name tag downloadType repo; do
+while IFS=',' read -r name tag downloadType repo || [ -n "$name" ]; do
     # 跳过空行
     [[ -z "$name" ]] && continue
 
