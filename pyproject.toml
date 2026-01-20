@@ -62,7 +62,11 @@ exclude = [
     "tests",
     "docs*",
     "scripts*",
-    "thirdparty*"
+    "thirdparty*",
+    "*.build",
+    "*.build.*",
+    "build",
+    "build.*"
 ]
 
 [tool.setuptools.package-data]
