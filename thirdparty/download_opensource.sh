@@ -46,7 +46,7 @@ function git_clone_open_src() {
     mkdir "$name" && cd "$name"
 
     # 尝试使用tag克隆
-    if git lfs clone --depth 1 -b $tag $repo . 2>/dev/null; then
+    if git lfs clone --depth 1 -b $tag --recursive $repo . 2>/dev/null; then
         echo "Successfully cloned ${name} with tag ${tag}"
     else
         # 如果tag不存在，使用默认分支
@@ -54,7 +54,12 @@ function git_clone_open_src() {
         cd ..
         rm -rf "$name"
         mkdir "$name" && cd "$name"
-        git lfs clone --depth 1 $repo .
+        git lfs clone --depth 1 --recursive $repo .
+    fi
+
+    if [ -f ".gitmodules" ]; then
+      echo "Initializing submodules for ${name}..."
+      git submodule update --init --recursive --depth 1 || echo "Warning: submodule update failed for ${name}"
     fi
 }
 
@@ -82,7 +87,7 @@ if [ ! -f "${DEPS_CSV}" ]; then
 fi
 
 pids=()
-while IFS=',' read -r name tag downloadType repo; do
+while IFS=',' read -r name tag downloadType repo || [ -n "$name" ]; do
     # 跳过空行
     [[ -z "$name" ]] && continue
 

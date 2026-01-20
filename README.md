@@ -13,24 +13,25 @@ MULLER is a novel Multimodal data lake format designed for collaborative AI data
 ## Getting Started
 MULLER requires Python 3.11 or higher.
 
-* Set up a conda environment
+#### 1. (Recommended) Set up a new conda environment
 ```bash
 conda create -n muller python=3.11
 conda activate muller
 ```
-* Installation from code
+#### 2. Installation from code
 ```bash
+chmod 777 $YOUR_PATH$/MULLER/muller/util/sparsehash/build_proj.sh
 pip install . 
 ```
-[Optional] Development Installation
+* [Optional] Development Installation
 ```bash
 pip install -e .
 ```
-[Optional] Skip C++ Module Building
+* [Optional] Skip C++ Module Building
 ```bash
 BUILD_CPP=false pip install .
 ```
-* Verify Installation
+#### 3. Verify Installation
 ```python
 import muller
 print(muller.__version__)
