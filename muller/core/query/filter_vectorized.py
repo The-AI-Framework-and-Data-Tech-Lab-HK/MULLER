@@ -84,7 +84,7 @@ def filter_vectorized_dataset(
 ):
     """
     A vectorized filtering function accelerated by the parallel computing supported by numpy.
-    :param dataset: a MULLER-F dataset.
+    :param dataset: a MULLER dataset.
     :param condition_list: the list of filtering functions, while each element in the list should be
             (tensor_column, filter_condition, filter_value, use_inverted_index, negation),
             e.g., ("test", ">", 2, False, "NOT"), ("test", "==", "2", True, None),
@@ -108,7 +108,7 @@ def filter_vectorized_dataset(
     :param limit: The number of filtered results. Default to none, which means unlimited.
     :param compute_future: If True, calculate the content of the next page in advance.
             Default to True.
-    :return: a MULLER-F dataset which is a subset of the original dataset which satisfies the filter conditions.
+    :return: a MULLER dataset which is a subset of the original dataset which satisfies the filter conditions.
     """
     length = len(dataset)  # Length: # of rows in the dataset. We assume all columns have the same length.
     if not limit:

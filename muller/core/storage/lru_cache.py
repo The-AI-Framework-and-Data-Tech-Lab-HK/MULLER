@@ -262,7 +262,7 @@ class LRUCache(StorageProvider):
             url=False,
             partial_bytes: int = 0,
     ):
-        """Get the MULLER-F object. """
+        """Get the MULLER object. """
         if partial_bytes != 0:
             assert issubclass(expected_class, BaseChunk)
             if key in self.lru_sizes:
@@ -664,11 +664,11 @@ class LRUCache(StorageProvider):
         return self.upper_cache_merge.get(original_id, {}).get(target_id, {}).get(tensor_name, {})
 
     def remove_muller_object(self, key: str):
-        """Remove the MULLER-F objects."""
+        """Remove the MULLER objects."""
         self.muller_objects.pop(key, None)
 
     def clear_muller_objects(self):
-        """Clear the MULLER-F objects."""
+        """Clear the MULLER objects."""
         self.muller_objects.clear()
 
     def register_muller_object(self, key: str, obj: MULLERMemoryObject):

@@ -19,10 +19,10 @@
 
 #include <sparsehash/sparse_hash_map>
 
-#ifndef MULLER_F_EXPORT_H
-#define MULLER_F_EXPORT_H
+#ifndef MULLER_EXPORT_H
+#define MULLER_EXPORT_H
 
-#define MULLER_F_API __attribute__((visibility("default")))
+#define MULLER_API __attribute__((visibility("default")))
 
 #endif
 

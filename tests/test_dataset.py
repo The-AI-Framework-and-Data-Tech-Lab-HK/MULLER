@@ -27,7 +27,7 @@ from tests.utils import official_path, official_creds, get_cifar10_huashan, veri
 
 
 def test_create_invalid_dataset(storage):
-    # 用了不正确的数据集名字（如带"@"符号）
+    # Use incorrect dataset name (e.g., with "@")
     try:
         muller.dataset(path=official_path(storage, SMALL_TEST_PATH+"@test_1"), creds=official_creds(storage),
                                overwrite=True)
@@ -35,14 +35,14 @@ def test_create_invalid_dataset(storage):
     except DatasetCreationError as e:
         assert True, f"There is an exception {e}"
 
-    # 加载不存在的数据集
+    # Load an non-exist dataset
     try:
         muller.load(path=official_path(storage, SMALL_TEST_PATH), creds=official_creds(storage))
         assert False, "No exception raises"
     except DatasetNotExistsError as e:
         assert True, f"There is an exception {e}"
 
-    # 在已存在数据集的路径上再新建空数据集(且不overwrite)
+    # Create a dataset on existing MULLER path (without specifying overwrite)s
     muller.empty(path=official_path(storage, SMALL_TEST_PATH), creds=official_creds(storage), overwrite=True)
     try:
         muller.empty(path=official_path(storage, SMALL_TEST_PATH), creds=official_creds(storage))
