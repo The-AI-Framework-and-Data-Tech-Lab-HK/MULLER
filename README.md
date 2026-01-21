@@ -11,35 +11,41 @@ MULLER is a novel Multimodal data lake format designed for collaborative AI data
 
 
 ## Getting Started
-MULLER requires Python 3.11 or higher.
+MULLER requires Python 3.11 or later.
 
-#### 1. (Recommended) Set up a new conda environment
+#### 1. (Recommended) Create a new Conda environment
 ```bash
 conda create -n muller python=3.11
 conda activate muller
 ```
-#### 2. Clone the MULLER project, and install MULLER from code
+#### 2. Installation
+* First, clone the MULLER repository.
 ```bash
 git clone https://github.com/The-AI-Framework-and-Data-Tech-Lab-HK/MULLER.git
 cd MULLER
-chmod 777 muller/util/sparsehash/build_proj.sh  # You may need to change mode of the shell script.
+chmod 777 muller/util/sparsehash/build_proj.sh  # You may need to modify the script permissions.
+```
+* [Dafault] Install from code
+```
 pip install .   # You may also use pip install . -v to check the build process
 ```
-* [Optional] Development Installation
+* [Optional] Development (editable) installation
 ```bash
 pip install -e .
 ```
-* [Optional] Skip C++ Module Building
-The Python modules provides all the same functions as the C++ modules, so you may consider to skip all the C++ module building if you only need to investigate the basic functions provided by MULLER.
+* [Optional] Skip building C++ modules
+
+The Python implementation provides the same core functionality as the C++ modules.
+If you only need the basic features of MULLER, you may skip building the C++ extensions:
 ```bash
 BUILD_CPP=false pip install .
 ```
-#### 3. Verify Installation
+#### 3. Verify the Installation
 ```python
 import muller
 print(muller.__version__)
 ```
 
-## Reproduction steps for the experiment results in the paper
+## Reproduction steps for the experiment results in our paper
 
 Please refer to [exp_scripts/README.md](https://github.com/spencerr221/MULLER/blob/main/exp_scripts/README.md) for the detailed steps.
