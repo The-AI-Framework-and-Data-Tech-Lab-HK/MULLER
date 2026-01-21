@@ -35,7 +35,7 @@ def test_inverted_index(storage):
 
     ds.commit()
 
-    # 1. 普通检索
+    # 1. Normal query
     ds.create_index(['value'], use_uuid=True)
 
     ds_test_0 = ds.filter_vectorized([("label", "==", 1)], use_local_index=False)
@@ -60,13 +60,13 @@ def test_inverted_index(storage):
                                      use_local_index=False)
     assert ds_test_5.filtered_index == [2, 7]
 
-    # 注意，这个的结果和上面的不一样！因为执行的顺序不同
+    # Note: de_test_6 is different from de_test_5 because of the different execution sequence of AND, OR.
     ds_test_6 = ds.filter_vectorized([("value", "CONTAINS", "明月"), ("value", "CONTAINS", "春风"), ("label", "==", 1)],
                                      ["AND", "OR"],
                                      use_local_index=False)
     assert ds_test_6.filtered_index == [1, 2, 6, 7]
 
-    # 2. 带版本的检索, 这次是更新一下
+    # 2. Query with version. How to update the data?
     ds[1].update({"value": "update data", "label": 1})
     ds.pop([0, 4])
     with ds:
@@ -88,7 +88,7 @@ def test_inverted_index(storage):
                                      use_local_index=False)
     assert ds_test_9.filtered_index == [1, 4, 5]
 
-    # 3. 带版本的检索，这次是直接append
+    # 3. Query with version. How to append the data?
     with ds:
         ds.value.append("白日依山尽，黄河入海流，欲穷千里目，更上一层楼")
         ds.label.append(0)
@@ -99,7 +99,7 @@ def test_inverted_index(storage):
                                       use_local_index=False)
     assert ds_test_10.filtered_index == [3, 9]
 
-    # 4. 带版本的检索，这次是直接append、update、pop一起上了
+    # 4. Query with version. How to append, update, and pop the data?
     ds[1].update({"value": "update data", "label": 1})
     ds[2].update({"value": "update data", "label": 1})
     ds.commit()
@@ -141,7 +141,7 @@ def test_inverted_index(storage):
     except FilterOperatorNegationUnsupportedError as e:
         assert True, f"Filter types caused exception {e}"
 
-    # 5. limit and offset:
+    # 5. limit and offset
     ds_test_16 = ds.filter_vectorized([("value", "CONTAINS", "data")], offset=4, limit=1,
                                       use_local_index=False)
     assert ds_test_16.filtered_index == [7]
@@ -173,7 +173,7 @@ def test_inverted_index(storage):
                                       use_local_index=False)
     assert ds_test_20.filtered_index == [6]
 
-    # 6. dataset当前commit版本和倒排索引记录的版本不匹配
+    # 6. The current commit version of dataset and index is not the same.
     ds[3].update({"value": "update data", "label": 3})
     ds.commit()
     ds_test_21 = ds.filter_vectorized([("label", "==", 3, True)],

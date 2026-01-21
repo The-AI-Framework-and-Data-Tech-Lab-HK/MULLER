@@ -78,24 +78,24 @@ def test_single_termination(storage):
     ds.commit()
     task_thread = threading.Thread(target=long_running_task, args=(stop_event, ds))
 
-    # 启动线程
+    # Start a thread
     task_thread.start()
 
     time.sleep(2)
 
-    # 确保线程仍在运行
+    # Make sure the thread is alive
     assert task_thread.is_alive()
 
-    # 发送停止信号
+    # Send a stop signal
     stop_event.set()
 
-    # 等待线程结束
+    # Wait for the thread to be killed
     task_thread.join(timeout=2)
 
-    # 确保线程已经结束
+    # Make sure the thread is killed
     assert not task_thread.is_alive()
 
-    # 检查结果
+    # Check the results
     try:
         integrity_check(ds)
         assert True, "No exception raises"
@@ -113,24 +113,24 @@ def test_multi_termination(storage):
     assert len(ds.labels.numpy(aslist=True)) == len(ds.new_labels.numpy(aslist=True)) == 5
     task_thread = threading.Thread(target=many_append_with_checkpoint, args=(stop_event, ds))
 
-    # 启动线程
+    # Start a thread
     task_thread.start()
 
     time.sleep(0.5)
 
-    # 确保线程仍在运行
+    # Make sure the thread is still alive
     assert task_thread.is_alive()
 
-    # 发送停止信号
+    # Send a stop signal
     stop_event.set()
 
-    # 等待线程结束
+    # Wait for the thread to be killed
     task_thread.join(timeout=2)
 
-    # 确保线程已经结束
+    # Make sure the thread is killed
     assert not task_thread.is_alive()
 
-    # 检查结果
+    # Check the results
     try:
         integrity_check(ds)
         assert True, "No exception raises"
@@ -152,24 +152,24 @@ def test_multi_termination_2(storage):
 
     task_thread = threading.Thread(target=many_append_without_checkpoint, args=(stop_event, ds))
 
-    # 启动线程
+    # Start a thread
     task_thread.start()
 
     time.sleep(0.1)
 
-    # 确保线程仍在运行
+    # Make sure the thread is still alive
     assert task_thread.is_alive()
 
-    # 发送停止信号
+    # Send a stop signal
     stop_event.set()
 
-    # 等待线程结束
+    # Wait for the thread to be killed
     task_thread.join(timeout=2)
 
-    # 确保线程已经结束
+    # Make sure the thread is killed
     assert not task_thread.is_alive()
 
-    # 检查结果
+    # Check the results
     try:
         integrity_check(ds)
         assert True, "No exception raises"
@@ -190,24 +190,24 @@ def test_pop_termination(storage):
 
     task_thread = threading.Thread(target=many_pop, args=(stop_event, ds))
 
-    # 启动线程
+    # Start a thread
     task_thread.start()
 
     time.sleep(1)
 
-    # 确保线程仍在运行
+    # Make sure the thread is alive
     assert task_thread.is_alive()
 
-    # 发送停止信号
+    # Send a stop signal
     stop_event.set()
 
-    # 等待线程结束
+    # Wait for the thread to be killed
     task_thread.join(timeout=2)
 
-    # 确保线程已经结束
+    # Make sure the thread is killed
     assert not task_thread.is_alive()
 
-    # 检查结果
+    # Check the results
     try:
         integrity_check(ds)
         assert True, "No exception raises"

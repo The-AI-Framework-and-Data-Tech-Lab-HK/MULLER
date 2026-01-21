@@ -28,23 +28,23 @@ def test_delete_tensor(storage):
     ds.categories.extend(['agent', '情感', '生成', '写作', '情感', 'agent', '生成', '写作', '情感', '写作'] * 2)
     ds.commit()
 
-    # 切换成用户B，新建分支 可以删除tensor列
+    # Change to user B, checkout a new branch dev, and delete a column
     SensitiveConfig().uid = "B"
     ds.checkout("dev", create=True)
     ds.delete_tensor('labels')
     assert len(ds.tensors) == 2
 
-    # 切换成用户A，在分支B上，也可以删除tensor列了
+    # Checkout to user A, and delete columns in branch dev
     SensitiveConfig().uid = "A"
     ds.checkout("dev")
     ds.delete_tensor('labels_2')
     assert len(ds.tensors) == 1
 
-    #切换成用户B，回到主分支，不能删除tensor列
+    # Checkout to user B, go back to the main branch. User B cannot delete columns in the main branch.
     SensitiveConfig().uid = "B"
     ds.checkout("main")
     try:
-        ds.delete_tensor('labels')  # 会报错，但在测试用例里顺利执行
+        ds.delete_tensor('labels')  # Raise exception. But it runs smoothly in the test case.
         assert False, "No exception raises"
     except UnAuthorizationError as e:
         assert True, f"exception: {e}"

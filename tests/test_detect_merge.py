@@ -343,7 +343,7 @@ def test_merge_pop_theirs(storage):
     """ Test conflict records: pop theirs """
     ds = test_conflict_records_pop_both(storage)
     ds.merge("dev-2", pop_resolution="theirs")
-    assert ds.labels.numpy(aslist=True) == [0, 3, 6, 7, 9, 8]  # 注意：可能顺序有变
+    assert ds.labels.numpy(aslist=True) == [0, 3, 6, 7, 9, 8]  # Note: it may lead to different sequence.
     assert ds.categories.numpy(aslist=True) == ['a', 'd', 'g', 'h', 'j', 'i']
 
 
@@ -405,7 +405,7 @@ def test_long_merge(storage):
         ds.features.extend(np.arange(0, 1.1, 0.1))
         ds.commit()
 
-    # 回到main分支，合入dev-3分支
+    # Go back to the main branch, and merge branch dev-3.
     ds.checkout("main")
     conflict_tensors, conflict_records = ds.detect_merge_conflict("dev-3",
                                                                   show_value=True)
@@ -596,7 +596,7 @@ def test_complicated_merge_10(storage):
     """ Test conflict records: complicated merge 10 """
     ds = complicated_merge_2(storage)
     ds.merge("dev-2", append_resolution="theirs", pop_resolution="both", update_resolution="theirs")
-    assert ds.labels.numpy(aslist=True) == [0, 300, 400, 500, 600, 700, 800]  # 顺序可能有变
+    assert ds.labels.numpy(aslist=True) == [0, 300, 400, 500, 600, 700, 800]  # The sequence may be different
 
 
 def test_complicated_merge_11(storage):
