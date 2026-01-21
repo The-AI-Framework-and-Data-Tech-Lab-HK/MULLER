@@ -18,16 +18,19 @@ MULLER requires Python 3.11 or higher.
 conda create -n muller python=3.11
 conda activate muller
 ```
-#### 2. Installation from code
+#### 2. Clone the MULLER project, and install MULLER from code
 ```bash
-chmod 777 $YOUR_PATH$/MULLER/muller/util/sparsehash/build_proj.sh  # You may need to change mode of the shell script.
-pip install . 
+git clone https://github.com/The-AI-Framework-and-Data-Tech-Lab-HK/MULLER.git
+cd MULLER
+chmod 777 muller/util/sparsehash/build_proj.sh  # You may need to change mode of the shell script.
+pip install .   # You may also use pip install . -v to check the build process
 ```
 * [Optional] Development Installation
 ```bash
 pip install -e .
 ```
 * [Optional] Skip C++ Module Building
+The Python modules provides all the same functions as the C++ modules, so you may consider to skip all the C++ module building if you only need to investigate the basic functions provided by MULLER.
 ```bash
 BUILD_CPP=false pip install .
 ```
