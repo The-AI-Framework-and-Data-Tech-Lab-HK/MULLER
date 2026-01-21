@@ -79,9 +79,9 @@ def generator_headers(headers: Optional[Dict] = None) -> Dict:
     if headers is None:
         headers = {}
 
-    # 获取时间戳
+    # Obtain timestamp
     time_stamp = str(int(round(time.time() * 1000)))
-    # 获取UUID
+    # Obtain UUID
     request_id = str(uuid.uuid4())
 
     usr_file_path = '/tmp/user/user.info'
@@ -97,7 +97,7 @@ def generator_headers(headers: Optional[Dict] = None) -> Dict:
     authorization = 'HmacSHA256 ' + get_signature_string(app_secret,
                                                          get_string_to_sign(app_id, app_secret, time_stamp, request_id))
 
-    # 追加消息头
+    # Append headers
     append_headers = {'AppId': app_id,
                       'Authorization': authorization,
                       'RequestId': request_id,

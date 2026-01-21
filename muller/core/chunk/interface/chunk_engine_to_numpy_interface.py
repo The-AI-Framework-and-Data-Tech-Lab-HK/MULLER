@@ -227,16 +227,17 @@ def get_samples_continuous(
         raise NumpyDataNotContinuousError()
 
     all_chunk_names = [hex(item[0]).split('x')[-1] for item in chunk_engine.chunk_id_encoder.encoded]
-    # 通过二分查找，从chunk_index/unshard算出需要哪些chunks，再多进程读这些chunks，最后拼起来
+    # Compute which chunks are needed from chunk_index and unshard via binary search
+    # Then read these chunks via multi-processes, and combine them.
     last_id_list = [line[1] for line in chunk_engine.chunk_id_encoder.encoded]
-    first_chunk_index = bisect.bisect_left(last_id_list, idxs[0]) # 从这个chunk开始读
-    last_chunk_index = bisect.bisect_left(last_id_list, idxs[-1]) # 读到这个chunk为止就够了
+    first_chunk_index = bisect.bisect_left(last_id_list, idxs[0]) # Start from this chunk
+    last_chunk_index = bisect.bisect_left(last_id_list, idxs[-1]) # Stop at this chunk
     chunk_names = all_chunk_names[first_chunk_index: last_chunk_index + 1]
 
     results = []
 
-    # 先计算第一个chunk
-    if chunk_engine.translate_to_local_index(idxs[0], first_chunk_index) == 0:  # 第一个chunk要全读
+    # The first chunk
+    if chunk_engine.translate_to_local_index(idxs[0], first_chunk_index) == 0:  # Read the whole chunk
         results.append(_get_chunk_numpy_full(chunk_engine, chunk_names[0]))
     else:
         results.append(_get_chunk_numpy_continuous(chunk_engine,
@@ -244,12 +245,13 @@ def get_samples_continuous(
                                                    chunk_engine.translate_to_local_index(idxs[0],
                                                    first_chunk_index),
                                                    int(last_id_list[first_chunk_index])))
-    # 去掉头尾，中间的chunk
-    with ThreadPoolExecutor(min(max_workers, len(chunk_names))) as executor:  # 注：这里用ProcessPool会导致文件锁报错
+    # The chunks in the middle
+    # Note: If we use ProcessPool here, it may cause file look error.
+    with ThreadPoolExecutor(min(max_workers, len(chunk_names))) as executor:
         for chunk_name in chunk_names[1: -1]:
             results.append(executor.submit(_get_chunk_numpy_full, chunk_engine, chunk_name).result())
 
-    # 最后一个chunk
+    # The last chunk
     if len(chunk_names) >= 2:
         if idxs[-1] == last_id_list[last_chunk_index]:
             results.append(_get_chunk_numpy_full(chunk_engine, chunk_names[-1]))
@@ -314,7 +316,7 @@ def get_samples_batch_random_access(chunk_engine,
         List of samples.
     """
 
-    load_res = _load_chunk_infos(chunk_engine, list(index_list))  # 注意，这个方法里将index_list重新排序了
+    load_res = _load_chunk_infos(chunk_engine, list(index_list))  # Note: this rearrange the index_list
 
     chunk_ids, rows, idxss, _ = zip(*list(load_res))
     chunk_ids, rows, idxss = list(chunk_ids), list(rows), list(idxss)
@@ -325,7 +327,8 @@ def get_samples_batch_random_access(chunk_engine,
 
     sorted_results = []
     for idx in index_list:
-        sorted_results.append(results[samples.get(idx, None)])  # 这里是按index_list原顺序取回来
+        # We retrieve the index_list of the original sequence
+        sorted_results.append(results[samples.get(idx, None)])
     return sorted_results
 
 
@@ -447,7 +450,7 @@ def get_chunks_for_multi_samples(chunk_engine, global_sample_index_list: list):
             if chunk_key not in chunk_key_list:
                 chunk_key_list.append(chunk_key)
     # Lastly, we obtain all the chunks in the chunk_key_list
-    # 原来用的check_filelist 现在改了 ---------------
+    # Originally, it uses check_filelist, but we modify it in the current version.
     chunk_engine.cache.get_items(keys=set(chunk_key_list))
 
 

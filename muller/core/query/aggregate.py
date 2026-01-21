@@ -290,7 +290,7 @@ def _turn_agg_query_ndarray(queried_dict: dict, label_list: list, group_by_tenso
         index_group_lists = []
         for index, label_value in enumerate(group_key):
             key = (group_by_tensors[index], label_value)
-            value = queried_dict.get(key)  # 使用 get() 方法避免 KeyError
+            value = queried_dict.get(key)  # Use get() to avoid KeyError
             if value is not None:
                 index_group_lists.append(value)
         total = reduce(intersect_array, index_group_lists)

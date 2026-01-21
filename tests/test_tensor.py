@@ -41,25 +41,29 @@ def test_get_tensors(storage):
 def test_invalid_tensor_name(storage):
     ds = muller.dataset(path=official_path(storage, TEST_TENSOR_PATH), creds=official_creds(storage), overwrite=True)
     try:
-        ds.create_tensor(name="data", htype="text")  # data是TransformData已有属性，不可创建
+        # data is an existing attribute of TransformData and must not be redefined or created anew.
+        ds.create_tensor(name="data", htype="text")
         assert False, "No exception raises"
     except InvalidTensorNameError as e:
         assert True, f"uid authorization caused exception {e}"
 
     try:
-        ds.create_tensor(name="items", htype="text")  # items是__builtin__已有关键字，不可创建
+        # items is a __builtin__ keyword (method of dict and other standard types)
+        ds.create_tensor(name="items", htype="text")
         assert False, "No exception raises"
     except InvalidTensorNameError as e:
         assert True, f"uid authorizatioexn caused exception {e}"
 
     try:
-        ds.create_tensor(name="None", htype="text")  # None是python保留关键字，不可创建
+        # None is a Python reserved keyword (a singleton constant representing the absence of a value)
+        ds.create_tensor(name="None", htype="text")
         assert False, "No exception raises"
     except InvalidTensorNameError as e:
         assert True, f"uid authorization caused exception {e}"
 
     try:
-        ds.create_tensor(name="values", htype="text")  # values是__builtin__已有关键字，不可创建
+        # values is a __builtin__ keyword
+        ds.create_tensor(name="values", htype="text")
         assert False, "No exception raises"
     except InvalidTensorNameError as e:
         assert True, f"uid authorization caused exception {e}"

@@ -61,7 +61,7 @@ def to_json(ds, target_path, tensors=None, num_workers=1):
     for sub_ds in sub_ds_list:
         results.append(pool.apply_async(process_sub_dataset, (sub_ds, tensors)))
     pool.close()
-    pool.join()  # 注：进程池中进程执行完毕后再关闭。
+    pool.join()
     pool.terminate()
 
     for result in results:

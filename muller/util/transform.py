@@ -639,9 +639,11 @@ def _process_single_sample(
     ignore_errors,
 ):
     """
-    处理一个 sample 的 transform, 写入, 检查 pipeline, 可能抛出或返回跳过数。
-    返回：
-        skipped (int)：0 或 1，表示这个 sample 是否被 skip。
+    Process a single sample through the transform, write, and pipeline validation steps.
+    May raise an exception or return a skip count.
+
+    Returns:
+        skipped (int): 0 or 1, indicating whether this sample was skipped.
     """
     skipped = 0
 
@@ -649,7 +651,7 @@ def _process_single_sample(
 
     try:
         out = transform_sample(sample, pipeline, tensors)
-        # 第一次成功 transform 时，检查 pipeline
+        # On the first successful transform, validate the pipeline.
         _check_pipeline(out, tensors, skip_ok)
         write_sample_to_transform_dataset(out, transform_dataset)
 
@@ -662,8 +664,8 @@ def _process_single_sample(
             ) from e
 
     finally:
-        # flush 或 check_flush
-        # 注意：flush 的条件由调用方传入 length info
+        # flush or check_flush
+        # Note: The flush condition is determined by the caller, who provides the length information.
         transform_dataset.check_flush()
 
     return skipped
@@ -681,7 +683,8 @@ def _process_and_write(
     pipeline_checked
 ):
     """
-    内部 helper：transform + pipeline check + write。返回 skipped(0 or 1)。
+    Internal helper: performs transform, pipeline check, and write.
+    Returns skipped (0 or 1).
     """
     try:
         out = transform_sample(sample, pipeline, tensors)
@@ -705,8 +708,8 @@ def _make_iterable(data_slice):
 
 def _maybe_flush(transform_dataset, i, total_len, skipped_in_batch):
     """
-    做 flush 或 check_flush，并在 transform_dataset.start_input_idx 为 None 时重置 skipped_in_batch。
-    返回新的 skipped_in_batch。
+    Perform flush or check_flush, and reset skipped_in_batch to 0 when transform_dataset.start_input_idx is None.
+    Return the updated skipped_in_batch.
     """
     if i == total_len - 1:
         transform_dataset.flush()
@@ -720,7 +723,7 @@ def _maybe_flush(transform_dataset, i, total_len, skipped_in_batch):
 
 def _maybe_progress(pg_callback, progress, last_time, i, total_len):
     """
-    处理进度回调，返回 (new_progress, new_last_time)。
+    Handle progress callback and return (new_progress, new_last_time).
     """
     progress += 1
     now = time.time()
@@ -747,7 +750,7 @@ def _transform_and_append_data_slice(
 
     for i, sample in enumerate(_make_iterable(data_slice)):
         try:
-            # 正常路径：尝试 transform + 写入
+            # Normal path: attempt transform + write.
             skipped = _process_and_write(
                 sample, i, offset,
                 transform_dataset, pipeline, tensors,
@@ -758,10 +761,10 @@ def _transform_and_append_data_slice(
                 pipeline_checked = True
 
         except TransformError:
-            # TransformError 直接向外抛
+            # TransformError
             raise
         except Exception:
-            # chunk-engine 或其他错误，进入重试逻辑
+            # On ChunkEngine or other errors, enter retry logic.
             skip_details[0] -= skip_details[1]
             skip_details[1] = 0
             extra_skipped = _handle_transform_error(
@@ -774,17 +777,17 @@ def _transform_and_append_data_slice(
                 ignore_errors,
             )
             skip_details[0] += extra_skipped
-            # 跳过这次 sample，不做后续 flush / progress
+            # Skip this sample and skip subsequent flush / progress updates.
             continue
         else:
-            # 正常处理路径
+            # Normal processing path.
             skip_details[0] += skipped
             skip_details[1] += skipped
 
-        # flush / check_flush 逻辑
+        # flush / check_flush
         skip_details[1] = _maybe_flush(transform_dataset, i, len(data_slice), skip_details[1])
 
-        # progress 回调
+        # progress call back
         if pg_callback is not None:
             skip_details[2], last_time = _maybe_progress(pg_callback, skip_details[2], last_time, i, len(data_slice))
 

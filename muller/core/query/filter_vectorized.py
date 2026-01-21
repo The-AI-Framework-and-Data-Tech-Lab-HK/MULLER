@@ -64,9 +64,11 @@ def filter_based_on_numpy(
         return indices
 
     if negation:
-        result_index = np.where(compare_result == 0)  # 有negation，返回不符合条件的index
+        # negation=True, return the results that does not satisfy the condition
+        result_index = np.where(compare_result == 0)
     else:
-        result_index = np.where(compare_result == 1)  # 返回符合条件的index
+        # negation=False, return the results that satisfy the condition
+        result_index = np.where(compare_result == 1)
 
     return result_index[0]
 
@@ -114,16 +116,16 @@ def filter_vectorized_dataset(
     if not limit:
         limit = length
 
-    # 获取结果
+    # Retrieve the results
     filtered_index = _obtain_final_index(dataset, condition_list, connector_list, offset, limit, use_local_index,
                                          max_workers, show_progress)
 
-    # 插入到我们的upper_cache里
+    # Insert to upper cache
     _insert_to_cache(dataset, condition_list, connector_list, offset, limit, filtered_index)
 
-    # 需要提前异步计算一些结果(注：这里只计算了一批次)
+    # Compute some results in asyn way in advance
     if limit != len(dataset) and compute_future:
-        if len(filtered_index) > 0 and filtered_index[-1] != len(dataset) - 1:  # 还没到最后一位呢
+        if len(filtered_index) > 0 and filtered_index[-1] != len(dataset) - 1:  # Not the last row yet
             _filter_vectorized_next(dataset,
                                     condition_list=condition_list,
                                     connector_list=connector_list,
@@ -158,28 +160,29 @@ def _obtain_final_index(dataset,
         'max_workers': max_workers,
         'show_progress': show_progress
     }
-    # Step 1：从cache里找结果
+    # Step 1：Fetch results from cache
     result, recompute_flag, recompute_range = _fetch_from_cache(dataset, condition_list, connector_list,
                                                                 settings['offset'], limit)
     if result is not None:
-        # 已经有过的查询，无需再计算，直接返回结果即可
+        # If there is existing query in the query, no need to recompute. Return the results directly.
         if not recompute_flag:
             return result
         partial_filtered_index = result
 
-    # Step 2：合法性检查
+    # Step 2：Legality verification
     legality_verification(dataset, condition_list, connector_list)
 
-    # Step 3：选择用向量化并行方法？还是用倒排索引？
+    # Step 3：Use array-based full scan or inverted index?
     filter_list = assign_compute_method(dataset, condition_list) # filter_inverted_index_list, filter_vec_list
     if filter_list[0]: # filter_inverted_index_list
-        recompute_range = (0, len(dataset)) # 因为使用倒排索引的时候难以限制查询范围，所以不考虑从cache里重新拼接和计算了
+        # Since it is difficult to set range while using inverted index, we do not consider fetch results from cache.
+        recompute_range = (0, len(dataset))
 
-    # Step 4: 倒排索引和向量化并行方法，各自计算【可并行】
+    # Step 4: Execution of array-based full scan and inverted index (parallel)
     final_index_array = filter_with_inverted_index(dataset, filter_list[0], connector_list,
                                                    filter_with_numpy_vec(dataset[recompute_range[0]:recompute_range[1]],
                                                                          filter_list[1], settings['offset'],
-                                                                         settings['show_progress']), settings)  # 倒排
+                                                                         settings['show_progress']), settings)
 
     if len(partial_filtered_index):
         return np.unique(np.concatenate((partial_filtered_index,
@@ -192,15 +195,15 @@ def legality_verification(dataset, condition_list, connector_list):
     """
     Check the legality of each condition and connector.
     """
-    # 没见过的新查询，需要检查connector_list与condition_list的合法性
-    # connector_list 长度是否有问题？
+    # Need to check the legality of connector_list and condition_list
+    # The length of connector_list
     if connector_list is None:
         if len(condition_list) > 1:
             raise FilterVectorizedConnectorListError(connector_list)
     else:
         if len(connector_list) != len(condition_list) - 1:
             raise FilterVectorizedConnectorListError(connector_list)
-        # connector_list 内是否包含非法关键字？
+        # The illegal keywords in connector_list
         unique_connectors = set(connector_list)
         if unique_connectors not in [{"AND"}, {"OR"}, {"AND", "OR"}]:
             raise FilterVectorizedConnectorListError(connector_list)
@@ -211,15 +214,15 @@ def assign_compute_method(dataset, condition_list):
     Put them in the corresponding filter_vec_list (for filter based on numpy) and
        filter_inverted_index_list (for filtered based on inverted index)
     """
-    filter_vec_list = {}  # 需要用向量化并行方法全遍历的条件
-    filter_inverted_index_list = {}  # 需要用倒排索引方法的条件
+    filter_vec_list = {}  # Need to use array-based full scan
+    filter_inverted_index_list = {}  # Need to use inverted index
 
-    for i, tmp_tuple in enumerate(condition_list):  # 处理每个独立的filter condition
-        if len(tmp_tuple) == 3:  # 未声明是否采用倒排索引
+    for i, tmp_tuple in enumerate(condition_list):  # Process each independent filter condition
+        if len(tmp_tuple) == 3:  # Not specify whether using inverted index
             tmp_tuple += (False,)
-        if len(tmp_tuple) == 4:  # 未声明是否取反None
+        if len(tmp_tuple) == 4:  # Not specify whether it is negation
             tmp_tuple += (None,)
-        if len(tmp_tuple) != 5:  # 加上两个可选声明条件之后，item数量仍有问题
+        if len(tmp_tuple) != 5:  # Illegal number of items with the above specification
             raise FilterVectorizedConditionError(tmp_tuple)
 
         (tensor, operator, value, use_inverted_index, negation) = tmp_tuple
@@ -284,11 +287,12 @@ def optimize_connector(target_idx, tensor, target_value, dataset):
     target_idx_array = np.array(target_idx)
 
     if tensor_values.ndim > 1:
-        # 如果是二维数组且每个元素只有一个值，展平为一维
+        # If this is a 2-d array with only one value in each element, flatten it into 1-d array
         if tensor_values.shape[1] == 1:
             tensor_values = tensor_values.ravel()
         else:
-            # 如果是多维数组，需要逐行比较, 但这种情况不会出现，以防万一，暂时抛出错误或者使用其他策略
+            # If this is a multi-dimension array, then we need to compare element by element.
+            # However, this case would not happen in normal situation.
             raise ValueError(f"Tensor values have unexpected shape: {tensor_values.shape}")
 
     mask = tensor_values == target_value
@@ -333,7 +337,7 @@ def filter_with_inverted_index(dataset,
             is_and_connector = key > 0 and key - 1 < len(connector_list) and connector_list[key - 1] == "AND"
 
             if search_type == "exact_match" and is_and_connector and final_index_array is not None:
-                # 使用累积的final_index_array作为prev_result
+                # Use the old final_index_array as prev_result
                 final_index_array = _optimize_and_condition(
                     final_index_array, params[0], params[2], dataset, settings['offset']
                 )
@@ -364,12 +368,12 @@ def filter_with_inverted_index(dataset,
                     key_individual_result = key_individual_result[key_individual_result >= settings['offset']]
                 results_cache[key] = key_individual_result
 
-        # 获取当前key的结果（可能来自filter_inverted_index_list或pre_result）
+        # Fetch the result of the current key (may com from filter_inverted_index_list or pre_result)
         key_individual_result = results_cache[key]
         if final_index_array is None:
             final_index_array = key_individual_result
         else:
-            # 根据前一个connector决定操作
+            # Determine the operation based on the former connector
             if idx > 0 and idx - 1 < len(connector_list):
                 final_index_array = _apply_connector(
                     final_index_array, key_individual_result, connector_list[idx - 1]
@@ -380,19 +384,22 @@ def filter_with_inverted_index(dataset,
 
 def filter_with_numpy_vec(dataset, filter_vec_list, offset, show_progress):
     """
-    需要用numpy向量化加速的condition 【注：这不需要全遍历，从offset开始即可。】
+    Filter based on array-based SIMD computation.
+    Note: Only need to start from the offset.
     """
     result_index_list = {}
     if len(filter_vec_list):
-        single_ds = dataset[offset:]  # 【注：这不需要全遍历，从offset开始即可。】
-        # 这里之前用了多线程，但我觉得有点古怪，因为这是一个计算密集型任务。日后应改为多进程。
+        single_ds = dataset[offset:]  # Only need to start from the offset.
+        # TODO: Previously we use multi-thread here, but a little bit weird since it is a compute-intensive task.
+        # Should modify to multi-process here.
         for key, (tensor, operator, value, negation) in filter_vec_list.items():
             if show_progress:
                 logging.getLogger().setLevel(logging.INFO)
                 logging.info(f"Computing the result of {(tensor, operator, value, negation)}...")
             target = np.full((len(single_ds), 1), value) if operator != 'LIKE' else value  # the target value.
+            # Note：need to add offset here, Since the filter_based_on_numpy above is without offset
             res = filter_based_on_numpy(single_ds[tensor], target, len(single_ds), operator,
-                                    negation) + offset # 注：一定要加回来，因为上面filter_based_on_numpy的计算不带offset
+                                    negation) + offset
             result_index_list.update({key: res})
     return result_index_list
 
@@ -401,7 +408,7 @@ def matching(ds, tensor, value, search_type="fuzzy_match", use_local_index=True,
     """
     Load the inverted_index and conduct searching.
     """
-    # 1. 合并路径和元数据相关变量
+    # 1. Combine the path and metadata related variables
     branch = ds.version_state["branch"]
     try:
         meta_json = json.loads(ds.storage[os.path.join("inverted_index_dir_vec" if use_local_index else
@@ -409,10 +416,10 @@ def matching(ds, tensor, value, search_type="fuzzy_match", use_local_index=True,
     except KeyError as e:
         raise InvertedIndexNotExistsError(tensor) from e
 
-    # 2. 获取倒排索引
+    # 2. Get inveted index
     inverted_index = ds.get_inverted_index(tensor, vectorized=use_local_index)
 
-    # 3. 执行搜索
+    # 3. Perform search
     if use_local_index:
         try:
             use_cpp = meta_json[tensor]['use_cpp']
@@ -424,7 +431,7 @@ def matching(ds, tensor, value, search_type="fuzzy_match", use_local_index=True,
     else:
         ids = inverted_index.search(value, search_type=search_type)
 
-    # 4. 后处理
+    # 4. Post process
     return _post_process_results(ds, tensor, inverted_index, meta_json, ids)
 
 
@@ -437,10 +444,10 @@ def filter_like_batch(source, pattern, start_index):
     """
     source = '@@'.join(source)
     index = re.finditer(pattern, source)
-    index = [match.span()[0] for match in index]  # source里每个元素开始的位置
+    index = [match.span()[0] for match in index]  # The start index of each element in source
     at = re.finditer(r'@@', source)
-    at = [match.span()[0] for match in at]  # @@开始的index
-    indices = np.searchsorted(at, index) + start_index  # 插入的位置
+    at = [match.span()[0] for match in at]  # The index where @@ starts
+    indices = np.searchsorted(at, index) + start_index  # The index of insertion
     return indices
 
 
@@ -460,7 +467,7 @@ def filter_like(source, pattern):
 
 
 def _perform_search(inverted_index, value, search_type, use_cpp, max_workers):
-    """执行搜索操作"""
+    """Perform search"""
     if search_type == "complex_fuzzy_match":
         return inverted_index.complex_search(value, max_workers=max_workers, use_cpp=use_cpp)
     search_func = inverted_index.search_cpp if use_cpp else inverted_index.search
@@ -468,8 +475,8 @@ def _perform_search(inverted_index, value, search_type, use_cpp, max_workers):
 
 
 def _post_process_results(ds, tensor, inverted_index, meta_json, ids):
-    """结果后处理"""
-    # 验证提交ID一致性
+    """Post process the results"""
+    # Verify the consistency of the commit ids
     commit_node = ds.version_state.get("commit_node")
     index_commit_id = meta_json[tensor].get("commit_id", None)
 
@@ -494,14 +501,16 @@ def _fetch_from_cache(
         limit
 ):
     if "filter_vectorized" not in dataset.storage.upper_cache:
-        # upper_cache里没有filter_vec的记录，给他新建一个key用于记录，注意这里对应的value是OrderDict()
+        # There is no filter_vec in upper_cache, so we need to create a new key for recording.
+        # Note: The value of the key is an OrderedDict()
         dataset.storage.upper_cache["filter_vectorized"] = OrderedDict()
     cache_key = (str(condition_list), str(connector_list), dataset.branch)
     recompute_flag = 1
     recompute_range = (0, len(dataset))
-    # 数据集没被pop或update过，且之前有过这个查询，看看记录的结果是否符合范围
+    # The dataset has not been pop or updated, and we have the same query before.
+    # Let's check whether the recorded result match the target range.
     if dataset.append_only:
-        # 在同一branch, 且有这个cache_key, 且记录result不为空
+        # We are in the same branch, and we hava the same cache_key with non-empty record
         is_old_query = cache_key[2] == dataset.branch and \
                        cache_key in dataset.storage.upper_cache["filter_vectorized"] and \
                        len(dataset.storage.upper_cache["filter_vectorized"][cache_key]) == 3 and \
@@ -511,21 +520,22 @@ def _fetch_from_cache(
             old_limit = dataset.storage.upper_cache["filter_vectorized"][cache_key][1]
             old_result = dataset.storage.upper_cache["filter_vectorized"][cache_key][2]
 
-            # 以下为三种情况，注：现在的区分是否可重用实现比较简单，仍可以做更多划分
-            # Case 1: offset和limit就在之前计算过的范围内, 可重用
+            # We have three cases! Note: The current implementation is naive. More optimization is needed.
+            # Case 1: offset and limit are in the previous compute range, so we can fetch the result, no need recompute.
             if old_offset == offset and old_limit >= limit:
                 new_result = old_result
                 new_result = new_result[new_result >= offset][:limit]
                 recompute_flag = 0
                 return new_result, recompute_flag, (0, 0)
-            # Case 2：部分offset和limit在之前计算的范围内，可重用，但仍需计算
+            # Case 2：partial offset and limit are in the previous compute range, so we can fetch the result.
+            # But recompute is needed.
             if old_offset == offset and old_limit < limit:
                 partial_result = old_result[:limit]
                 recompute_range = (old_limit, limit)
                 return partial_result, recompute_flag, recompute_range
-            # Case 3: offset和limit超出了之前的计算范围，整个都需要重算了，走下一步即可
+            # Case 3: partial offset and limit are beyond the previous compute range. The result cannot be used.
 
-    # 之前没有过这个查询，给他新建一个key用于记录
+    # A new query condition. We need to create a new key for record.
     dataset.storage.upper_cache["filter_vectorized"][cache_key] = (offset, limit, None)
     if len(dataset.storage.upper_cache["filter_vectorized"]) > FILTER_CACHE_SIZE:
         dataset.storage.upper_cache["filter_vectorized"].popitem()
@@ -536,15 +546,15 @@ def _insert_to_cache(dataset, condition_list, connector_list, offset, limit, fil
     cache_key = (str(condition_list), str(connector_list), dataset.branch)
     if dataset.append_only and cache_key in dataset.storage.upper_cache["filter_vectorized"]:
         (old_offset, old_limit, old_index_list) = dataset.storage.upper_cache["filter_vectorized"][cache_key]
-        # Case 1：不覆盖原来cache里的记录
+        # Case 1：No need to replace the old record in cache
         if old_offset <= offset and old_limit >= limit and old_index_list is not None:
             return
-        # Case 2：可拼接上现有的cache里的记录
+        # Case 2：The record in the current cache can be reused. We can concat it with the new results.
         if old_index_list is not None and offset == old_index_list[-1] + 1:
             new_index_list = old_index_list + filtered_index
             dataset.storage.upper_cache["filter_vectorized"][cache_key] = (old_offset, old_limit, new_index_list)
             return
-    # 除此之外，都更新cache就行（可否优化？待研究）
+    # Otherwise, update the cache. # TODO: Can we optimize this workflow?
     dataset.storage.upper_cache["filter_vectorized"][cache_key] = (offset, limit, filtered_index)
 
 

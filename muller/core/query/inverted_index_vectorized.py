@@ -35,13 +35,16 @@ class InvertedIndexVectorized(object):
         self.column_name = column_name
         self.index_folder = os.path.join("inverted_index_dir_vec", branch, column_name)
         self.use_uuid = use_uuid
-        # meta.json：记录了在哪一列的哪个版本完成了倒排索引的建立, 以及详细的元信息【注：与每列的log.json不一样】
+        # meta.json: Records which column and version the inverted index was built for, along with detailed metadata.
+        # [Note: This is different from the log.json file associated with each individual column.]
         self.meta = os.path.join("inverted_index_dir_vec", branch, "meta.json")
-        # col_log_folder: 每列都有的log文件夹，主要记录在此列内已处理过的batch
+        # col_log_folder: A log folder for each column, primarily recording the batches that have already been processed
+        # within that column.
         self.col_log_folder = "create_index_record"
-        # col_log_file: 每列都有的log文件，主要记录在此列内处理的参数
+        # col_log_file: A log file for each column, primarily recording the parameters used during processing
+        # of that column.
         self.col_log_file = "log.json"
-        # logger：记录
+        # logger
         self.logger = self._set_logger(self.dataset.path + os.sep + FILTER_LOG)
         self.hot_shard_data = None
 
@@ -54,25 +57,23 @@ class InvertedIndexVectorized(object):
 
     @staticmethod
     def _set_logger(path):
-        # 创建日志记录器
         logger = logging.getLogger('my_logger')
         logger.setLevel(logging.DEBUG)
         logger.propagate = False
 
-        if not logger.handlers:  # 避免重复添加 handler
-            # 创建文件处理器
+        if not logger.handlers:
+            # File logging
             file_handler = logging.FileHandler(path, mode='a')
             file_handler.setLevel(logging.DEBUG)
             file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             file_handler.setFormatter(file_formatter)
 
-            # 创建控制台处理器
+            # Console logging
             stream_handler = logging.StreamHandler()
             stream_handler.setLevel(logging.INFO)
             stream_formatter = logging.Formatter('%(levelname)s: %(message)s')
             stream_handler.setFormatter(stream_formatter)
 
-            # 添加处理器到日志记录器
             logger.addHandler(file_handler)
             logger.addHandler(stream_handler)
         return logger
@@ -126,15 +127,15 @@ class InvertedIndexVectorized(object):
 
     @staticmethod
     def _byte_to_int64(byte_data, num_of_shard):
-        # 哈希为int64（有符号）
+        # Hash into int64
         hash_signed = mmh3.hash64(byte_data)[0]
-        # 哈希取模计算这个数字的shard
+        # Compute the shard
         shard_id = hash_signed % num_of_shard
         return hash_signed, shard_id
 
     @staticmethod
     def _num_to_shard(num, num_of_shard):
-        # 比较简单的方法，直接根据值取模。可能会导致负载均衡问题！
+        # A relatively simple approach: directly take the modulo of the value. This may lead to load balancing issues!
         shard_id = num % num_of_shard
         return int(shard_id)
 
@@ -143,20 +144,20 @@ class InvertedIndexVectorized(object):
         dataset_length = end - start if cpp_use else end - start + 1
         chunk_size = dataset_length // num_of_batches
         remainder = dataset_length % num_of_batches
-        # 构造每个子数组的大小
+        # Compute the size of each sub-array
         sizes = np.full(num_of_batches, chunk_size)
-        sizes[:remainder] += 1  # 前 remainder 个子数组多一个元素
+        sizes[:remainder] += 1
 
-        # 计算起始索引
+        # Compute the start index
         starts = np.cumsum([start] + list(sizes[:-1]))
         ends = starts + sizes - 1
 
         # shuffle
         shuffled_starts = starts[np.random.permutation(len(starts))]
 
-        # 创建布尔掩码（保留不在 to_remove 中的元素）
+        # Create a boolean mask (keeping elements not in to_remove)
         mask = ~np.isin(shuffled_starts, np.array(to_remove))
-        # 应用掩码，生成新数组
+        # Apply the mask, and generate a new array.
         filtered_starts = starts[np.random.permutation(len(starts))][mask]
         filtered_ends = ends[np.random.permutation(len(starts))][mask]
 
@@ -176,7 +177,8 @@ class InvertedIndexVectorized(object):
                      force_create: bool = False,
                      use_cpp: bool = False,
                      ):
-        # 检查是否存在已有的索引。如已有完整索引，则根据force_create的值决定是否需删除再重建。否则将继续创建。
+        # Check if an existing index is present. If a complete index already exists, decide whether to delete and
+        # rebuild it based on the value of force_create. Otherwise, proceed with creating the index.
         skip, settings = self._check_existing_indexes(force_create)
         if skip:
             return None
@@ -185,12 +187,14 @@ class InvertedIndexVectorized(object):
             num_of_batches = int(num_of_batches)
             num_of_shards = int(num_of_shards)
 
-        # 定义新的临时索引文件夹，然后把以前的临时文件夹（如有）删了，以免造成混用
+        # Define a new temporary index folder, then delete the previous temporary folder (if it exists)
+        # to avoid accidental mixing or reuse.
         tmp_path = os.path.join(self.dataset.path, self.index_folder + "_tmp")
         if os.path.exists(tmp_path):
             shutil.rmtree(tmp_path)
 
-        # 创建一个log file来记录本次创建的meta信息。注意这只是用于暂时的log记录！
+        # Create a log file to record the metadata of this indexing run.
+        # Note that this is only for temporary logging purposes!
         log_path = os.path.join(self.dataset.path, self.index_folder + "_tmp", self.col_log_folder)
         if not os.path.exists(log_path):
             use_uuids = bool(uuids)
@@ -199,7 +203,7 @@ class InvertedIndexVectorized(object):
             with open(os.path.join(log_path, self.col_log_file), "w") as f:
                 json.dump(tmp_meta, f)
 
-        # 读取停用词列表并存储到列表内
+        # Read the stopword list and store it in a list.
         if index_type == "fuzzy_match":
             full_stop_words = {"", " ", "  ", '\n', '\t'}
             stop_words = self._obtain_stop_words(stop_words_list)
@@ -208,7 +212,7 @@ class InvertedIndexVectorized(object):
         else:
             full_stop_words = set()
 
-        # 多进程创建索引
+        # Create index via multi-processinng
         if use_cpp:
             filtered_starts, filtered_ends = self._split_data(0, len(self.dataset),
                                                               num_of_batches, self._obtain_existing_batches(),
@@ -243,10 +247,12 @@ class InvertedIndexVectorized(object):
                 max_workers, uuids
             )
 
-        # 创建完一次索引之后，需要检查是否所有batch的索引都生成完毕，如果有缺少的话，可重新生成！
+        # After creating an index, you need to verify whether the indexes for all batches have been successfully
+        # generated. If any are missing, they can be regenerated!
         unfinished_batches = self.check_index_completeness(self.index_folder + "_tmp", num_of_batches)
-        # 日后可考虑采用递归调用unfinished_batches = self.check_create_index_completeness(...) 来保证创建的完整性.
-        # 不过需要确保workers意外中断之后可以自动释放内存。
+        # In the future, we could consider using a recursive call like
+        # unfinished_batches = self.check_create_index_completeness(...) to ensure the completeness of index creation.
+        # However, we must also ensure that memory is automatically released if workers are unexpectedly interrupted.
 
         if not unfinished_batches:
             self.logger.info(f"Creating index of {self.column_name} successfully.")
@@ -262,21 +268,24 @@ class InvertedIndexVectorized(object):
                        max_workers: int = 16,
                        delete_old_index: bool = False,
                        use_cpp: bool = True):
-        """将同一个shard id下的shard文件合并为一个文件"""
-        num_of_shards = self._obtain_meta(["num_of_shards"])[0] # 是shard的数量，不是shard文件的数量
+        """Merge all shard files under the same shard ID into a single file."""
+        num_of_shards = self._obtain_meta(["num_of_shards"])[0] # Number of shards, not number of shard files
 
-        # 如果没有已经生成的临时索引文件文件夹，直接报错返回
+        # If no temporary index file folder has already been generated, raise an error and return immediately.
         tmp_index_path = os.path.join(self.dataset.path, self.index_folder + "_tmp")
         if not os.path.exists(tmp_index_path):
             raise InvertedIndexNotExistsError(self.column_name)
 
-        # 正式建立索引。注：这里新建了一个（column_name）_optimized索引文件夹，所有索引都写在里面了
+        # Formally build the index. Note: A new (column_name)_optimized index folder is created here,
+        # and all indexes are written into it.
         optimized_index_path = os.path.join(self.dataset.path, self.index_folder + f"_optimized")
         if not os.path.exists(optimized_index_path):
-            os.makedirs(optimized_index_path)  # 一定要在主进程里新建。如果在子进程里新建的话会打架！
-        # merge的时候需要判断一下，这时候是create时的merge呢？还是update时的merge呢？
-        # create时的merge：在merge时可以不管已存在的（column_name）索引文件
-        # update时的merge：在merge时需要把（column_name）文件夹里的内容也一并合入了
+            # It must be created in the main process. If created in a child process, conflicts will occur!
+            os.makedirs(optimized_index_path)
+        # During merging, you need to determine whether this is a merge during index creation or during an update:
+        # Merge during creation: Existing (column_name) index files can be ignored; only the new shards are merged.
+        # Merge during update: The contents of the existing (column_name) folder must also be included and
+        # merged together.
         num_process = min(num_of_shards, max_workers)
         if use_cpp:
             from muller.util.sparsehash.build.custom_hash_map import merge_index_files
@@ -294,11 +303,11 @@ class InvertedIndexVectorized(object):
             for i in range(num_of_shards):
                 pool.apply_async(func=self._merge_shards,
                                 args=(optimize_mode, i,))
-            # 注：进程池中进程执行完毕后再关闭。
             pool.close()
             pool.join()
 
-        # 4. 将原索引文件夹（如有）命名为col_[uuid]文件夹。然后将col_optimized文件夹正式命名为col文件夹，并删除col_tmp文件夹
+        # Rename the original index folder (if it exists) to col_[uuid].
+        # Then, rename the col_optimized folder to col, and delete the col_tmp folder.
         official_index_path = os.path.join(self.dataset.path, self.index_folder)
         old_index_path = official_index_path + "_" + uuid.uuid4().hex
         if os.path.exists(old_index_path):
@@ -344,13 +353,13 @@ class InvertedIndexVectorized(object):
                                    if k in default_params and v is not None})
         tokenizer_params = default_params
 
-        # 初始化检查和设置
+        # Initialization checks and setup
         settings = self._load_and_validate_settings(use_cpp, index_type)
 
-        # 停用词处理
+        # Get stop words
         full_stop_words = self._get_stop_words(index_type, tokenizer_params['stop_words_list'])
 
-        # 索引更新
+        # Update index
         if settings['use_cpp']:
             self._update_with_cpp(
                 start_index, end_index, num_of_batches,
@@ -366,7 +375,7 @@ class InvertedIndexVectorized(object):
                 index_type, tokenizer_params, uuids
             )
 
-        # 完整性检查
+        # Check whether update is complete
         return self._check_update_completion(num_of_batches)
 
 
@@ -387,18 +396,19 @@ class InvertedIndexVectorized(object):
             optimize_batch = [pool.apply_async(func=self._reshard_single,
                                                args=(i, old_shard_num, new_shard_num))
                               for i in range(old_shard_num)]
-            # 等待上述任务全部完成
+            # Wait for all the above tasks to be finished
             for res in optimize_batch:
                 res.wait()
 
     def add_hot_shard(self, max_workers: int = 16, n: int = 100000):
-        """从现有的shard里选出n个出现频率最高的词，写进我们的hot shard！"""
+        """Select the top n most frequently occurring terms from the existing shards
+        and write them into our hot shard!"""
         num_of_shards = self._obtain_meta(["num_of_shards"])[0]
         with multiprocessing.Pool(min(num_of_shards, max_workers)) as pool:
             results = [pool.apply_async(func=self._obtain_hot_data_from_single_shard,
                                                args=(i, ))
                               for i in range(num_of_shards)]
-            # 等待上述任务全部完成
+            # Wait for all the above tasks to be finished
             for res in results:
                 res.wait()
 
@@ -410,7 +420,7 @@ class InvertedIndexVectorized(object):
             results = [pool.apply_async(func=self._obtain_set_of_key,
                                         args=(num,))
                        for num in top_n]
-            # 等待上述任务全部完成
+            # Wait for all the above tasks to be finished
             for res in results:
                 res.wait()
 
@@ -420,7 +430,7 @@ class InvertedIndexVectorized(object):
         for i, num in enumerate(top_n):
             final_dict[num] = results[i]
 
-        # 落盘这个hot shard
+        # Dump to storage
         file_name = "hot_shard"
         self._dump_index(self.index_folder, file_name, final_dict)
         self.logger.info(f"dump hot shard")
@@ -500,12 +510,12 @@ class InvertedIndexVectorized(object):
         if use_cpp:
             return self._cpp_complex_search(query, meta_data, max_workers)
 
-        # 处理Python搜索
+        # Python search
         return self._python_complex_search(query, meta_data, max_workers)
 
 
     def _cpp_complex_search(self, query, meta_data, max_workers):
-        """使用CPP实现的复杂搜索"""
+        """CPP complex search"""
         from muller.util.sparsehash.build.custom_hash_map import search_idx
         try:
             return search_idx(
@@ -524,8 +534,8 @@ class InvertedIndexVectorized(object):
 
 
     def _python_complex_search(self, query, meta_data, max_workers):
-        """使用Python实现的复杂搜索"""
-        # 获取停用词和分词结果
+        """Python complex search"""
+        # Retrieve the stopword list and tokenization results.
         stop_words = self._get_stop_words(meta_data[3], "fuzzy_match")
         query_tok_dict = self._jieba_tokenize_complex_search(
             query, stop_words, meta_data[4],  # compulsory_words
@@ -535,24 +545,24 @@ class InvertedIndexVectorized(object):
         if not query_tok_dict:
             return set()
 
-        # 处理shard映射
+        # Process shard mappinng
         shard_data = self._process_complex_query_shards(query_tok_dict, meta_data[0])
         if not shard_data['shard_list']:
             return set()
 
-        # 并行搜索
+        # Parallel complex search
         search_results = self._parallel_complex_search(
             shard_data['shard_list'],
             shard_data['shard_word_dict'],
             max_workers
         )
 
-        # 合并结果
+        # Merge results
         return self._merge_complex_results(search_results, shard_data['value_tok_dict'])
 
 
     def _process_complex_query_shards(self, query_tok_dict, num_buckets):
-        """处理复杂查询的shard映射"""
+        """Process shard mapping"""
         shard_word_dict = {}
         value_tok_dict = {}
 
@@ -575,7 +585,7 @@ class InvertedIndexVectorized(object):
 
 
     def _parallel_complex_search(self, shard_list, shard_word_dict, max_workers):
-        """并行复杂搜索"""
+        """Parallel complex search"""
         num_process = min(len(shard_list), max_workers)
         pool = multiprocessing.Pool(num_process)
 
@@ -593,7 +603,7 @@ class InvertedIndexVectorized(object):
 
 
     def _merge_complex_results(self, search_results, value_tok_dict):
-        """合并复杂搜索结果"""
+        """Merge search results"""
         final_res = {}
         for res in search_results:
             for word, doc_ids in res.items():
@@ -603,13 +613,17 @@ class InvertedIndexVectorized(object):
         for _, words in value_tok_dict.items():
             res_doc_ids = final_res.get(words[0], set())
             for word in words:
-                res_doc_ids &= final_res.get(word, set())  # 对于一个sub query来说，里面的每个词都需要出现，所以是交集
-            final_ids |= res_doc_ids  # 对于不同的subquery，因为是OR的连接关系，所以只需要并集即可
+                # For a sub-query, every term within it must appear, so the result is the intersection
+                # of the postings for those terms.
+                res_doc_ids &= final_res.get(word, set())
+            # For different subqueries, since they are connected by an OR relationship,
+            # a union of their results is sufficient.
+            final_ids |= res_doc_ids
         return final_ids
 
 
     def _get_stop_words(self, index_type, stop_words_list):
-        """获取停用词集合"""
+        """Get stop words"""
         if index_type != "fuzzy_match":
             return set()
 
@@ -621,7 +635,6 @@ class InvertedIndexVectorized(object):
 
 
     def _setup_batch_params(self, settings, num_of_batches, num_of_shards, uuids):
-        """处理批次参数"""
         params = {
             'num_of_batches': num_of_batches,
             'num_of_shards': num_of_shards,
@@ -634,7 +647,6 @@ class InvertedIndexVectorized(object):
 
 
     def _setup_paths(self, batch_params):
-        """处理路径相关操作"""
         tmp_path = os.path.join(self.dataset.path, self.index_folder + "_tmp")
         if os.path.exists(tmp_path):
             shutil.rmtree(tmp_path)
@@ -650,7 +662,7 @@ class InvertedIndexVectorized(object):
             ], f)
 
     def _create_cpp_index(self, batch_params, cut_all, stop_words, compulsory_words, case_sensitive, max_workers):
-        """CPP版本索引创建"""
+        """Create cpp index"""
         from muller.util.sparsehash.build.custom_hash_map import IndexProcessor
         import muller.util.sparsehash.build.custom_hash_map as cm
 
@@ -683,7 +695,7 @@ class InvertedIndexVectorized(object):
 
     def _create_python_index(self, batch_params, stop_words, index_type, tokenizer,
                              cut_all, compulsory_words, case_sensitive, max_workers, uuids):
-        """Python版本索引创建"""
+        """Create python index"""
         if uuids:
             raise InvertedIndexUnsupportedError("Not support for using uuid")
 
@@ -724,7 +736,6 @@ class InvertedIndexVectorized(object):
 
 
     def _check_index_completion(self, num_of_batches):
-        """检查索引完整性"""
         unfinished = self.check_index_completeness(self.index_folder + "_tmp", num_of_batches)
         if not unfinished:
             self.logger.info(f"Creating index of {self.column_name} successfully.")
@@ -736,7 +747,6 @@ class InvertedIndexVectorized(object):
 
 
     def _load_and_validate_settings(self, use_cpp, index_type):
-        """加载并验证索引设置"""
         try:
             meta_json = json.loads(self.storage[self.meta].decode('utf-8'))
             settings = meta_json[self.column_name]
@@ -766,7 +776,7 @@ class InvertedIndexVectorized(object):
     def _update_with_cpp(self, start_index, end_index, num_of_batches,
                          num_of_shards, max_workers, stop_words,
                          compulsory_words, case_sensitive, cut_all):
-        """使用C++更新索引"""
+        """Update index with c++"""
         from muller.util.sparsehash.build.custom_hash_map import IndexProcessor
         import muller.util.sparsehash.build.custom_hash_map as cm
 
@@ -797,18 +807,18 @@ class InvertedIndexVectorized(object):
     def _update_with_python(self, start_index, end_index, num_of_batches,
                             num_of_shards, max_workers,
                             index_type, tokenizer_params, uuids):
-        """使用Python更新索引"""
+        """Update index with Python"""
         if uuids:
             raise InvertedIndexUnsupportedError("UUIDs not supported")
 
-            # 获取处理范围
+            # Get the data range
         ranges = self._split_data( # starts, ends
             start_index, end_index,
             num_of_batches,
             self._obtain_existing_batches()
         )
 
-        # 创建进程池
+        # Initialize process pool
         pool = multiprocessing.Pool(
             processes=min(len(ranges[0]), max_workers),
             maxtasksperchild=1
@@ -816,7 +826,7 @@ class InvertedIndexVectorized(object):
 
         tokenizer_params['num_shards'] = num_of_shards
 
-        # 提交任务
+        # Submit the task
         for i, start in enumerate(ranges[0]):
             pool.apply_async(
                 func=self._process_index,
@@ -834,7 +844,6 @@ class InvertedIndexVectorized(object):
 
 
     def _check_update_completion(self, num_of_batches):
-        """检查更新完整性"""
         unfinished = self.check_index_completeness(
             self.index_folder + "_tmp", num_of_batches
         )
@@ -848,7 +857,7 @@ class InvertedIndexVectorized(object):
 
 
     def _process_query(self, query, search_type, meta_data):
-        """处理查询并返回shard映射数据"""
+        """Process the query and return shard mapping data."""
         num_buckets = meta_data[0]
         shard_word_dict = {}
 
@@ -875,7 +884,7 @@ class InvertedIndexVectorized(object):
 
 
     def _parallel_search(self, search_type, shard_list, shard_word_dict, max_workers):
-        """并行搜索处理"""
+        """Parallel search"""
         if not shard_list:
             return []
 
@@ -897,7 +906,7 @@ class InvertedIndexVectorized(object):
 
 
     def _merge_results(self, search_results):
-        """合并搜索结果"""
+        """Merge search results"""
         if not search_results:
             return {}
 
@@ -908,7 +917,7 @@ class InvertedIndexVectorized(object):
 
 
     def _get_hash_for_query(self, query, num_buckets):
-        """获取查询的哈希和shard ID"""
+        """Obtain the query's hash and shard ID."""
         if isinstance(query, str):
             bytes_data = query.encode("utf-8")
         elif isinstance(query, bool):
@@ -922,10 +931,10 @@ class InvertedIndexVectorized(object):
 
     def _process_index(self, batch_count, start: int, end: int, index_type: str,
                        tokenizer_params):
-        # 1. 先把该处理的所有行（句子）加载到内存
+        # 1. First, load all the rows (sentences) to be processed into memory.
         shards = [defaultdict(set) for _ in range(tokenizer_params['num_shards'])]
         try:
-            # 2. 处理数据集并构建索引
+            # 2. Process the dataset and build the index.
             for i, sample in enumerate(self.dataset[start: end]):
                 sample_data = sample[self.column_name].tobytes()
 
@@ -943,11 +952,11 @@ class InvertedIndexVectorized(object):
                 else:
                     self._add_to_shard(shards, sample_data, i + start, tokenizer_params['num_shards'])
 
-            # 3. 保存分片数据
+            # 3. Save the sharded data.
             for shard_info in enumerate(shards): # shard_id, shard
                 self._dump_index(self.index_folder + "_tmp", f"{shard_info[0]}/{start}", shard_info[1])
 
-            # 4. 记录处理完成
+            # 4. Log that processing is complete.
             self._log_completion(self.index_folder + "_tmp", batch_count, start)
 
         except Exception as e:
@@ -955,7 +964,6 @@ class InvertedIndexVectorized(object):
 
 
     def _add_to_shard(self, shards, data, line_num, num_of_shards):
-        """将数据添加到对应的shard中"""
         hash_signed, shard_id = self._byte_to_int64(data, num_of_shards)
         if hash_signed not in shards[shard_id]:
             shards[shard_id][hash_signed] = set()
@@ -963,7 +971,6 @@ class InvertedIndexVectorized(object):
 
 
     def _log_completion(self, folder, batch_count, start):
-        """记录处理完成的日志"""
         self.logger.info(f"batch {batch_count} (starting with {start}) is finished")
         file_path = os.path.join(folder, self.col_log_folder, str(start))
         self.storage[file_path] = b""
@@ -992,14 +999,15 @@ class InvertedIndexVectorized(object):
                       shard_id: int,
                       ):
         try:
-            # 0. 查看在optimized文件夹里是否已有目标索引文件
+            # 0. Check whether the target index file already exists in the optimized folder.
             optimized_index_path = os.path.join(self.dataset.path, self.index_folder + f"_optimized")
             if os.path.exists(optimized_index_path) and str(shard_id) in os.listdir(optimized_index_path):
                 self.logger.info(f"Already exists {shard_id}. Skip!")
                 return
 
             merged = defaultdict(set)
-            # 注：如果从头到尾只有一个file且当前是create index，其实不需要读上来，直接复制到目标地址即可
+            # Note: If there is only a single file from start to finish and the current operation is creating an index,
+            # there's no need to read it into memory—just copy it directly to the target location.
             file_list = os.listdir(os.path.join(self.dataset.path, self.index_folder + "_tmp", str(shard_id)))
             current_index_folder = os.path.join(self.dataset.path, self.index_folder)
             if len(file_list) == 1 and optimize_mode != "update":
@@ -1007,21 +1015,22 @@ class InvertedIndexVectorized(object):
                             os.path.join(self.dataset.path, self.index_folder + "_optimized", str(shard_id)))
 
             else:
-                # 将当前shard_id文件夹下的所有键值合并起来
+                # Merge all key-value pairs under the current shard_id folder.
                 for file in file_list:
                     tmp_dict = pickle.loads(self.storage[os.path.join(self.index_folder + "_tmp", str(shard_id), file)])
                     for word, pos_set in tmp_dict.items():
                         merged[word].update(pos_set)
 
-                # 查看一下是否有已有的索引文件夹，如有且当前是update index，则一并将对应的shard_id合并了。
+                # Check if an existing index folder is present;
+                # if so, and the current operation is an index update, merge the corresponding shard_id as well.
                 if os.path.exists(current_index_folder) and optimize_mode == "update":
                     tmp_dict = pickle.loads(self.storage[os.path.join(self.index_folder,
                                                                       str(shard_id))])
                     for word, pos_set in tmp_dict.items():
                         merged[word].update(pos_set)
 
-                # 2. 保存这个新的索引文件
-                new_file = str(shard_id)  # 注意：现在这个版本，optimize size一定是1了
+                # 2. Save this new index file.
+                new_file = str(shard_id)  # Note: In this version, the optimize size is always 1.
                 self._dump_index(self.index_folder + f"_optimized", new_file, merged)
             self.logger.info(f"merged shards: {shard_id}")
 
@@ -1043,20 +1052,20 @@ class InvertedIndexVectorized(object):
             if search_type == "fuzzy_match":
                 _res_doc_ids = batch[word_list[0]]
                 for word in word_list[1:]:
-                    # 检索结果的合并(取交集，需要每个结果都出现)
+                    # Merge search results (take the intersection — each term must appear in the results).
                     _res_doc_ids = _res_doc_ids & batch[word]
 
             elif search_type == "exact_match":
                 target_query = word_list[0]
-                if target_query in batch.keys():  # 有可能符合的keys为空
+                if target_query in batch.keys():  # It's possible that the set of matching keys is empty.
                     _res_doc_ids = batch[target_query]
 
             else:  # search_type=="range_match"
                 batch_keys = np.array(list(batch.keys()))
-                # 先取出来符合的key
+                # First, extract the matching keys.
                 match_keys = batch_keys[np.logical_and(batch_keys >= word_list[0], batch_keys <= word_list[1])]
-                if len(match_keys):  # 有可能符合的keys为空
-                    # 再取出来key们对应的值
+                if len(match_keys):  # It's possible that the set of matching keys is empty.
+                    # Then, retrieve the values corresponding to those keys.
                     _res_doc_ids = batch[match_keys[0]]
                     for key in match_keys[1:]:
                         tmp_doc_ids = batch[key]
@@ -1072,7 +1081,7 @@ class InvertedIndexVectorized(object):
         _word_doc_dict = {}
         if word_list:
             for word in word_list:
-                _word_doc_dict[word] = batch[word] # 这是一个set
+                _word_doc_dict[word] = batch[word] # This is a set
 
         return _word_doc_dict
 
@@ -1100,7 +1109,7 @@ class InvertedIndexVectorized(object):
                         else:
                             new_shards[new_shard_id][word] |= pos_set
 
-        # 4. 每个shard落盘
+        # 4. Dump each shard to storage
         count = 0
         for shard in new_shards:
             file_name = str(count) + "_" + str(uuid.uuid4().hex)
@@ -1117,7 +1126,7 @@ class InvertedIndexVectorized(object):
 
         single_data = self._load_index(shard_name_list[0])
 
-        # 使用 heapq.nlargest 找出 set 大小最大的前 n 个 key
+        # Use heapq.nlargest to find the top n keys with the largest set sizes.
         top_n_keys = heapq.nlargest(n, single_data.keys(), key=lambda k: len(single_data[k]))
 
         return top_n_keys
@@ -1130,7 +1139,7 @@ class InvertedIndexVectorized(object):
         return shard_name_list
 
     def _obtain_set_of_key(self, num):
-        """ 给出一个num（int64类型），基于现有的索引，直接输出他对应的set """
+        """ Given a num (of type int64), directly output its corresponding set based on the existing index."""
         num_of_shards = self._obtain_meta(["num_of_shards"])[0]
         shard_id = num % num_of_shards
         shard_name_list = self._obtain_shard_name_from_shard_id(shard_id)
@@ -1153,8 +1162,7 @@ class InvertedIndexVectorized(object):
     def _check_existing_indexes(self, force_create: bool):
         skip = False
         settings = None
-        # 首先读一下meta是否存在。
-        # 如果meta不存在，说明没有完整的索引。
+        # First, check whether the meta file exists. If it doesn't, it means a complete index has not been built.
 
         if force_create:
             warnings.warn(f"We are going to create a new index to replace the current index.\n"
@@ -1165,7 +1173,8 @@ class InvertedIndexVectorized(object):
         try:
             meta_json = json.loads(self.storage[self.meta].decode('utf-8'))
         except KeyError:
-            # 如果存在上回索引建立的痕迹，说明上回索引建立不全，继续使用上回的默认设置从中断继续恢复即可。
+            # If traces of a previous indexing attempt exist, it indicates that the prior index build was incomplete;
+            # in this case, simply resume from the interruption using the previous default settings.
             log_path = os.path.join(self.dataset.path, self.index_folder, self.col_log_folder, self.col_log_file)
             if os.path.exists(log_path):
                 with open(log_path, 'r') as f:
@@ -1173,12 +1182,12 @@ class InvertedIndexVectorized(object):
                 self.logger.info(f"We did not finish the construction of the original indexes. Now we can continue. "
                              f"Note that we will use the original number of batches.")
                 self.logger.info(f"Original settings: {settings}")
-            # 如果不存在痕迹，则说明未有索引，直接建立即可。
+            # If no traces exist, it means no index has been created yet, so proceed to build one directly.
             else:
                 self.logger.info(f"There is no existing indexes. Start to create index...")
             meta_json = {}
 
-        # 如果meta存在，说明上回索引建立是完整的。
+        # If the meta file exists, it indicates that the previous index build was complete.
         if meta_json and meta_json.get(self.column_name):
             warnings.warn("There is already an existing index. Please specify force_create=True when using"
                           "ds.create_index_vectorized() and we will clean the existing index.")

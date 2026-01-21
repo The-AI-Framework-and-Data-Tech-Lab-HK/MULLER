@@ -880,8 +880,9 @@ class ChunkEngine:
 
 
     def copy_chunk(self, chunk, row=None):
-        # 重新copy一份chunk，但是现在把所有的chunk文件都存在最外层的tensor下面了，因此不能采用原来的方案copy同名chunk，
-        # 需要生成新的chunk_id和chunk_name，同时需要修改该commit下面的unsharded文件，使之与新的chunk_id对应。
+        # Make a new copy of chunks. However, currently we put all the chunks together in the column folder.
+        # Therefore, we need to generate nnew chunk_id and chunk_name, and modify the unshareded file in this commit to
+        # make it consistent with the new chunk_ids.
         """Copies the chunk to the current commit.
 
         Returns the copied chunk.
@@ -1635,7 +1636,7 @@ class ChunkEngine:
     def sequence_numpy(
             self,
             index: Index,
-            aslist: bool = False,  # aslist可能会带来返回类型不一致的问题！
+            aslist: bool = False,  # aslist may lead to inconsistent return types
             use_data_cache: bool = True,
             fetch_chunks: bool = False,
             max_workers: int = MAX_WORKERS_FOR_CHUNK_ENGINE,

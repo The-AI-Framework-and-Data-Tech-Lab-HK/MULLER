@@ -37,14 +37,15 @@ def create_index_vectorized(ds,
             meta_json = json.loads(ds.storage[meta_path].decode('utf-8'))
         except KeyError:
             meta_json = {}
-        # 如果该列索引已存在，则更新索引（append-only）
+        # If there is existing index, we update the index in an append-only manner.
         create, added_index_list = _decide_update_or_create_index(ds, meta_json, tensor_column, force_create)
 
         if index_type == "exact_match" and use_cpp:
             raise UnsupportedMethod("Not support create index type of 'exact_match' in cpp now, "
                                     "please set use_cpp = False.")
 
-        # 开始进入索引创建流程，根据create的值来判断是重建全部索引还是更新索引（append-only）
+        # Create index.
+        # The value of create determines whether we reconstruct the index or update the index (append-only)
         inverted_index = ds.get_inverted_index(tensor_column, use_uuid, vectorized=True)
         if inverted_index.use_uuid:
             uuids = ds.get_tensor_uuids(tensor_column, ds.commit_id)
@@ -52,7 +53,7 @@ def create_index_vectorized(ds,
             uuids = None
 
         if create:
-            # 直接创建即可！
+            # Construct index
             _create_new_index(ds,
                               inverted_index,
                               index_type,
@@ -64,7 +65,7 @@ def create_index_vectorized(ds,
                               kwargs,
                               )
         else:
-            # 更新索引
+            # Update index
             _update_old_index(ds,
                              inverted_index,
                              index_type,

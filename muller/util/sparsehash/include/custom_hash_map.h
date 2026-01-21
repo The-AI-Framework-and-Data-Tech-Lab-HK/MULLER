@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 #include <list>
-#include <sys/mman.h>  // 添加mmap相关头文件
+#include <sys/mman.h>  // Add mmap related headers
 
 namespace hashmap {
 
