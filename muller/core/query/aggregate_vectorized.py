@@ -59,22 +59,21 @@ def aggregate_vectorized_dataset(
     else:
         aggregate_col = None
 
-    # 3. 拼接selected tensors和aggregate tensors
+    # 3. Concat the selected tensors and aggregate tensors
     selected = np.concatenate([dataset[tensor][list(indices)].numpy() for tensor in selected_tensors], axis=1)
     selected = np.column_stack((selected, aggregate_col)) if aggregate_col is not None else selected
 
     if order_by_tensors:
-        # 4. order by
-        # 先按照order by list的顺序排序，如果相等，按照index排序
-        index_order = np.argsort(indices)  # 按index order排序
+        # 4. Order by
+        index_order = np.argsort(indices)  # Sort the indices based on `order by list`
         selected = selected[index_order]
         indices = indices[index_order]
         aggregate_col = aggregate_col[index_order]
 
-        for tensor in order_by_tensors[::-1]:  # 倒着
-            if tensor in aggregate_tensors:  # 按aggregated结果排序
+        for tensor in order_by_tensors[::-1]:  # Reverse
+            if tensor in aggregate_tensors:  # Sort by the aggregated results
                 index_order = np.argsort(aggregate_col.transpose()[aggregate_tensors.index(tensor)])
-            else:  # 按原本tensor内容排序
+            else:  # Sort based on the original context in tensors
                 index_order = np.argsort(dataset[tensor][list(indices)].numpy().flatten())
             if order_direction == 'DESC':
                 index_order = index_order[::-1]
@@ -83,10 +82,11 @@ def aggregate_vectorized_dataset(
 
 
 def get_one_hot_matrix(inverse_indices):
-    """返回一个one hot matrix, 每一行是一个类, 每一列是原本的数据, 1代表数据属于这个类, 0代表不属于."""
-    num_categories = np.max(inverse_indices) + 1  # 有几类
-    one_hot_matrix = np.zeros((num_categories, len(inverse_indices)))  # 初始化矩阵元素都为0
-    one_hot_matrix[inverse_indices, np.arange(len(inverse_indices))] = 1  # 把属于这个类的元素设置为1
+    """Return an one hot matrix, while each row is a class and each column is the original data.
+    1 denotes that the data belongs to this class. 0 denotes the reverse case. """
+    num_categories = np.max(inverse_indices) + 1  # Number of categories
+    one_hot_matrix = np.zeros((num_categories, len(inverse_indices)))  # Initialize all the elements as 0
+    one_hot_matrix[inverse_indices, np.arange(len(inverse_indices))] = 1  # Set the target element as 1
     return one_hot_matrix
 
 
@@ -110,7 +110,7 @@ def get_agg_col(
         )
     elif method == 'avg':
         one_hot_matrix = get_one_hot_matrix(inverse_indices)
-        count_arr = counts.reshape(len(counts), 1)  # 转化成shape为(n, 1)
+        count_arr = counts.reshape(len(counts), 1)  # Reshape as (n, 1)
         aggregate_col = np.concatenate(
             [np.divide(np.matmul(one_hot_matrix, dataset[tensor].numpy()), count_arr)  # avg = sum / count
                     for tensor in aggregate_tensors
@@ -121,12 +121,12 @@ def get_agg_col(
         aggregate_col = None
         for tensor in aggregate_tensors:
             grouped_arr = np.multiply(one_hot_matrix, dataset[tensor].numpy().flatten())
-            ma_data = np.ma.masked_equal(grouped_arr, 0)  # 去掉array中的0
+            ma_data = np.ma.masked_equal(grouped_arr, 0)  # Discard the 0 in the array
             min_col = np.min(ma_data, axis=1).data.reshape(len(counts), 1)
             if not aggregate_col:
                 aggregate_col = min_col
             else:
-                aggregate_col = np.column_stack((aggregate_col, min_col))  # 拼接
+                aggregate_col = np.column_stack((aggregate_col, min_col))  # Concat
     elif method == 'max':
         one_hot_matrix = get_one_hot_matrix(inverse_indices)
         aggregate_col = np.concatenate(

@@ -1469,8 +1469,9 @@ class Dataset:
             InvalidTensorList: If ``tensor_list`` contains tensors that are not in the current columns.
             ToDataFrameLimit: If the length of ``index_list`` exceeds the TO_DATAFRAME_SAFE_LIMIT.
         """
+        # Verify that the target column is correctly specified.
         if tensor_list and (len(tensor_list) > len(self.tensors) or
-                            not all(isinstance(x, str) and x in self.tensors for x in tensor_list)): # 确认目标列打对了
+                            not all(isinstance(x, str) and x in self.tensors for x in tensor_list)): 
             raise InvalidTensorList(tensor_list)
         max_num = -1
         if index_list and len(index_list) > TO_DATAFRAME_SAFE_LIMIT and not force:

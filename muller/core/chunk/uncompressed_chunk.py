@@ -231,7 +231,7 @@ class UncompressedChunk(BaseChunk):
         enc = self.byte_positions_encoder
         arr = enc.encoded
 
-        # 局部变量: bps, enc, arr, last_seen, offset (5个)
+        # Local variables: bps, enc, arr, last_seen, offset
 
         if len(arr):
             last_seen = arr[-1, 2] + 1
@@ -243,7 +243,7 @@ class UncompressedChunk(BaseChunk):
             last_seen = 0
             offset = 0
 
-        # 局部变量: bps, enc, arr, last_seen, offset, i, b, lview, csum (10个)
+        # Local vairaibles: bps, enc, arr, last_seen, offset, i, b, lview, csum
 
         bps[:, 2] = np.arange(last_seen, num_samples + last_seen)
         bps[0, 1] = offset

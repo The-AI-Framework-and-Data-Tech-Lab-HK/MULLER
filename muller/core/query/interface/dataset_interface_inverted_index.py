@@ -55,11 +55,11 @@ def create_index(ds, columns, use_uuid: bool = False, batch_size: int = INVERTED
                                                 ds.commit_id,
                                                 [tensor])
                 tensor_diff = ds.parse_changes(tensor_changes, tensor, meta_json[tensor].get("commit_id", None))
-                # 只要有update/delete，都重建，无论use uuid or not
+                # If there is update or deletion, we reconstruct the index, regardless of using uuid or not
                 if len(tensor_diff["deleted"]) > 0 or len(tensor_diff["updated"]) > 0:
                     _create_tensor_index(ds, tensor, use_uuid, batch_size)
                 else:
-                    # 只有append的情况，update index
+                    # There is only append, we update the index
                     inverted_index = ds.get_inverted_index(tensor, use_uuid)
                     if not use_uuid:
                         # convert uuid -> global index

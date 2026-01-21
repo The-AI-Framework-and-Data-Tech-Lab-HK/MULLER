@@ -65,7 +65,7 @@ def update(
 def sequence_numpy(
     chunk_engine,
     index: Index,
-    aslist: bool = False,  # aslist可能会带来返回类型不一致的问题！
+    aslist: bool = False,  # aslist may lead to inconsistent return types
     use_data_cache: bool = True,
     fetch_chunks: bool = False,
     max_workers: int = MAX_WORKERS_FOR_CHUNK_ENGINE,

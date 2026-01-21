@@ -45,7 +45,7 @@ class InvertedIndex(object):
         self.optimize = optimize
         self.file_dict = self._get_file_dict()
 
-        # 是否需要优化索引？暂定如果为generic类型的列，则可以优化
+        # Whether we need index optimization? If it is generic type, then it can be optimized.
         if self.optimize:
             self.optimize = True
         else:
@@ -80,17 +80,18 @@ class InvertedIndex(object):
     def create_index(self, doc_dicts, batch_size: int, save_to_next_storage=True):
         """Create inverted index.
         """
-        # 如果索引文件夹不为空，则需要先清空
+        # Need to clear the inde folder if it is not empty
         if self.column_name in self.file_dict:
             for file_name in self.file_dict[self.column_name]:
                 del self.storage[os.path.join(self.index_folder, file_name)]
             self.file_dict = {}
 
 
-        # 多进程创建索引
-        # 注：因为进程内存不共享，所以这里的进程是各干各的，各自有一份self.inverted_index作为batch返回了
+        # Create index via multi-processing
+        # Note: Since the memory of processes is not shared, so each process work independently
+        # with a piece of self.inverted_index returned as batch
         results = []
-        # 按batch_size分批
+        # Divide into batches according to batch_size
         uuids, docs = self._divide_into_batches(list(doc_dicts.keys()), list(doc_dicts.values()), batch_size)
         pool = Pool(len(uuids))
         for uuid_list, doc_list in zip(uuids, docs):
@@ -98,7 +99,7 @@ class InvertedIndex(object):
                                             args=(uuid_list, doc_list, save_to_next_storage)))
 
         pool.close()
-        pool.join()  # 注：进程池中进程执行完毕后再关闭。
+        pool.join()  # Note: Wait until all the process in the pool finish the execution
         pool.terminate()
 
         self.file_dict[self.column_name] = {}
@@ -106,12 +107,12 @@ class InvertedIndex(object):
             res = result.get()
             self.file_dict[self.column_name].update({res: []})
 
-        # 更新filt dict，记录是否使用uuid
+        # Update the filt dict，to record whether uuid is used
         self.file_dict["use_uuid"] = self.use_uuid
         self.storage[self.file_list_path] = json.dumps(self.file_dict).encode('utf-8')
         self.storage.flush()
 
-        # 索引优化
+        # Index optimization
         if self.optimize:
             self.optimize_index()
 
@@ -126,7 +127,7 @@ class InvertedIndex(object):
             results.append(pool.apply_async(func=self._create_index_subtask,
                                             args=(uuid_list, doc_list, save_to_next_storage)))
         pool.close()
-        pool.join()  # 注：进程池中进程执行完毕后再关闭。
+        pool.join()  # Note: Wait until all the process in the pool finish the execution
         pool.terminate()
 
         for result in results:
@@ -141,32 +142,33 @@ class InvertedIndex(object):
         then delete the old index files and rewrite the new ones.
         关键：相似与相近的index放在相近的位置
         """
-        # 先把file_dict文件加载上来
+        # Load the file_dict file
         try:
             file_dict = self.file_dict[self.column_name]
         except KeyError as e:
             raise InvertedIndexNotExistsError(self.column_name) from e
 
-        # 再多线程加载各index文件
+        # Load the index file via multi-threading
         def _load_single_batch(file_name):
             batch = self._load_index(file_name)
-            # 删了文件夹中的索引文件
+            # Delete tthe index file in the folder
             del self.storage[os.path.join(self.index_folder, file_name)]
             return batch
 
         pool = ProcessPool(len(file_dict))
         results = pool.map(_load_single_batch, file_dict)
         pool.close()
-        pool.join()  # 注：进程池中进程执行完毕后再关闭。
+        pool.join()  # Note: Wait until all the process in the pool finish the execution
         pool.clear()
 
-        # 用super_dict记录一下全局所有索引的kv对【这里可能可以用多线程优化】
+        # Record the kv pairs of all the global index in a super_dict
+        # TODO: Can be optimize via multi-threading
         super_dict = defaultdict(set)
         for batch in results:
             for k, v in batch.items():
                 super_dict[k] = super_dict[k].union(v)
 
-        # 重新排序并落盘
+        # Reorder and dunmp to storage
         all_keys = list(super_dict.keys())
         all_keys.sort(reverse=False)  # 升序！
         step = max(1, int(len(all_keys)/len(file_dict)))
@@ -179,7 +181,7 @@ class InvertedIndex(object):
             self._save_index(new_file_name, new_dict)
             file_name_dict[new_file_name] = key_group
 
-        # 再次更新file_dict
+        # Update file_dict
         self.file_dict[self.column_name] = file_name_dict
         self.storage[self.file_list_path] = json.dumps(self.file_dict).encode('utf-8')
         self.storage.flush()
@@ -187,7 +189,7 @@ class InvertedIndex(object):
     def search(self, query, search_type="fuzzy_match"):
         """Search keyword.
         """
-        # query的分词
+        # Tokenization of query
         if search_type == "fuzzy_match":
             query_words = self._jieba_tokenize(query)
         elif search_type == "exact_match":
@@ -202,20 +204,20 @@ class InvertedIndex(object):
                 _res_doc_ids = batch[query_words[0]]
                 for word in query_words[1:]:
                     tmp_doc_ids = batch[word]
-                    # 检索结果的合并(取交集，需要每个结果都出现)
+                    # Merge the search results (use the intersection so that each result is involved)
                     _res_doc_ids = _res_doc_ids & tmp_doc_ids
 
             elif search_type == "exact_match":
                 target_query = query_words[0]
-                if target_query in batch.keys():  # 有可能符合的keys为空
+                if target_query in batch.keys():  # It is possible that the matched key is empty
                     _res_doc_ids = batch[target_query]
 
             else:  # search_type=="range_match"
                 batch_keys = np.array(list(batch.keys()))
-                # 先取出来符合的key
+                # Fetch matched keys
                 match_keys = batch_keys[np.logical_and(batch_keys >= query_words[0], batch_keys <= query_words[1])]
-                if len(match_keys):  # 有可能符合的keys为空
-                    # 再取出来key们对应的值
+                if len(match_keys):  # It is possible that the matched key is empty
+                    # Fetch the values of the matched keys
                     _res_doc_ids = batch[match_keys[0]]
                     for key in match_keys[1:]:
                         tmp_doc_ids = batch[key]
@@ -229,7 +231,7 @@ class InvertedIndex(object):
             raise InvertedIndexNotExistsError(self.column_name) from e
 
         file_list = self._optimize_search(search_type, query_words, file_dict)
-        if len(file_list) == 0:  # 要搜索的key不存在，直接返回空
+        if len(file_list) == 0:  # The key to be queried is not existed, return []
             return []
 
         try:
@@ -237,14 +239,14 @@ class InvertedIndex(object):
         except KeyError:
             pass
 
-        num_process = min(max(1, len(file_list)), MAX_WORKERS_FOR_INVERTED_INDEX_SEARCH) # 最小为1， 最大为50
+        num_process = min(max(1, len(file_list)), MAX_WORKERS_FOR_INVERTED_INDEX_SEARCH) # Minimal is 1, Maximum is 50
         pool = ProcessPool(num_process)
         results = pool.map(_search_single_batch, file_list)
         pool.close()
-        pool.join()  # 注：进程池中进程执行完毕后再关闭。
+        pool.join()  # Note: Wait until all the process in the pool finish the execution
         pool.clear()
 
-        # 合并每个batch的结果
+        # Merge the results from each batch
         res_doc_ids = results[0] if len(results) > 0 else []
 
         for j in range(1, len(results)):
@@ -253,15 +255,18 @@ class InvertedIndex(object):
         return res_doc_ids
 
     def _optimize_search(self, search_type, query_words, file_dict):
-        """如果是优化过的索引序列，则可以跳过部分对meta file的遍历以及对部分索引文件的加载"""
+        """ If it is optimized index sequence, then we can skip the traversal of some meta files and the loading
+        of some index files."""
         if self.optimize:
             file_list = []
-            # 注意：这里需要根据exact match与range match的来确定文件范围
+            # Note: we need to determine the range of files based on exact match and range match
             if search_type != "range_match":
                 target = query_words[0]
                 for file_name, indexes in file_dict.items():
                     if file_list and target < indexes[0]:
-                        # 因为索引已经从小到大排序，如果要搜索的数已经比该索引内最小的数要小了，说明后面也不会再有记录了，可以终止查询
+                        # Since the index is already sorted in ascending order, if the value being searched for is
+                        # already smaller than the smallest value in the index, it means there will be no matching
+                        # records afterward, and the query can be terminated.
                         break
                     if target in indexes:
                         file_list.append(file_name)
@@ -269,7 +274,9 @@ class InvertedIndex(object):
             else:
                 for file_name, indexes in file_dict.items():
                     if file_list and query_words[1] < indexes[0]:
-                        # 因为索引已经从小到大排序，如果要搜索的上界已经比该索引内最小的数要小了，说明后面也不会再有记录了，可以终止查询
+                        # Since the index is already sorted in ascending order, if the upper bound of the search range
+                        # is already smaller than the smallest value in the index, it means there will be no matching
+                        # records afterward, and the query can be terminated.
                         break
                     np_index = np.array(indexes)
                     match_index = np_index[np.logical_and(np_index >= query_words[0], np_index <= query_words[1])]
@@ -297,7 +304,8 @@ class InvertedIndex(object):
 
     def _create_index_subtask(self, uuid_list: list, doc_list: list, save_to_next_storage: bool):
         inverted_index = defaultdict(set)
-        # 注：这是计算密集型任务，经试验证明python多线程在此没有效果，故已经放弃多线程方案
+        # Note: This is a compute-intensive task, and experiments have shown that Python multithreading is ineffective
+        # in this case; therefore, the multithreading approach has been abandoned.
         for single_uuid, single_doc in zip(uuid_list, doc_list):
             if isinstance(single_doc, list):
                 single_doc = single_doc[0]
@@ -310,6 +318,7 @@ class InvertedIndex(object):
                 inverted_index[single_doc].add(single_uuid)
         file_name = str(uuid.uuid4().hex) + ".json"
         if save_to_next_storage:
-            # 保存索引文件 (注：因为没有很好的索引分区，所以这里不同的文件之间的内容可能有重合！)
+            # Save the index file
+            # (Note: Due to the lack of proper index partitioning, the contents of different files may overlap!)
             self._save_index(file_name, inverted_index)
         return file_name

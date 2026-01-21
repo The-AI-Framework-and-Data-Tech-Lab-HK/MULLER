@@ -49,16 +49,16 @@ class ChunkIdEncoder(Encoder, MULLERMemoryObject):
             else:
                 output.append(val)
 
-        # 添加起始行的值
+        # Append value at the start row
         _append_value_at(start_row)
 
-        # 从下一行开始，查找连续满足条件的行
+        # Starting from the next row, we look for a group of rows that satisfy the condition
         row = start_row + 1
         max_row = len(self._encoded)
         while row < max_row:
             if self._encoded[row][LAST_SEEN_INDEX_COLUMN] != local_sample_index:
                 break
-            # 满足条件
+            # Satisfy the condition
             self.last_row = row
             _append_value_at(row)
             row += 1
