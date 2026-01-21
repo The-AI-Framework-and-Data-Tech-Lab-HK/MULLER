@@ -120,7 +120,8 @@ class Lock(object):
             storage.disable_readonly()
             del storage[self.path]
         except Exception as e:
-            logging.warning(f"Failed to obtain read only, lock may be corrupt. Error: {e}")
+            # logging.warning(f"Failed to obtain read only, lock may be corrupt. Error: {e}")
+            pass
         finally:
             if read_only:
                 storage.enable_readonly()
@@ -197,7 +198,8 @@ class PersistentLock(Lock):
         try:
             self.lock.release()
         except Exception as e:
-            logging.warning(f"Failed to release lock, lock may be corrupt. Error: {e}")
+            #logging.warning(f"Failed to release lock, lock may be corrupt. Error: {e}")
+            pass
 
     def _lock_loop(self):
         try:

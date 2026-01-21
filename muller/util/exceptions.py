@@ -48,7 +48,7 @@ class PathNotEmptyException(Exception):
     def __init__(self, use_cloud=True):
         if use_cloud:
             super().__init__(
-                f"Please use a url that points to an existing MULLER-F Dataset or an empty folder. If you wish to "
+                f"Please use a url that points to an existing MULLER Dataset or an empty folder. If you wish to "
                 f"delete the folder and its contents, you may run muller.delete(dataset_path, force=True)."
             )
         else:
@@ -413,7 +413,7 @@ class DatasetAlreadyExistsError(Exception):
 
 class DatasetNotExistsError(Exception):
     def __init__(self, path):
-        super().__init__(f"A MULLER-F dataset does not exist at the given path ({path}). "
+        super().__init__(f"A MULLER dataset does not exist at the given path ({path}). "
                          f"Check the path provided or in case you want to create a new dataset, "
                          f"use muller.dataset() or muller.empty().")
 
@@ -759,7 +759,7 @@ class SampleUpdateError(Exception):
 class UnAuthorizationError(Exception):
     def __init__(self, custom_message: Optional[str] = None):
         if custom_message is None:
-            custom_message = "Trying to access unauthorized MULLER-F dataset in Huashan Platform! " \
+            custom_message = "Trying to access unauthorized MULLER dataset in Huashan Platform! " \
                              "The uid in /tmp/user/user.info is not allowed."
         super().__init__(custom_message)
 

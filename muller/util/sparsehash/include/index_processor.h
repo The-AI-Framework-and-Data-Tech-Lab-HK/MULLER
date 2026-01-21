@@ -22,7 +22,7 @@ namespace hashmap {
 
 class IndexProcessor {
 public:
-    static bool MULLER_F_API process_index_parallel(
+    static bool MULLER_API process_index_parallel(
                        const std::string&        root_path,
                        const std::string&        tensor_name,
                        const std::string&        index_folder,
@@ -37,7 +37,7 @@ public:
                        const std::string&        version = "",
                        const std::string&        compulsory_dict_path = "");
 
-    static bool MULLER_F_API process_index_single(
+    static bool MULLER_API process_index_single(
                    const std::string&        root_path,
                    const std::string&        tensor_name,
                    const std::string&        index_folder,
