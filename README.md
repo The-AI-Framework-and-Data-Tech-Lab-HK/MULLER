@@ -27,7 +27,7 @@ chmod 777 muller/util/sparsehash/build_proj.sh  # You may need to modify the scr
 ```
 * [Dafault] Install from code
 ```
-pip install .   # You may also use pip install . -v to check the build process
+pip install .   # Use `pip install . -v` to view detailed build logs
 ```
 * [Optional] Development (editable) installation
 ```bash
