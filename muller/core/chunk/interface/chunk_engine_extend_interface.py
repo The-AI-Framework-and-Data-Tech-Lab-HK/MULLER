@@ -47,7 +47,7 @@ def extend(
                 ignore_errors,
             )
         else:
-            # extend 大部分情况下的必经之路
+            # extend in most cases
             _extend(
                 chunk_engine,
                 samples,

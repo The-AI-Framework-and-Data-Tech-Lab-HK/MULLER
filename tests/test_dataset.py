@@ -541,7 +541,7 @@ def test_merge_tensor_meta(storage):
 
 def test_checkpoint_with_multi_user(storage):
     """tests ckpt with multi users"""
-    # A用户通过ckpt插入数据
+    # User A append data via ckpt.
     SensitiveConfig().uid = "A"
     ds_multi = muller.dataset(path=official_path(storage, SMALL_TEST_PATH),
                              creds=official_creds(storage), overwrite=True)
@@ -549,7 +549,6 @@ def test_checkpoint_with_multi_user(storage):
         ds_multi.create_tensor("test1", htype="text")
         ds_multi.create_tensor("test2", htype="text")
 
-    # 建议以行为单位添加数据，以保证行的原子性
     iter_dict = []
     for i in range(0, 1000):
         iter_dict.append((i, ("hi", "hello")))
@@ -565,25 +564,27 @@ def test_checkpoint_with_multi_user(storage):
                             checkpoint_interval=500)
 
     ds_multi.commit()
-    # B用户查询数据
+
+    # User B query the data
     SensitiveConfig().uid = "B"
     ds_filter1 = ds_multi.filter_vectorized([("test1", "==", 'hello')])
     assert len(ds_filter1) == 1000
 
-    # B用户写入数据
+    # User B append data
     with pytest.raises(UnAuthorizationError):
         ds_multi.test1.append("hi")
         ds_multi.test2.append("hello")
 
     assert len(ds_multi) == 1000
-    # B用户切换到branchB，再写入
+
+    # User B checkout to Branch B and append data
     ds_multi = muller.load(path=official_path(storage, SMALL_TEST_PATH), creds=official_creds(storage))
     ds_multi.checkout("branchB", create=True)
     ds_multi.test1.append("hi")
     ds_multi.test2.append("hello")
     assert len(ds_multi) == 1001
 
-    # C用户从A切到自己的分支，并使用ckpt插入数据
+    # User C checkout Branch C and append data using ckpt
     SensitiveConfig().uid = "C"
     ds_multi = muller.load(path=official_path(storage, SMALL_TEST_PATH), creds=official_creds(storage))
     ds_multi.checkout("branchC", create=True)
@@ -592,18 +593,18 @@ def test_checkpoint_with_multi_user(storage):
                             checkpoint_interval=500)
     assert len(ds_multi) == 2000
 
-    # B用户来查询C的数据
+    # User B query the data of user C
     SensitiveConfig().uid = "B"
     ds_filter1 = ds_multi.filter_vectorized([("test1", "==", 'hello')])
     assert len(ds_filter1) == 2000
 
-    # B用户写入
+    # User B append data
     with pytest.raises(UnAuthorizationError):
         ds_multi.test1.append("hi")
         ds_multi.test2.append("hello")
     assert len(ds_multi) == 2000
 
-    # B用户切换到branchB_2，再写入
+    # User B checkout to Branch B_2 and append data
     ds_multi = muller.load(path=official_path(storage, SMALL_TEST_PATH), creds=official_creds(storage))
     ds_multi.checkout("branchC")
     ds_multi.checkout("branchB_2", create=True)

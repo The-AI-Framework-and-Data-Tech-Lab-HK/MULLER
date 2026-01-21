@@ -66,7 +66,7 @@ def test_multi_branches_2(storage):
 
 def test_multi_user_modify_data(storage):
     """ different users modify data on different branches.."""
-    # 1.1 用户A创建数据集并写入数据
+    # 1.1 User A create the dataset and append data
     SensitiveConfig().uid = "A"
     ds = muller.dataset(path=official_path(storage, TEST_MULTI_USER_PATH),
                        creds=official_creds(storage), overwrite=True)
@@ -80,13 +80,13 @@ def test_multi_user_modify_data(storage):
             count += 1
     ds.commit()
 
-    # 1.2 用户B创建分支写入数据
+    # 1.2 User B create a branch and append data
     SensitiveConfig().uid = "B"
     ds.checkout("dev_B", create=True)
     ds.test.append("bye")
     ds.commit()
 
-    # 2.1 用户B操作main分支
+    # 2.1 User B try to modify the main branch
     ds.checkout("main")
 
     try:
@@ -119,7 +119,7 @@ def test_multi_user_modify_data(storage):
 
 def test_filter_and_merge_data(storage):
     """ different users modify data on different branches.."""
-    # 1.1 用户A创建数据集并写入数据
+    # 1.1 User A create the dataset and append data
     SensitiveConfig().uid = "A"
     ds = muller.dataset(path=official_path(storage, TEST_MULTI_USER_PATH),
                        creds=official_creds(storage), overwrite=True)
@@ -133,21 +133,21 @@ def test_filter_and_merge_data(storage):
             count += 1
     ds.commit()
 
-    # 1.2 用户B创建分支写入数据
+    # 1.2 User B checkout a new branch and append data
     SensitiveConfig().uid = "B"
     ds.checkout("dev_B", create=True)
     ds.test.append("hello")
     ds.test.append("world")
     ds.commit()
 
-    # 1.2 用户C创建分支写入数据
+    # 1.2 User C checkout a new branch and append data
     SensitiveConfig().uid = "C"
     ds.checkout("dev_C", create=True)
     ds.test.append("good")
     ds.test.append("morning")
     ds.commit()
 
-    # 2.1 用户C操作dev_B分支 filter merge
+    # 2.1 User C conduct query and merge on Branch dev_B
     ds.checkout("dev_B")
     assert len(ds) == 42
 
@@ -162,7 +162,7 @@ def test_filter_and_merge_data(storage):
     except UnAuthorizationError as e:
         assert True, f"uid authorization caused exception {e}"
 
-    # 2.2 用户A操作main分支 merge
+    # 2.2 User A conduct merge on the main branch
     SensitiveConfig().uid = "A"
     ds = muller.load(path=official_path(storage, TEST_MULTI_USER_PATH))
 

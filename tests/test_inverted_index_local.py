@@ -69,7 +69,7 @@ def test_cpp_python_mix(storage):
 
     ds.commit()
 
-    # 同一列除非在force_create并且没有变动的情况下不能重复创建（即便是不同设置）
+    # You cannot create index for the same column, unless using force_create=True
     ds.create_index_vectorized("value", num_of_shards=2, max_workers=4,
                                stop_words_list=stop_words_list, compulsory_words=compulsory_words, use_cpp=False)
 
@@ -84,10 +84,10 @@ def test_cpp_python_mix(storage):
                                stop_words_list=stop_words_list, compulsory_words=compulsory_words, use_cpp=True,
                                force_create=True)
 
-    # 不同列可以考虑不同的创建方法
+    # You may consider different index type for different columns
     ds.create_index_vectorized("label", index_type="exact_match", use_cpp=False)
 
-    # cpp目前不支持exact_match的创建方法
+    # The CPP modules is not supported for exact_match
     try:
         ds.create_index_vectorized("bool_list", index_type="exact_match", max_workers=3, num_of_batches=2, use_cpp=True)
         assert False, "No exception raises"
@@ -96,17 +96,17 @@ def test_cpp_python_mix(storage):
 
     ds.create_index_vectorized("bool_list", index_type="exact_match", max_workers=3, num_of_batches=2, use_cpp=False)
 
-    # python与cpp创建的索引混合检索
+    # Hybrid search on index created by python and cpp
     ds_test_1 = ds.filter_vectorized([("value", "CONTAINS", "明月"), ("label", "==", 1, True)],
                                      ["AND"])
     assert ds_test_1.filtered_index == [1, 6]
 
-    # python与cpp创建的索引混合检索 + 没有创建索引的检索
+    # Hybrid search on index created by python and cpp, with normal query
     ds_test_2 = ds.filter_vectorized([("value", "CONTAINS", "明月"), ("label", "==", 1, True), ("label", "==", 0)],
                                      ["AND", "OR"])
     assert ds_test_2.filtered_index == [0, 1, 5, 6]
 
-    # 优化exact_match: key0=exact_match, key1=fuzzy_match or in pre_res
+    # Optimized exact_match: key0=exact_match, key1=fuzzy_match or in pre_res
     ds_test_3 = ds.filter_vectorized([("label", "==", 2, True), ("value", "CONTAINS", "京口")],
                                      ["AND"])
     assert ds_test_3.filtered_index == [2, 7]
@@ -119,7 +119,7 @@ def test_cpp_python_mix(storage):
                                      ["AND", "OR"])
     assert ds_test_5.filtered_index == [0, 2, 5, 7]
 
-    # 优化exact_match: exact_match!=0, and, key-1
+    # Optimized exact_match: exact_match!=0, and, key-1
     ds_test_6 = ds.filter_vectorized([("value", "CONTAINS", "京口"), ("bool_list", "==", True, True)],
                                      ["AND"])
     assert ds_test_6.filtered_index == [2, 7]
@@ -137,7 +137,7 @@ def test_cpp_python_mix(storage):
                                      ["OR", "AND"])
     assert ds_test_9.filtered_index == []
 
-    # no optimize exact_match
+    # No optimize exact_match
     ds_test_10 = ds.filter_vectorized([("value", "CONTAINS", "京口"), ("label", "==", 2),
                                       ("bool_list", "==", True, True)],
                                      ["AND", "OR"])
@@ -193,7 +193,7 @@ def test_inverted_index(storage, use_cpp):
 
     ds.commit()
 
-    # 0. 没有索引但强行调用优化或检索，会报错。
+    # 0. Conduct optimize index and query before creating index
     try:
         ds.optimize_index("label", max_workers=1)
         assert False, "No exception raises"
@@ -212,7 +212,7 @@ def test_inverted_index(storage, use_cpp):
     except InvertedIndexNotExistsError as e:
         assert True, f"There is an exception {e}"
 
-    # 测试类型不符时报错信息是否正确
+    # It should raise exception when the index type does not match the column type
     try:
         ds.filter_vectorized([("bool_list", "==", "hi", True)])
         assert False, "No exception raises"
@@ -231,7 +231,7 @@ def test_inverted_index(storage, use_cpp):
     except FilterVectorizedConditionError as e:
         assert True, f"There is an exception {e}"
 
-    # 1. 普通检索（文本）
+    # 1. Normal query (text)
     ds.create_index_vectorized("value", num_of_shards=2, max_workers=4,
                                stop_words_list=stop_words_list, compulsory_words=compulsory_words)
     ds_test_01 = ds.filter_vectorized([("value", "CONTAINS", "我是deepseek")])
@@ -253,7 +253,7 @@ def test_inverted_index(storage, use_cpp):
                                      ["AND"])
     assert ds_test_2.filtered_index == [2, 7]
 
-    # 2. 普通检索（标量）
+    # 2. Normal query (scalar)
     ds_test_3 = ds.filter_vectorized([("label", "==", 1)])
     assert ds_test_3.filtered_index == [1, 6]
     ds.create_index_vectorized("label", index_type="exact_match")
@@ -301,7 +301,7 @@ def test_inverted_index(storage, use_cpp):
                                      ["OR", "AND"])
     assert ds_test_8.filtered_index == [4]
 
-    # 3. 普通检索（文本+标量混合）
+    # 3. Normal query（text+scalar）
     ds_test_9 = ds.filter_vectorized([("value", "CONTAINS", "明月"), ("label", "==", 1, True)],
                                      ["AND"])
     assert ds_test_9.filtered_index == [1, 6]
@@ -327,13 +327,13 @@ def test_inverted_index(storage, use_cpp):
         ["OR", "AND"])
     assert ds_test_14.filtered_index == [2, 7]
 
-    # 注意，这个的结果和上面的不一样！因为执行的顺序不同
+    # Note: de_test_15 is different from de_test_14 because of the different execution sequence of AND, OR.
     ds_test_15 = ds.filter_vectorized(
         [("value", "CONTAINS", "明月"), ("value", "CONTAINS", "春风"), ("label", "==", 1, True)],
         ["AND", "OR"])
     assert ds_test_15.filtered_index == [1, 2, 6, 7]
 
-    # 4. 带版本的检索, 这次是更新+删除（即需要重建索引的情况）
+    # 4. Query with version. How to update and delete data? Need index reconstruction.
     ds[1].update({"value": "update data", "label": 1})
     ds.pop([0, 4])
     with ds:
@@ -361,7 +361,7 @@ def test_inverted_index(storage, use_cpp):
     ds_test_20 = ds.filter_vectorized([("bool_list", "==", False, True)])
     assert ds_test_20.filtered_index == [3, 8]
 
-    # 5. 带版本的检索，这次是直接append
+    # 5. Query with version. How to append data?
     with ds:
         ds.value.append("白日依山尽，黄河入海流，欲穷千里目，更上一层楼")
         ds.label.append(-2)
@@ -381,7 +381,7 @@ def test_inverted_index(storage, use_cpp):
                                       ["OR"])
     assert ds_test_22.filtered_index == [3, 8, 9]
 
-    # 6. 带版本的检索，这次是直接append、update、pop一起上了
+    # 6. Query with version. How to append, update and delete data?
     ds[1].update({"value": "update data", "label": 1})
     ds[2].update({"value": "update data", "label": 1})
     ds.commit()
@@ -620,10 +620,11 @@ def test_create_new_index_while_using_old_index(storage):
     ctx = mp.get_context('fork')
     p1 = ctx.Process(target=task1)
     p2 = ctx.Process(target=task2)
-    p1.start()  # 启动子进程1
-    p2.start()  # 启动子进程2【task2查询启动时，task1的建立索引还没搞定，所以task2查的还是旧索引。】
-    p1.join()  # 等待子进程1结束
-    p2.join()  # 等待子进程2结束
+    p1.start()  # Start subprocess 1
+    p2.start()  # Start subprocess 2
+    # (but currently the index construction of task 1 may not be finished, so the query of task 2 may be on the old index)
+    p1.join()  # Wait for subprocess 1 to be killed
+    p2.join()  # Wair for subprocess 2 to be killed
 
     ds_2 = ds.filter_vectorized([("value", "CONTAINS", "床前明月光")])
     assert ds_2.filtered_index == [i * 5 + 1 for i in range(101)]
@@ -668,10 +669,12 @@ def test_create_new_index_while_using_old_index_cpp(storage):
 
     p1 = ctx.Process(target=_task_create_index, args=(storage,))
     p2 = ctx.Process(target=_task_query, args=(storage,))
-    p1.start()  # 启动子进程1
-    p2.start()  # 启动子进程2【task2查询启动时，task1的建立索引还没搞定，所以task2查的还是旧索引。】
-    p1.join()  # 等待子进程1结束
-    p2.join()  # 等待子进程2结束
+    p1.start()  # Start subprocess 1
+    p2.start()  # Start subprocess 2
+    # When subprocess 2 start, the index construction in subprocess 1 is not finished yet, so the query is based on
+    # the old index
+    p1.join()
+    p2.join()
 
     ds_2 = muller.load(path=official_path(storage, TEST_INDEX_PATH))
     ds_2_filter = ds_2.filter_vectorized([("value", "CONTAINS", "床前明月光")])

@@ -16,9 +16,9 @@ from tests.utils import official_path, official_creds
 
 def test_manager_user(storage):
     """ test the authorization of the manager user who create the dataset."""
-    # 1. 用户manager
+    # 1. User manager
     SensitiveConfig().uid = "manager"
-    # 创建数据集
+    # Create dataset
     ds = muller.dataset(path=official_path(storage, TEST_MULTI_USER_PATH),
                        creds=official_creds(storage), overwrite=True)
     ds.create_tensor('labels', htype='generic', dtype='int')
@@ -26,9 +26,9 @@ def test_manager_user(storage):
 
     ds.commit()
 
-    # 2. 切换到用户B
+    # 2. Change to user B
     SensitiveConfig().uid = "B"
-    # 查询数据，创建dev-B分支，添加数据
+    # Query data, checkout branch dev-B, append data
     ds = muller.dataset(path=official_path(storage, TEST_MULTI_USER_PATH),
                        creds=official_creds(storage))
     assert len(ds.filter_vectorized([("labels", "==", 10)]).filtered_index) == 2
@@ -36,53 +36,53 @@ def test_manager_user(storage):
     ds.labels.extend([1] * 10)
     assert len(ds) == 30
 
-    # 创建dev-B1分支，删除数据，查询数据
+    # Create branch dev-B1, delete data, and query data
     ds.checkout("dev-B1", create=True)
     ds.pop([0, 1, 2])
     assert len(ds.filter_vectorized([("labels", "==", 10)]).filtered_index) == 1
     assert len(ds) == 27
 
-    # 再创建dev-B2分支，更新数据,查询数据
+    # Create branch dev-B2, update data, and query data
     ds.checkout("dev-B2", create=True)
     ds.labels[0] = 5
     assert len(ds.filter_vectorized([("labels", "==", 4)]).filtered_index) == 1
     assert len(ds) == 27
     ds.commit()
 
-    # 3. 切换回用户manager
+    # 3. Change back to user manager (Note: manager can write and modify all branches)
     SensitiveConfig().uid = "manager"
-    # 在主分支添加数据，查询数据
+    # In the main branch, append data and query data
     ds = muller.dataset(path=official_path(storage, TEST_MULTI_USER_PATH),
                        creds=official_creds(storage))
     ds.labels.extend([2] * 10)
     assert len(ds.filter_vectorized([("labels", "==", 2)]).filtered_index) == 12
 
-    # 切换到dev-B分支，在dev-B分支添加数据【manager有所有分支的写权限】
+    # Checkout to branch dev-B, append data
     ds.checkout("dev-B")
     ds.labels.extend([3] * 10)
     assert len(ds.filter_vectorized([("labels", "==", 3)]).filtered_index) == 10
     assert len(ds) == 40
 
-    # 切换到dev-B1分支，这个分支添加数据【manager有所有分支的写权限】
+    # Checkout to branch dev-B1, append data
     ds.checkout("dev-B1")
     ds.labels.extend([4] * 10)
     assert len(ds.filter_vectorized([("labels", "==", 4)]).filtered_index) == 12
     assert len(ds) == 37
 
-    # 在dev-B1分支上合并dev-B2分支【manager有所有分支的写权限】
+    # Merge dev-B2
     ds.merge("dev-B2")
     assert ds.labels[0].numpy() == [5]
 
-    # 4. 切换回用户B
+    # 4. Change back to user B
     SensitiveConfig().uid = "B"
-    # 切换到dev-B分支，合并dev-B1分支
+    # Checkout dev-B, and merge dev-B1
     ds = muller.dataset(path=official_path(storage, TEST_MULTI_USER_PATH) + "@dev-B",
                        creds=official_creds(storage))
     assert len(ds) == 40
     ds.merge("dev-B1", append_resolution='theirs', update_resolution='theirs', pop_resolution="theirs")
     assert len(ds) == 37
 
-    # 切换到main分支，合并dev-B分支【用户B没有分支main的写权限，这里会报UnAuthorizationError，结束！】
+    # Checkout to the main branch and merge branch dev-B, but fail due to UnAuthorizationError
     ds = muller.dataset(path=official_path(storage, TEST_MULTI_USER_PATH),
                        creds=official_creds(storage))
     assert len(ds) == 30
@@ -94,9 +94,9 @@ def test_manager_user(storage):
 
 def test_unauthorization_case(storage):
     """ test catching the unauthorization error and ensure the next action is not affected. """
-    # 1. 用户A
+    # 1. User A
     SensitiveConfig().uid = "A"
-    # 创建数据集
+    # create dataset
     ds = muller.dataset(path=official_path(storage, TEST_MULTI_USER_PATH),
                        creds=official_creds(storage), overwrite=True)
     ds.create_tensor('labels', htype='generic', dtype='int')

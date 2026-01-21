@@ -28,7 +28,9 @@ def test_generic_vectorized_filter_1(storage):
     """ A test case of tensor column of generic dtype, using tensor.extend() to append data."""
     ds = muller.dataset(path=official_path(storage, TEST_FILTER_VECTORIZED_PATH),
                        creds=official_creds(storage), overwrite=True)
-    ds.create_tensor(name="test", htype="generic")   # 其实对空间没要求的话，不声明sample_compression="lz4"查起来更快
+    # You do not need to specify sample_compression="lz4" if there is no requirement of
+    # compression to save storage space. It it much faster to query data without compression.
+    ds.create_tensor(name="test", htype="generic")
     ds.test.extend(np.random.randint(5, size=10000))
 
     t0 = time()
@@ -245,7 +247,7 @@ def test_filter_with_different_branches(storage):
     ds.labels.extend([10, 2, 30, 4, 50, 6, 70, 8, 90, 100] * 2)
     ds.categories.extend(['agent', '情感', '生成', '写作', '情感', 'agent', '生成', '写作', '情感', '写作'] * 2)
 
-    # 换成dev分支，增加数据并查询
+    # Checkout to branch dev, append data, and query
     ds.checkout('dev', create=True)
     ds.labels.extend([10, 2, 30, 4, 50, 6, 70, 8, 90, 100] * 2)
     ds.categories.extend(['agent2', '情感2', '生成2', '写作2', '情感2', 'agent2', '生成2', '写作2', '情感2', '写作2'] * 2)
@@ -253,7 +255,7 @@ def test_filter_with_different_branches(storage):
     ds_1 = ds.filter_vectorized([("labels", ">", 50, False), ("categories", "==", '写作2', False)], ["OR"])
     assert len(ds_1.filtered_index) == 16
 
-    # 换成dev-2分支，增加数据并查询
+    # Checkout to branch dev-2, append data, and query
     ds.checkout('dev-2', create=True)
     ds.labels.extend([10, 2, 30, 4, 50, 6, 70, 8, 90, 100] * 2)
     ds.categories.extend(
@@ -263,7 +265,7 @@ def test_filter_with_different_branches(storage):
     ds_5 = ds.filter_vectorized([("labels", ">", 50, False), ("categories", "==", '写作2', False)], ["OR"])
     assert len(ds_5.filtered_index) == 26
 
-    # 再增加数据并查询
+    # Append data and query
     ds.labels.extend([10, 2, 30, 4, 50, 6, 70, 8, 90, 100] * 2)
     ds.categories.extend(
         ['agent2', '情感2', '生成2', '写作2', '情感2', 'agent2', '生成2', '写作2', '情感2', '写作2'] * 2)
@@ -272,39 +274,39 @@ def test_filter_with_different_branches(storage):
     ds_6 = ds.filter_vectorized([("labels", ">", 50, False), ("categories", "==", '写作2', False)], ["OR"])
     assert len(ds_6.filtered_index) == 36
 
-    # 修改数据并查询（使用update的方式一）
+    # Modify data and query (via the first method of data update)
     ds[78].update({"labels": 0})
     assert ds.append_only is False
     ds_7 = ds.filter_vectorized([("labels", ">", 50, False), ("categories", "==", '写作2', False)], ["OR"])
     assert len(ds_7.filtered_index) == 35
 
-    # 修改数据并查询（使用update的方式二）
+    # Modify data and query (via the second method of data update)
     ds.labels[79] = 0
     ds.categories[79] = "写作1"
     assert ds.append_only is False
     ds_8 = ds.filter_vectorized([("labels", ">", 50, False), ("categories", "==", '写作2', False)], ["OR"])
     assert len(ds_8.filtered_index) == 34
 
-    # 删除数据并查询
+    # Delete data and query
     ds.pop([63, 66, 67])
     assert ds.append_only is False
     ds_9 = ds.filter_vectorized([("labels", ">", 50, False), ("categories", "==", '写作2', False)], ["OR"])
     assert len(ds_9.filtered_index) == 31
 
-    # 换回main分支，查询
+    # Checkout to the main branch and query
     ds.checkout('main')
     assert ds.append_only is False
     ds_2 = ds.filter_vectorized([("labels", ">", 50, False), ("categories", "==", '写作2', False)], ["OR"])
     assert len(ds_2.filtered_index) == 6
 
-    # 换回dev分支，删除数据并查询
+    # Checkout to the dev branch, delete data, and query
     ds.checkout('dev')
     ds.pop([5, 6, 7, 8, 9])
     assert ds.append_only is False
     ds_3 = ds.filter_vectorized([("labels", ">", 50, False), ("categories", "==", '写作2', False)], ["OR"])
     assert len(ds_3.filtered_index) == 13
 
-    # 换回main分支，查询
+    # Checkout to the main branch, and query
     ds.checkout('main')
     assert ds.append_only is False
     ds_4 = ds.filter_vectorized([("labels", ">", 50, False), ("categories", "==", '写作2', False)], ["OR"])
@@ -347,7 +349,7 @@ def test_exception(storage):
     except FilterVectorizedConditionError as e:
         assert True, f"Filter values caused exception {e}"
 
-    try:  # 未创建inverted index
+    try:  # Before creating inverted index
         ds.filter_vectorized([("test1", "CONTAINS", "A", True)])
         assert False, "No exception raises"
     except InvertedIndexNotExistsError as e:
@@ -355,49 +357,49 @@ def test_exception(storage):
 
     ds.commit()
     ds.create_index(["test1", "test2"])
-    try:  # 在非string类型使用倒排索引
+    try:  # Use inverted index in non-string columns
         ds.filter_vectorized([("test2", "CONTAINS", 1)])
         assert False, "No exception raises"
     except FilterVectorizedConditionError as e:
         assert True, f"Filter values caused exception {e}"
 
-    try:  # 在contains关键字使用NOT
+    try:  # Use the keyword NOT with CONTAINS
         ds.filter_vectorized([("test1", "CONTAINS", "A", True, "NOT")])
         assert False, "No exception raises"
     except FilterOperatorNegationUnsupportedError as e:
         assert True, f"Filter values caused exception {e}"
 
-    try:  # ==, !=, 倒排索引使用NOT
+    try:  # User the keyword NOT with ==, !=, and inverted index
         ds.filter_vectorized([("test2", "==", 1, True, "NOT")])
         assert False, "No exception raises"
     except FilterOperatorNegationUnsupportedError as e:
         assert True, f"Filter values caused exception {e}"
 
-    try:  # 在between关键字使用string类型
+    try:  # Use the keyword BETWEEN on string-typed columns
         ds.filter_vectorized([("test1", "BETWEEN", ["A" "B"], True)])
         assert False, "No exception raises"
     except FilterVectorizedConditionError as e:
         assert True, f"Filter values caused exception {e}"
 
-    try:  # 在between关键字使用NOT
+    try:  # Use the keyword BETWEEN together with NOT
         ds.filter_vectorized([("test2", "BETWEEN", [1, 2], True, "NOT")])
         assert False, "No exception raises"
     except FilterOperatorNegationUnsupportedError as e:
         assert True, f"Filter values caused exception {e}"
 
-    try:  # connector list
+    try:  # The connector list
         ds.filter_vectorized([("test2", "BETWEEN", [1, 2], True, "NOT")], ["AND"])
         assert False, "No exception raises"
     except FilterVectorizedConnectorListError as e:
         assert True, f"Filter values caused exception {e}"
 
-    try: # inverted index使用不合法operator
+    try: # Using illegal operator with inverted index
         ds.filter_vectorized([("test2", ">", 1, True)])
         assert False, "No exception raises"
     except InvertedIndexUnsupportedError as e:
         assert True, f"Filter values caused exception {e}"
 
-    try: # condition list内容长度不对
+    try: # The length of condition list is illegal
         ds.filter_vectorized([("test2", ">", 1, True, False, False)])
         assert False, "No exception raises"
     except FilterVectorizedConditionError as e:
