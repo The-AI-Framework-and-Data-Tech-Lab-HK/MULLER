@@ -146,7 +146,7 @@ class InvertedIndexVectorized(object):
         remainder = dataset_length % num_of_batches
         # Compute the size of each sub-array
         sizes = np.full(num_of_batches, chunk_size)
-        sizes[:remainder] += 1  # 前 remainder 个子数组多一个元素
+        sizes[:remainder] += 1
 
         # Compute the start index
         starts = np.cumsum([start] + list(sizes[:-1]))
@@ -269,7 +269,7 @@ class InvertedIndexVectorized(object):
                        delete_old_index: bool = False,
                        use_cpp: bool = True):
         """Merge all shard files under the same shard ID into a single file."""
-        num_of_shards = self._obtain_meta(["num_of_shards"])[0] # 是shard的数量，不是shard文件的数量
+        num_of_shards = self._obtain_meta(["num_of_shards"])[0] # Number of shards, not number of shard files
 
         # If no temporary index file folder has already been generated, raise an error and return immediately.
         tmp_index_path = os.path.join(self.dataset.path, self.index_folder + "_tmp")

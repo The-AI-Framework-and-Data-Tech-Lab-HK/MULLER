@@ -45,11 +45,11 @@ function git_clone_open_src() {
     fi
     mkdir "$name" && cd "$name"
 
-    # 尝试使用tag克隆
+    # Try to git clone using tag
     if git lfs clone --depth 1 -b $tag --recursive $repo . 2>/dev/null; then
         echo "Successfully cloned ${name} with tag ${tag}"
     else
-        # 如果tag不存在，使用默认分支
+        # If the tag does not exist, use the default branch
         echo "Tag ${tag} not found, cloning default branch..."
         cd ..
         rm -rf "$name"
@@ -71,7 +71,7 @@ download_a_repo() {
 
     echo "begin download $name"
 
-    # 由于所有都是gitCloneOpenSrc类型，直接调用
+    # Since all dependencies are of type gitCloneOpenSrc, invoke the corresponding routine directly.
     if [ "$downloadType" = "gitCloneOpenSrc" ]; then
         git_clone_open_src $name $tag $repo
     else
@@ -80,7 +80,7 @@ download_a_repo() {
     fi
 }
 
-# 检查CSV文件是否存在
+# Check whether the csv file exist
 if [ ! -f "${DEPS_CSV}" ]; then
     echo -e "Dependencies file not found: ${DEPS_CSV}"
     exit 1
@@ -88,7 +88,7 @@ fi
 
 pids=()
 while IFS=',' read -r name tag downloadType repo || [ -n "$name" ]; do
-    # 跳过空行
+    # Skip the blank row
     [[ -z "$name" ]] && continue
 
     # Start background process for each task.

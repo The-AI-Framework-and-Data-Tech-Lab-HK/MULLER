@@ -863,19 +863,27 @@ def parse_changes(ds, temp_diff, tensor_name, last_indexed_commit):
 
 
 def get_tensor_uuids(ds, tensor_name, target_commit_id) -> List[int]:
-    """获取版本target_commit_id中tensor_name的所有uuid, 按照顺序排列.
-        注意，该函数是为了做到能够获取当前版本以外的其它版本中的tensor uuid，而无需check out
-    到那个版本而存在，这里直接读取所需版本的uuid数据并返回。
-        该函数参考tensor的_sample_id_tensor属性的numpy()的实现逻辑，正确性不能保证，如果出现问题，
-    还是以原来的实现为参考，先checkout到目标版本，然后获取相应结果, 可以获得原来的输出结果，最后为了
-    不改变dataset原来的状态，再checkout回去.
-        该函数理论上应该放在ChunkEngine里面，由于历史原因，先将就一下。
+    """Retrieve all UUIDs of tensor_name in the version specified by target_commit_id, sorted in order.
+
+    Note: This function is designed to fetch tensor UUIDs from a version other than the current one without checking
+    out that version. It directly reads the UUID data from the target version and returns it.
+
+    This implementation mirrors the logic used in the numpy() method of the tensor's _sample_id_tensor attribute,
+    but its correctness is not guaranteed. If issues arise, fall back to the original approach:
+
+    1. Check out the target version,
+    2. Retrieve the UUIDs,
+    3. Record the result,
+    4. Then check out back to the original version to preserve the dataset’s state.
+    Design Note: This function logically belongs in ChunkEngine,
+    but due to historical reasons, it remains here as a temporary workaround.
     """
 
-    # 这一行似乎是为了兼容使用统一uuid(每一行一个uuid的情况).
+    # This line appears to be for compatibility with the unified UUID scheme (i.e., one UUID per row).
     tar_tensor_meta_key = get_tensor_meta_key(tensor_name, target_commit_id)
     try:
-        # 如果get不到这个tensor_meta，则说明没有该tensor，uuid返回空列表
+        # If tensor_meta cannot be retrieved, it means the tensor does not exist,
+        # and an empty list should be returned for UUIDs.
         tar_tensor_meta = ds.storage.get_muller_object(tar_tensor_meta_key,
                                                        TensorMeta)
     except KeyError as e:
@@ -887,29 +895,32 @@ def get_tensor_uuids(ds, tensor_name, target_commit_id) -> List[int]:
         raise KeyError(f"{tar_tensor_meta_key} is broken.") from e
     tensor_size = tar_tensor_meta.length
 
-    # 如果缓存里有，直接从缓存里读
+    # If it exists in the cache, read it directly from the cache.
     uuids = _read_from_upper_cache(ds, target_commit_id, tensor_name)
     if uuids is not None:
         return uuids[0:tensor_size]  # 截取tensor_size兼容统一uuid.
 
-    # 一、获取uuid列数据chunk所在路径，参考ChunkEngine中的实现逻辑，这里首先需要
-    # 访问目标版本文件夹下的数据获取所有需要的chunk的名字，然后，由于所有需要的chunk的存储路径
-    # 并不一定都记录在当前版本当中，所以需要进一步寻找.
+    # (1). Obtain the file paths of the chunks containing the UUID column data, following the implementation logic in
+    # ChunkEngine. First, access the target version's directory to retrieve the names of all required chunks.
+    # Then, since the actual storage paths of these chunks may not all be recorded in the current version,
+    # further lookup is needed to locate their true physical locations.
 
-    # 首先获取uuid对应tensor名，兼容统一uuid的情况.
+    # First, obtain the tensor name corresponding to the UUID, ensuring compatibility with the unified UUID scheme
+    # (where one UUID is assigned per row).
     hidden_tensor_name = DATASET_UUID_NAME if ds.use_dataset_uuid else get_sample_id_tensor_key(tensor_name)
 
-    # 1、获取所有需要的chunk的名字.
+    # 1、Retrieve the names of all required chunks.
     all_chunk_names = _get_chunk_names_from_path(ds, get_chunk_id_encoder_key(hidden_tensor_name, target_commit_id))
     uuid_list = []
 
-    # 2、直接从tensor_name/chunks下读取chunk，不需要遍历.
-    for chunk_name in all_chunk_names:  # 这里可以想办法并行读，利用Provider.get_items接口，暂时不实现.
+    # 2、Read chunks directly from tensor_name/chunks without traversal.
+    for chunk_name in all_chunk_names:  # Here, we could potentially read chunks in parallel using the
+        # Provider.get_items interface—this is noted for future optimization but not implemented for now.
         uuid_list.extend(_deserialize_uuids(ds, get_chunk_key(hidden_tensor_name, chunk_name)))
 
-    # 放入缓存
+    # Put in cache
     _update_upper_cache(ds, uuid_list, target_commit_id, tensor_name)
-    return uuid_list[0:tensor_size]  # 截取tensor_size兼容统一uuid.
+    return uuid_list[0:tensor_size]  # Truncate tensor_size to maintain compatibility with the unified UUID scheme.
 
 
 def _delete_branch(ds, name: str) -> None:
@@ -932,21 +943,23 @@ def _delete_branch(ds, name: str) -> None:
 
 
 def _data_to_dataframe(original_dict, common_tensors, target_operations, force):
-    # 首先拿到大家的uuid
+    # First fetch the uuids
     common_tensors = list(common_tensors)
     data = {}
     uuid_set = {}
     for tensor_name in common_tensors:
-        # 注意：如果是append或delete，应该都是对齐的，直接取id_1或id_2的值即可。
-        # 但为了保险起见（以防有些列单独有append或pop），我们还是做了集合的并集并遍历。
+        # Note: In the case of append or delete operations, the IDs should generally be aligned, so we could directly
+        # take the values from id_1 or id_2. However, to be safe—accounting for scenarios where some columns
+        # might have undergone independent append or pop operations—we instead compute the union of the ID sets and
+        # iterate over that.
         uuid_set = uuid_set | original_dict[tensor_name][target_operations].keys()
 
-    # 如果数据量过大，则可能抛出异常
+    # If the data volume is too large, an exception may be raised.
     if not force and len(uuid_set) > TO_DATAFRAME_SAFE_LIMIT:
         raise ExportDataFrameLimit(len(uuid_set), TO_DATAFRAME_SAFE_LIMIT)
     data.update({"uuid": list(uuid_set)})
 
-    # 然后根据大家的操作来生成dataframe
+    # Then, generate a DataFrame based on everyone's operations.
     if target_operations != "edited_values_tar1":
         tensor_dict = {}
         for tensor_name in common_tensors:

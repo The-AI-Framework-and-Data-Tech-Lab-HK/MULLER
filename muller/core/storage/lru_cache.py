@@ -407,14 +407,14 @@ class LRUCache(StorageProvider):
         """Check if self.muller_objects has any data required before calling get_multiple_muller_objects.
              This function may be removed and implemented in another subclass in the future.
         """
-        # 不管所有muller_objects里面的东西，直接筛掉
-        new_paths = []  # 直接把所有muller_objects里的东西筛掉
+        # Ignore everything inside all muller_objects and filter them out directly.
+        new_paths = []  # Directly filter out all items within muller_objects.
         for key in keys:
             if key not in self.muller_objects:
                 new_paths.append(key)
-        # 调用
+
         new_results = self.get_multiple_muller_objects(keys=new_paths, expected_class=expected_class, meta=meta)
-        # 把muller_objects里面的东西再加进来返回
+        # Add back the items from muller_objects and return them.
         results = []
         i = 0
         for key in keys:
@@ -556,14 +556,15 @@ class LRUCache(StorageProvider):
         data.update(self.get_items_no_update(keys=keys_st,
                                              ignore_key_error=ignore_key_error,
                                              process_f=process_fs.read_process_f))
-        # ignore_key_error重整
+        # ignore_key_error resettings
         keys_filtered = list(data.keys())
-        # 检查
+        # Check
         if not ignore_key_error and set(data) != keys_st:
             raise RuntimeError("The data found doesn't match given keys, something went wrong.")
 
         # 2. Update self.lru_sizes and self.cache_used
-        try:  # 这个key 1000%在data里，为什么还需要捕获错误？这种多此一举的流水线要求早就该删掉！！！
+        try:  # This key is 100% guaranteed to be in data—why is error handling still required?
+            # This redundant pipeline requirement should have been removed long ago!!!
             sizes = [self.lru_sizes.get(key, _get_nbytes(data[key]))
                      for key in keys_filtered]
         except KeyError as e:

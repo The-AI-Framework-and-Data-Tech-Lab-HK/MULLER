@@ -148,7 +148,7 @@ class ComputeFunction:
 
                     # Extract field name: sample_out.field.append
                     if (isinstance(node.func.value, ast.Attribute) and
-                            isinstance(node.func.value.value, ast.Name)):  # 支持不同的参数名
+                            isinstance(node.func.value.value, ast.Name)):  # Support differennt congirations
 
                         field_name = node.func.value.attr
 
@@ -164,10 +164,10 @@ class ComputeFunction:
         return mappings
 
     def _validate_consistency(self):
-        """验证参数与append操作的一致性"""
+        """Validate the consistency between parameters and the append operation."""
         func_name = self.func
 
-        # 检查参数数量
+        # Check the number of configurations
         if len(self.param_names) != len(self.append_mappings):
             logging.error(f"Warning: Function {func_name}: Parameter count ({len(self.param_names)}) "
                           f"doesn't match append operations count ({len(self.append_mappings)})")
@@ -176,7 +176,7 @@ class ComputeFunction:
             self.batch_enable = False
             return
 
-        # 检查参数名称匹配
+        # Check parameter name matching.
         missing_params = set(self.param_names) - set(self.append_mappings.keys())
         extra_appends = set(self.append_mappings.keys()) - set(self.param_names)
 
@@ -326,7 +326,7 @@ class Pipeline:
 
                 datas_in = []
                 for i in range(0, num_samples, kwargs.get("checkpoint_interval", 0)):
-                    # 对每个子列表进行切片
+                    # Perform slicing on each sublist.
                     chunk = [
                         sublist[i: i + kwargs.get("checkpoint_interval", 0)]
                         for sublist in data_in

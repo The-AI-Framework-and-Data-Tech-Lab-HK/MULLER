@@ -304,13 +304,13 @@ def test_limited_authentication_on_other_branches(storage):
         assert True, f"uid authorization caused exception {e}"
 
     try:
-        ds.add_data_from_file()  # 看看是否走修饰器的报错就可以了
+        ds.add_data_from_file()  # Check if raising the error through the decorator is sufficient.
         assert False, "No exception raises"
     except UnAuthorizationError as e:
         assert True, f"uid authorization caused exception {e}"
 
     try:
-        ds.add_data_from_dataframes()  # 看看是否走修饰器的报错就可以了
+        ds.add_data_from_dataframes()  # Check if raising the error through the decorator is sufficient.
         assert False, "No exception raises"
     except UnAuthorizationError as e:
         assert True, f"uid authorization caused exception {e}"

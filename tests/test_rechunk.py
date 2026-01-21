@@ -399,10 +399,10 @@ def test_rechunk_necessary(storage):
     bef_text_len = len(ds.text)
     bef_id_len = len(ds.line_no)
     tensor_length = {
-        # 小枚举字符串；UTF-8 ≤ 20B，再加序列化开销取 32
+        # Small enum string; UTF-8 encoded ≤ 20 bytes, plus serialization overhead → allocate 32 bytes.
         'text': 28,
 
-        # ISO-639 二字母语言码，'cy' 'cs' … ；给 8 字节绰绰有余
+        # ISO-639 two-letter language codes (e.g., 'cy', 'cs', etc.); 8 bytes is more than sufficient.
         'line_no': 8,
     }
 

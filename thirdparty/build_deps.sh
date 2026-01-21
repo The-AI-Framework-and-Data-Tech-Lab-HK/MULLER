@@ -9,7 +9,7 @@ VENDOR_DIR="${THIRDPARTY_DIR}/vendor"
 BUILD_OUT_DIR="${VENDOR_DIR}/lib"
 DEPS_SCRIPT="${CUR_DIR}/download_opensource.sh"
 
-# 默认并行编译数
+# Default number of parallel compilation jobs.
 CPU_NUM=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 JOB_NUM=$((CPU_NUM + 1))
 
@@ -37,7 +37,7 @@ while getopts 'j:cd' opt; do
     esac
 done
 
-# 下载依赖
+# Downloading dependencies
 echo "=== Downloading dependencies ==="
 if [ -f "${DEPS_SCRIPT}" ]; then
     bash "${DEPS_SCRIPT}" -T "${VENDOR_DIR}" -F "${CUR_DIR}/dependencies.csv"
@@ -46,23 +46,23 @@ else
     exit 1
 fi
 
-# 如果只下载，退出
+# If it is download_only, then you can skip the building
 if [ "${DOWNLOAD_ONLY}" = "1" ]; then
     echo "Download completed. Skipping build."
     exit 0
 fi
 
-# 创建输出目录
+# Make a build directory
 mkdir -p "${BUILD_OUT_DIR}"
 
-# 清理构建
+# Clean the build files
 if [ "${CLEAN_BUILD}" = "1" ]; then
     echo "=== Cleaning previous builds ==="
     find "${VENDOR_DIR}" -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
     rm -rf "${BUILD_OUT_DIR}"/*
 fi
 
-# 构建 cppjieba
+# Build cppjieba
 build_cppjieba() {
     echo "=== Building cppjieba ==="
     local cppjieba_dir="${VENDOR_DIR}/cppjieba"
@@ -74,24 +74,24 @@ build_cppjieba() {
 
     cd "${cppjieba_dir}"
 
-    # 初始化子模块
+    # Initialize submodules.
     if [ -f ".gitmodules" ]; then
         git submodule init
         git submodule update
     fi
 
-    # 创建并进入构建目录
+    # Create and enter the build directory.
     mkdir -p build
     cd build
 
-    # 配置和编译
+    # Configure and compile.
     cmake ..
     make -j${JOB_NUM}
 
     echo "cppjieba build completed"
 }
 
-# 构建 sparsehash
+# Construct sparsehash
 build_sparsehash() {
     echo "=== Building sparsehash ==="
     local sparsehash_dir="${VENDOR_DIR}/sparsehash"
@@ -103,7 +103,7 @@ build_sparsehash() {
 
     cd "${sparsehash_dir}"
 
-    # 执行标准的三步构建
+    # Perform the standard three-step build process.
     echo "Running ./configure..."
     ./configure --prefix="${VENDOR_DIR}/sparsehash/install"
 
@@ -116,7 +116,7 @@ build_sparsehash() {
     echo "sparsehash build completed"
 }
 
-# 构建 boost
+# Construct boost
 build_boost() {
     echo "=== Building boost ==="
     local boost_dir="${VENDOR_DIR}/boost"
@@ -131,7 +131,7 @@ build_boost() {
     # Bootstrap
     ./bootstrap.sh --prefix="${boost_dir}/install"
 
-    # 只编译需要的库
+    # Compile only the required libraries.
     ./b2 -j${JOB_NUM} \
         --with-system \
         variant=release \
@@ -142,11 +142,11 @@ build_boost() {
     echo "boost build completed"
 }
 
-# 检查仅头文件的库
+# Check for header-only libraries.
 check_header_only_libs() {
     echo "=== Checking header-only libraries ==="
 
-    # murmurhash - 检查关键文件
+    # murmurhash - Check the key files
     if [ -d "${VENDOR_DIR}/murmurhash" ]; then
         if [ -f "${VENDOR_DIR}/murmurhash/murmurhash/include/murmurhash/MurmurHash3.h" ] && \
            [ -f "${VENDOR_DIR}/murmurhash/murmurhash/MurmurHash3.cpp" ]; then
@@ -154,7 +154,7 @@ check_header_only_libs() {
             echo "  - Header: ${VENDOR_DIR}/murmurhash/murmurhash/include/murmurhash/MurmurHash3.h"
             echo "  - Source: ${VENDOR_DIR}/murmurhash/murmurhash/MurmurHash3.cpp"
 
-            # 复制源文件到third_party目录以便编译
+            # Copy source files to the third_party directory for compilation.
             cp "${VENDOR_DIR}/murmurhash/murmurhash/MurmurHash3.cpp" "${THIRDPARTY_DIR}"
         else
             echo "✗ murmurhash: missing required files"
@@ -165,7 +165,7 @@ check_header_only_libs() {
         return 1
     fi
 
-    # pybind11 - 检查头文件目录
+    # pybind11 - Check the header files
     if [ -d "${VENDOR_DIR}/pybind11" ]; then
         if [ -d "${VENDOR_DIR}/pybind11/include/pybind11" ]; then
             echo "✓ pybind11: header-only library found"
@@ -180,16 +180,16 @@ check_header_only_libs() {
     fi
 }
 
-# 主构建流程
+# Main build process.
 echo "=== Starting build process ==="
 echo "Parallel jobs: ${JOB_NUM}"
 
-# 构建各个库
+# Build each library.
 build_cppjieba
 build_sparsehash
 build_boost
 
-# 检查仅头文件的库
+# Check for header-only libraries.
 check_header_only_libs
 
 echo "=== Build completed ==="

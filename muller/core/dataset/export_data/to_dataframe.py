@@ -18,9 +18,9 @@ def to_dataframe(dataset, tensor_list=None, index_list=None):
         target_list = list(dataset.tensors)
     if index_list:
         for tensor in target_list:
-            data.update({tensor: list(dataset[index_list][tensor].numpy().flatten())})  # 这里可以用numpy_continuous?
+            data.update({tensor: list(dataset[index_list][tensor].numpy().flatten())})  # TODO: use numpy_continuous
     else:
         for tensor in target_list:
-            data.update({tensor: list(dataset[tensor].numpy().flatten())})  # 这里可以用numpy_full? 但有进程lock风险
+            data.update({tensor: list(dataset[tensor].numpy().flatten())})  # TODO: use numpy_full (risk of file lock)
     df = pd.DataFrame(data, columns=target_list)
     return df

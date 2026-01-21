@@ -170,7 +170,7 @@ class InvertedIndex(object):
 
         # Reorder and dunmp to storage
         all_keys = list(super_dict.keys())
-        all_keys.sort(reverse=False)  # 升序！
+        all_keys.sort(reverse=False)  # Ascending order
         step = max(1, int(len(all_keys)/len(file_dict)))
         key_groups = [all_keys[i: i+step] for i in range(0, len(all_keys), step)]
 

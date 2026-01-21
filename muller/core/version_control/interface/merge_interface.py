@@ -735,7 +735,8 @@ def get_updates_commit_ids_for_node(
     while current_node and current_node.commit_id != lca_node.commit_id:
         commit_id = current_node.commit_id
         if current_node.is_merge_node:
-            # 通过dataset.version_state来获取current_node的merge_parent的实际CommitNode(而不是一个字符串)
+            # Use dataset.version_state to obtain the actual CommitNode object (not just a string)
+            # of the merge_parent of the current node.
             merge_parent_node = dataset.version_state["commit_node_map"][current_node.merge_parent]
             changes = get_updates_commit_ids_for_node(
                 dataset, tensor_key, merge_parent_node, lca_node
@@ -1334,7 +1335,7 @@ def _copy_objects(key_pairs, src_storage, dest_storage):
         try:
             dest_storage[dest_key] = src_storage[src_key]
         except KeyError:
-            pass  # 这里必须是个pass，不然raise KeyError的话会报错
+            pass  # This must be a pass; otherwise, raising a KeyError here would cause an error.
 
 
 def copy_tensors(

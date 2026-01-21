@@ -153,7 +153,7 @@ def load_meta(dataset):
     try:
         # Sherry: Python does not have official overwrite functions. So we create a new method for all the
         # storage providers, including memory, local and roma.
-        # 原来是get_filelist，现在改了 -------------------
+        # Origin: get_filelist
         dataset.storage.get_items(set(meta_file_list))  # just checking, so we do not need the return value
     except KeyError:
         flag = False
@@ -288,7 +288,7 @@ def _copy_metas(
 
 
 def _copy_metas_prepocess(storage, src_commit_id, dest_commit_id):
-    # dataset_meta必须先get，后面需要使用，不做修改。
+    # dataset_meta must be fetched first, as it will be used later and should not be modified.
     src_dataset_meta = _get_dataset_meta_at_commit(storage, src_commit_id)
     src_dataset_meta.statistics = {}  # clear stat info
     dest_dataset_meta_key = get_dataset_meta_key(dest_commit_id)

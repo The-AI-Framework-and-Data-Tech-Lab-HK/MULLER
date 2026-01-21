@@ -660,9 +660,10 @@ class Tensor:
     def pop(self, index: Optional[Union[int, List[int]]] = None):
         """Removes element(s) at the given index / indices."""
 
-        # 先确认不是直接外部调用
-        caller_frame = inspect.stack()[1] # 获取调用栈信息
-        caller_module = inspect.getmodule(caller_frame[0]) # 获取调用者模块
+        # First, ensure this is not a direct external call.
+        caller_frame = inspect.stack()[1] # Get the call stack information.
+        caller_module = inspect.getmodule(caller_frame[0]) # Get the caller module.
+
         if caller_module.__name__ not in ["muller.core.dataset.dataset",
                                           "muller.api.info",
                                           "muller.core.tensor",
