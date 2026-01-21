@@ -11,7 +11,13 @@ MULLER is a novel Multimodal data lake format designed for collaborative AI data
 
 
 ## Getting Started
-MULLER requires Python 3.11 or later.
+
+#### Prerequisites
+
+- Python >= 3.11
+- CMake >= 3.22.1 (required for building C++ extensions)
+- A C++17 compatible compiler (tested with gcc 11.4.0)
+- Linux or macOS (tested on Ubuntu 22.04)
 
 #### 1. (Recommended) Create a new Conda environment
 ```bash
