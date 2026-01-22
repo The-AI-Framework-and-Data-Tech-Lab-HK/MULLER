@@ -4,15 +4,15 @@
 
 ## MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows
 <div align="center">
-    <img src="figures/motivation-github.pdf" width="700">
+    <img src="figures/motivation-github.png" width="700">
 </div>
 
-At modern training scales, AI datasets are curated collaboratively by multiple data engineers rather than a single user.
-In a typical workflow, data engineers independently check out branches from a main dataset, perform LLM-assisted data annotation and exploration, and commit their changes. Some branches can be merged via fast-forward (e.g., merging _Branch 1_ at t<sub>2</sub>), while others require three-way merges with conflict detection as the main branch evolves (e.g., merging _Branch 2_ at t<sub>3</sub>). The merged dataset is then exported for downstream model fine-tuning.
+At modern training scales, AI datasets are no longer curated by a single user, but collaboratively by multiple data engineers working on parallel data branches. In practice, engineers independently check out dataset branches, perform LLM-assisted data annotation and exploration, and commit their changes. As the main dataset evolves, some branches can be fast-forward merged (e.g., merging _Branch 1_ at t<sub>2</sub>), while others require three-way merges with conflict detection (e.g., merging _Branch 2_ at t<sub>3</sub>).
 
-However, existing data lake formats or systems such as Parquet, Lance, Iceberg, and Deep Lake do not unify these workflows or support collaborative three-way merges. To address this challenge, we propose MULLER, which is a novel Multimodal data lake format designed for collaborative AI data workflows, with the following key features:
+However, existing data lake formats (e.g., Parquet, Lance, Iceberg, Deep Lake) do not natively support such collaborative, Git-like data workflows.
+To address this gap, we introduce **MULLER**, a novel Multimodal data lake format designed for collaborative AI data workflows, with the following key features:
 * **Mutimodal data support** with than 12 data types of different modalities, including scalars, vectors, text, images, videos, and audio, with 20+ compression formats (e.g., LZ4, JPG, PNG, MP3, MP4, AVI, WAV).
-* **Data sampling, exploration, and Analysis** through low-latency random access and fast scan.
+* **Data sampling, exploration, and analysis** through low-latency random access and fast scan.
 * **Array-oriented hybrid search engine** that jointly queries vector, text, and scalar data.
 * **Git-like data versioning** with support for commit, checkout, diff, conflict detection and resolution, as well as merge. Specifically, to the best of our knowledge, MULLER is the first data lake format to support _fine-grained row-level updates and three-way merges_ across multiple coexisting data branches.
 * **Seamless integration with LLM/MLLM data training and processing pipelines**.
@@ -180,11 +180,12 @@ recall = np.ones(len(res_id))[(ground_truth==res_id).flatten()].sum() / len(res_
 
 #### 4. Collaborative Data Annotation based on Git-like versioning
 
-Step 1. Checkout a new branch (dev-1), and conduct data annotations. Note: The annotation may be assisted by LLMs.
+1. Checkout a new branch (dev-1), and conduct data annotations (append/pop/update). Note: The annotation may be assisted by LLMs.
 ```python
 ds = muller.load(path="test_dataset@main") # You can use `@` to denote the target branch
 ds.checkout("dev-1", create=True)
 # Append rows
+ds.my_images.extend([muller.read(img_path_50), muller.read(img_path_60), muller.read(img_path_70)])
 ds.labels.extend([50, 60, 70])
 ds.categories.extend(["cat", "bird", "cat"])
 ds.description.extend(["An inquisitive ginger tabby cat standing on its hind legs, reaching out with its paws toward a feathered toy during an active play session.", 
@@ -195,6 +196,63 @@ ds.labels[3] = 30
 # Delete rows
 ds.pop(1)
 ds.commit('commit on dev-1')
+```
+
+2. Go back to the main branch, then checkout a new branch (dev-2), and conduct data annotations (append/pop/update). Note: The annotation may be assisted by LLMs.
+```python
+ds = muller.load(path="test_dataset@main")
+ds.checkout("dev-2", create=True)
+# Append rows
+ds.my_images.extend([muller.read(img_path_500), muller.read(img_path_600), muller.read(img_path_700), muller.read(img_path_800)])
+ds.labels.extend([500, 600, 700, 800])
+ds.categories.extend(["cat", "cat", "dog", "bird"])
+ds.description.extend(["A fluffy orange tabby cat lounges lazily in a sunny window, its green eyes half-closed in contentment.",
+                          "Two playful kittens chase each other across the living room floor, their tiny paws pattering on the hardwood.",
+                          "A golden retriever bounds through the park with a tennis ball in its mouth, tail wagging enthusiastically.",
+                          "A vibrant blue jay perches on a snow-covered branch, its colorful feathers contrasting beautifully against the white winter landscape."])
+# Update rows
+ds.labels[3] = 300
+ds.labels[4] = 400
+# Delete rows
+ds.pop([1, 2])
+ds.commit('commit on dev-2')
+```
+
+3. Fast-forward merge: on the main branch, we merge dev-1. Note: we adopt the pop operations in dev-1.
+```python
+ds.checkout('main')
+ds.merge('dev-1', pop_resolution='theirs')
+```
+
+4. Three-way merge: check the diff between the main branch and dev-1 branch, then merge the dev-2 branch
+```python
+from pprint import pprint
+conflict_cols, conflict_records = ds.detect_merge_conflict("dev-2", show_value=True)
+pprint(conflict_records)
+
+ds.merge("dev-2", append_resolution="both", pop_resolution="ours", update_resolution="theirs")
+```
+
+5. Schema isolation: on the main branch, create a new branch dev-3, and add a column.
+```python
+import numpy as np
+with ds:
+    ds.checkout("dev-3", create=True)
+    # Note: dev-3 has one more column than the main branch. The schemas of dev-3 and main are isolated.
+    ds.create_tensor("features", htype="generic", dtype="float")
+    ds.features.extend(np.arange(0, 1.1, 0.1))
+    ds.commit()
+
+ds.checkout("main")
+ds.merge("dev-3") # Now the main branch has the same number of columns as dev-3
+```
+
+6. Check the log and diff between branches or commits
+```python
+ds.log()
+ds.branches
+ds.diff(id_1="dev-1", id_2="dev-2")
+ds.direct_diff(id_1="dev-1", id_2="dev-2", as_dataframe=True)
 ```
 
 ## Reproduction steps for the experiment results in our paper
