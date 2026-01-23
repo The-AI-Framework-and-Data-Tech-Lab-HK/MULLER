@@ -1,14 +1,13 @@
 site_name: MULLER Documentation
-site_description: Multimodal Unified Large-scale Learning & Efficient Representation
-site_author: MULLER Team
+site_description: MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows
+site_author: Xueling Lin, Bingyu Liu
 
 repo_name: MULLER
-repo_url: https://github.com/<your-org>/MULLER
+repo_url: https://github.com/The-AI-Framework-and-Data-Tech-Lab-HK/MULLER
 edit_uri: edit/main/docs/
 
 theme:
   name: material
-  # name: readthedocs
   language: en
   logo: assets/logo.png
   favicon: assets/logo.png
@@ -38,17 +37,17 @@ theme:
         icon: material/weather-sunny
         name: Switch to light mode
 
-# markdown_extensions:
-#   - admonition
-#   - toc:
-#       permalink: true
-#   - pymdownx.highlight
-#   - pymdownx.superfences
-#   - pymdownx.inlinehilite
-#   - pymdownx.details
-#   - pymdownx.tabbed
-#   - pymdownx.tasklist
-#   - pymdownx.emoji
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.details
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - pymdownx.emoji
 
 nav:
   - Home: get_started.md
@@ -67,8 +66,8 @@ nav:
   #     - Python API: api/python.md
   #     - C++ API: api/cpp.md
 
-# extra_css:
-#   - stylesheets/extra.css
+extra_css:
+  - stylesheets/extra.css
 
 plugins:
   - search
