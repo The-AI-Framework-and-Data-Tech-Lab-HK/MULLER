@@ -2,7 +2,7 @@ site_name: MULLER
 site_url: https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER
 theme:
   name: material
-  language: zh
+  language: en
   # logo: assets/logo.png
   # favicon: assets/logo.png
   features:
