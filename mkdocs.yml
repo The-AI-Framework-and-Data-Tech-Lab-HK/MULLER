@@ -49,8 +49,10 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 nav:
-  - Getting Started: index.md
+  - Introduction: index.md
+  - Getting Started: 
     - Install: installation.md
+    - Read as MULLER object: read.md
   - API Documents:
       - Dataset: api/dataset.md
   - FAQ: faq.md
