@@ -37,37 +37,37 @@ theme:
         icon: material/weather-sunny
         name: Switch to light mode
 
-markdown_extensions:
-  - admonition
-  - toc:
-      permalink: true
-  - pymdownx.highlight
-  - pymdownx.superfences
-  - pymdownx.inlinehilite
-  - pymdownx.details
-  - pymdownx.tabbed
-  - pymdownx.tasklist
-  - pymdownx.emoji
+# markdown_extensions:
+#   - admonition
+#   - toc:
+#       permalink: true
+#   - pymdownx.highlight
+#   - pymdownx.superfences
+#   - pymdownx.inlinehilite
+#   - pymdownx.details
+#   - pymdownx.tabbed
+#   - pymdownx.tasklist
+#   - pymdownx.emoji
 
 nav:
   - Home: get_started.md
-  - Install: install.md
-  - Quickstart:
-      - Quick Start: quickstart/quickstart.md
-  - Concepts:
-      - Dataset: concepts/dataset.md
-      - Tensor Column: concepts/tensor.md
-      - Storage & Versioning: concepts/storage.md
-  - Tutorials:
-      - Read Multimodal Data: tutorials/read_data.md
-      - Create Tensor Columns: tutorials/create_tensor.md
-      - Write Data: tutorials/write_data.md
-  - API Reference:
-      - Python API: api/python.md
-      - C++ API: api/cpp.md
+  # - Install: install.md
+  # - Quickstart:
+  #     - Quick Start: quickstart/quickstart.md
+  # - Concepts:
+  #     - Dataset: concepts/dataset.md
+  #     - Tensor Column: concepts/tensor.md
+  #     - Storage & Versioning: concepts/storage.md
+  # - Tutorials:
+  #     - Read Multimodal Data: tutorials/read_data.md
+  #     - Create Tensor Columns: tutorials/create_tensor.md
+  #     - Write Data: tutorials/write_data.md
+  # - API Reference:
+  #     - Python API: api/python.md
+  #     - C++ API: api/cpp.md
 
-extra_css:
-  - stylesheets/extra.css
+# extra_css:
+#   - stylesheets/extra.css
 
 plugins:
   - search
