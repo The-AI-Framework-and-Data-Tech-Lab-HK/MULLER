@@ -1,4 +1,3 @@
-## MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows
 
 <div align="center">
     <img src="figures/motivation-github.png" width="700">
@@ -8,7 +7,8 @@
 At modern training scales, AI datasets are no longer curated by a single user, but collaboratively by multiple data engineers working on parallel data branches. In practice, engineers independently check out dataset branches, perform LLM-assisted data annotation and exploration, and commit their changes. As the main dataset evolves, some branches can be fast-forward merged (e.g., merging _Branch 1_ at t<sub>2</sub>), while others require three-way merges with conflict detection (e.g., merging _Branch 2_ at t<sub>3</sub>).
 
 However, existing data lake formats (e.g., Parquet, Lance, Iceberg, Deep Lake) do not natively support such collaborative, Git-like data workflows.
-To address this gap, we introduce **MULLER**, a novel Multimodal data lake format designed for collaborative AI data workflows, with the following key features:
+To address this gap, we introduce **MULLER, a novel Multimodal data lake format designed for collaborative AI data workflows**, with the following key features:
+
 * **Mutimodal data support** with than 12 data types of different modalities, including scalars, vectors, text, images, videos, and audio, with 20+ compression formats (e.g., LZ4, JPG, PNG, MP3, MP4, AVI, WAV).
 * **Data sampling, exploration, and analysis** through low-latency random access and fast scan.
 * **Array-oriented hybrid search engine** that jointly queries vector, text, and scalar data.
