@@ -50,7 +50,7 @@ markdown_extensions:
   - pymdownx.emoji
 
 nav:
-  - Home: index.md
+  - Home: get_started.md
   - Install: install.md
   - Quickstart:
       - Quick Start: quickstart/quickstart.md
