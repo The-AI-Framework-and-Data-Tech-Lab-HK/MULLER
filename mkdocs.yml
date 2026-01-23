@@ -2,3 +2,57 @@ site_name: MULLER
 site_url: https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER
 theme:
   name: material
+  language: zh
+  # logo: assets/logo.png
+  # favicon: assets/logo.png
+  features:
+    - navigation.tabs
+    - navigation.top
+    - navigation.sections
+    - navigation.expand
+    - navigation.instant
+    - navigation.tracking
+    - content.code.copy
+    - content.action.edit
+    - search.highlight
+    - search.suggest
+  palette: 
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Change to the bright mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Change to the dark mode
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition                 
+  - pymdownx.details           
+  - pymdownx.superfences:      
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true    
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Introduction: index.md
+  - Getting Started: 
+    - Install: installation.md
+    - Read as MULLER object: read.md
+  - API Documents:
+      - Dataset: api/dataset.md
+  - FAQ: faq.md
