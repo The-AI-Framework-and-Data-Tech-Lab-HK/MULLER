@@ -1,10 +1,10 @@
 <div align="center">
-    <img src="figures/logo.png" width="500">
+    <img src="docs/figures/logo.png" width="500">
 </div>
 
 ## MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows
 <div align="center">
-    <img src="figures/motivation-github.png" width="700">
+    <img src="docs/figures/motivation-github.png" width="700">
 </div>
 
 At modern training scales, AI datasets are no longer curated by a single user, but collaboratively by multiple data engineers working on parallel data branches. In practice, engineers independently check out dataset branches, perform LLM-assisted data annotation and exploration, and commit their changes. As the main dataset evolves, some branches can be fast-forward merged (e.g., merging _Branch 1_ at t<sub>2</sub>), while others require three-way merges with conflict detection (e.g., merging _Branch 2_ at t<sub>3</sub>).
