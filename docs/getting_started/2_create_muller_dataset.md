@@ -162,7 +162,7 @@ This guarantees dataset consistency and prevents mismatched column lengths.
 
 > ⚠️ This interface is currently **experimental** and may be adjusted in future releases based on user feedback.
 
-### 2.1 Converting Existing JSON / CSV / Parquet Files into a MULLER Dataset
+### Option 1. Converting Existing JSON / CSV / Parquet Files into a MULLER Dataset
 
 In this batch ingestion mode, the following three inputs are required:
 
@@ -195,3 +195,5 @@ Example usage:
 
 >>> ds_1.summary()
 ```
+### Option 2. Converting Existing JSON / CSV / Parquet Files into a MULLER Dataset
+
