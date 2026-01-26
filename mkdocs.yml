@@ -51,7 +51,7 @@ markdown_extensions:
 nav:
   - Introduction: index.md
   - Getting Started: 
-    - Install: installation.md
+    - Install: getting_started/installation.md
     - Read as MULLER object: read.md
   - API Documents:
       - Dataset: api/dataset.md
