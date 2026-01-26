@@ -108,7 +108,7 @@ Currently, MULLER supports the following tensor column types (`htype`), compress
 
 ### Step 3. Append Data to Tensor Columns
 
-#### 1. Appending a small number of samples (recommended: default single-process mode)
+#### 3.1. Appending a small number of samples (recommended: default single-process mode)
 
 **Append a single sample:**
 
@@ -144,16 +144,54 @@ Currently, MULLER supports the following tensor column types (`htype`), compress
 ```
 * Refer to [[append()]()] and [[extend()] for detailed usage.
 
-#### 2. Use the `with ds:` context to improve write performance
+#### 3.2. Use the `with ds:` context to improve write performance
 Always wrap dataset write operations inside `with ds:`, as this can significantly improve data write throughput.
 For a detailed explanation, see [[Using the with context to improve write performance]()].
 
-#### 3. Appending large-scale data (parallel mode)
+#### 3.3. Appending large-scale data (parallel mode)
 For large-scale data ingestion, it is recommended to use the `@muller.compute` decorator to enable parallel execution (multi-threading, multi-processing, or multi-worker setups).
 You can also enable periodic checkpointing by setting `checkpoint_interval=<commit_every_N_samples>` to persist data in batches.
 
 See [[Creating datasets and appending large-scale data]()] for details.
 
-##### 4. Data consistency requirement
+#### 3.4. Data consistency requirement
 **Important**: When appending data column-wise, ensure that the number of newly added samples is identical across all columns.
 This guarantees dataset consistency and prevents mismatched column lengths.
+
+## 2. Automatic Data Ingestion and Dataset Creation (Experimental)
+
+> ⚠️ This interface is currently **experimental** and may be adjusted in future releases based on user feedback.
+
+### 2.1 Converting Existing JSON / CSV / Parquet Files into a MULLER Dataset
+
+In this batch ingestion mode, the following three inputs are required:
+
+- **`ori_path`**: A **`.txt` or `.json` file** that records the source data.
+- **`muller_path`**: The target path where the MULLER dataset will be created.  
+  The dataset name may contain letters, numbers, `_`, and `-`.
+- **`schema`**: The dataset schema, specifying column names, column types (`htype`), data types (`dtype`), and compression formats.
+
+Example `.txt` / `.json` file format: `...`
+
+Example usage:
+
+```python
+>>> schema_1 = {
+        'ori_query': ('text', '', None),   # If storage efficiency is not critical, we recommend leaving
+                                           # compression unset. LZ4 introduces compression/decompression
+                                           # overhead that may slightly affect I/O performance.
+        'ori_response': ('text', '', None),
+        'query_analysis': ('text', '', None),
+        'type': ('text', '', None),
+        'qa_score': ('generic', 'float32', None),
+        'qa_result': ('text', '', None),
+    }
+
+>>> ds_1 = muller.api_dataset.create_dataset_from_file(
+        ori_path="example.txt",
+        muller_path="my_muller_dataset/",
+        schema=schema_1
+    )
+
+>>> ds_1.summary()
+```
