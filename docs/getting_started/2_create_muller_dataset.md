@@ -171,10 +171,27 @@ In this batch ingestion mode, the following three inputs are required:
   The dataset name may contain letters, numbers, `_`, and `-`.
 - **`schema`**: The dataset schema, specifying column names, column types (`htype`), data types (`dtype`), and compression formats.
 
-Example `.txt` / `.json` file format: `...`
+#### Example `.txt` / `.json` file format:**
+```
+{
+    "ori_query": "1. Use if-else statements to implement the following comparison function:\nInput: in1, in2 are two 3-bit binary numbers; Output: out is a 3-bit binary number.\nIf in1 > in2, output out = 001; if in1 = in2, output out = 010; if in1 < in2, output out = 100.",
+    "ori_response": "in1 = in2 = 0\n\nif in1 > in2:\n   out = 0b001\nelif in1 == in2:\n   out = 0b010\nelse:\n   out = 0b100",
+    "query_analysis": "{\"Fluency Score\": 5.0, \"Completeness Score\": 5.0, \"Complexity Score\": 3.0, \"Safety Score\": 5.0, \"Overall Quality Score\": 5.0, \"Intent Tags\": [{\"Implement Comparison Function\": [\"Use if-else statements\", \"Input: Two 3-bit binary numbers\", \"Output: One 3-bit binary number\", \"Comparison conditions: in1>in2 -> out=001; in1=in2 -> out=010; in1<in2 -> out=100\"]}]}",
+    "qa_result": "Comprehensive Quality Analysis: The assistant's response is logically correct and accurately implements the functionality requested by the user. However, there is an issue: it does not explicitly handle the specific constraint of inputs being 3-bit binary numbers. Additionally, the response lacks input validation or error checking, which could lead to issues if incorrect data types are provided. Therefore, while grammatically and logically sound, it may be insufficient for practical hardware-logic simulation or strict data constraints.\n\nOverall Quality Score: 6",
+    "qa_score": 6.0,
+    "type": "Code Generation"
+  },
+  {
+    "ori_query": "Write a Python program that uses regular expressions to match all mobile phone numbers in a string.\nAnalysis: First, we need to import the 're' module. Then, use the 're.findall()' function, passing in a regular expression pattern (representing a phone number) and the string to be searched. Finally, print the matched phone numbers.",
+    "ori_response": "",
+    "query_analysis": "{\"Fluency Score\": 5.0, \"Completeness Score\": 5.0, \"Complexity Score\": 2.0, \"Safety Score\": 5.0, \"Overall Quality Score\": 5.0, \"Intent Tags\": [{\"Write Python Program\": [\"Use regex to match mobile numbers in a string\", \"Import re module\", \"Use re.findall() function\", \"Print matched phone numbers\"]}]}",
+    "qa_result": "Comprehensive Quality Analysis: The assistant provided no response, so no quality analysis can be performed.\n\nOverall Quality Score: 0",
+    "qa_score": 0.0,
+    "type": "Code Generation"
+  }
+```
 
-Example usage:
-
+**Example usage:**
 ```python
 >>> schema_1 = {
         'ori_query': ('text', '', None),   # If storage efficiency is not critical, we recommend leaving
@@ -194,6 +211,67 @@ Example usage:
     )
 
 >>> ds_1.summary()
+tensor          htype     shape    dtype     compression
+-------         -------   -------  -------   -------
+ori_query        text     (2, 1)     str      None
+ori_response     text     (2, 1)     str      None
+query_analysis   text     (2, 1)     str      None
+type             text     (2, 1)     str      None
+qa_score        generic   (2, 1)   float32    None
+qa_result        text     (2, 1)     str      None
 ```
+
+```python
+>>> schema_2 = {
+        'ori_query': ('text', '', 'lz4'),
+        'ori_response': ('text', '', 'lz4'),
+        'query_analysis': {
+            'fluency_score': ('generic', 'float32', 'lz4'),
+            'completeness_score': ('generic', 'float32', 'lz4'),
+            'complexity_score': ('generic', 'float32', 'lz4'),
+            'safety_score': ('generic', 'float32', 'lz4'),
+            'overall_score': ('generic', 'float32', 'lz4'),
+            'intent_label': ('text', '', 'lz4'),
+        },
+        'type': ('text', '', 'lz4'),
+        'qa_score': ('generic', 'float32', 'lz4'),
+        'qa_result': ('text', 'str', 'lz4'),
+    }
+
+>>> ds_2 = muller.api_dataset.create_dataset_from_file(
+        ori_path="example.txt",
+        muller_path="my_muller_dataset/",
+        schema=schema_2,
+        workers=0
+    )
+
+>>> ds_2.summary()
+tensor                              htype     shape    dtype     compression
+-------                             -------   -------  -------   -------
+ori_query                            text     (2, 1)     str      lz4
+ori_response                         text     (2, 1)     str      lz4
+query_analysis.fluency_score        generic   (2, 1)   float32    lz4
+query_analysis.completeness_score   generic   (2, 1)   float32    lz4
+query_analysis.complexity_score     generic   (2, 1)   float32    lz4
+query_analysis.safety_score         generic   (2, 1)   float32    lz4
+query_analysis.overall_score        generic   (2, 1)   float32    lz4
+query_analysis.intent_label           text     (2, 1)     str      lz4
+type                                  text     (2, 1)     str      lz4
+qa_score                            generic   (2, 1)   float32    lz4
+qa_result                             text     (2, 1)     str      lz4
+```
+For detailed API specifications and file format examples, please refer to
+[create_dataset_from_file()]
+
 ### Option 2. Converting Existing JSON / CSV / Parquet Files into a MULLER Dataset
 
+**Example usage:**
+```
+>>> dataframes = ... # The same example as in Option 1
+>>> schema_1 = ... # The same example as in Option 1
+>>> ds = gtn_f.api_dataset.create_dataset_from_dataframes(dataframes, "my_gtnf_dataset/", schema=schema_1, workers=0)
+>>> schema_2 = ... # The same example as in Option 1
+>>> ds = gtn_f.api_dataset.create_dataset_from_dataframes(dataframes, "my_gtnf_dataset/", schema=schema_2, workers=0)
+```
+For detailed API specifications and file format examples, please refer to
+[create_dataset_from_dataframes()]
