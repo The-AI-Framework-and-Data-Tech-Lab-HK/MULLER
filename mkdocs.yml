@@ -54,6 +54,7 @@ nav:
     - Install: getting_started/installation.md
     - Read as MULLER object: getting_started/1_read_muller_object.md
     - Construct a MULLER dataset: getting_started/2_create_muller_dataset.md
+    - Load, Append, Update, Delete, Query in a MULLER dataset: getting_started/3_muller_dataset_operations(load,append,update,delete,query).md
   - API Documents:
       - Dataset: api/dataset.md
   - FAQ: faq.md
