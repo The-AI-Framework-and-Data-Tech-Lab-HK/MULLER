@@ -1,4 +1,4 @@
-# Basic Dataset Operations (Load, Insert, Update, Delete, Query)
+# Basic Dataset Operations (Load, Append, Update, Delete, Query)
 
 ## 1. Loading an Existing Dataset
 
