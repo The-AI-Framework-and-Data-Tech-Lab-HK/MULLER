@@ -856,8 +856,6 @@ class ChunkEngine:
     def ndim(self, index: Optional[Index] = None) -> int:
         """Returns the number of dimensions."""
         ndim = len(self.tensor_meta.min_shape) + 1
-        if self.is_sequence:
-            ndim += 1
         if index:
             for idx in index.values:
                 if not idx.subscriptable():
@@ -1143,8 +1141,6 @@ class ChunkEngine:
         if htype in ("text", "json", "list"):
             return get_empty_text_like_sample(htype)
         ndim = len(self.tensor_meta.max_shape)
-        if self.is_sequence:
-            ndim += 1
         shape = (0,) * ndim
         return np.ones(shape, dtype=dtype)
 

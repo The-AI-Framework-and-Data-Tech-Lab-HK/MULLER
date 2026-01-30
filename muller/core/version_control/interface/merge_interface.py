@@ -1615,9 +1615,7 @@ def copy_tensor_slice(
     if src_tensor.meta.min_shape:
         dest_tensor.meta.update_shape_interval(src_tensor.meta.min_shape)
         dest_tensor.meta.update_shape_interval(src_tensor.meta.max_shape)
-    dest_tensor.meta.length = dest_meta_orig_length + (
-        dest_meta_seq_length if src_tensor.is_sequence else dest_meta_length
-    )
+    dest_tensor.meta.length = dest_meta_orig_length + dest_meta_length
     dest_tensor.meta.is_dirty = True
 
 
