@@ -23,7 +23,6 @@ from muller.core.compression import (
     decompress_bytes,
     decompress_multiple,
 )
-from muller.core.fast_forwarding import ffw_chunk
 from muller.core.meta.encode.shape import ShapeEncoder
 from muller.core.partial_sample import PartialSample
 from muller.core.serialize import bytes_to_text, check_sample_shape
@@ -478,6 +477,8 @@ class ChunkCompressedChunk(BaseChunk):
         self._changed_flag = False
 
     def prepare_for_write(self):
+        # Lazy import to avoid circular depenndency
+        from muller.core.version_control.fast_forwarding import ffw_chunk
         ffw_chunk(self)
         self.is_dirty = True
 

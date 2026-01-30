@@ -21,12 +21,11 @@ __all__ = [
     "get_col_info"
     ]
 
-__version__ = "0.7.0"
-
 
 import sys
 
 import muller.constants
+from muller._version import __version__
 from muller.api.read import read
 from muller.api.tiled import tiled
 from muller.compression import SUPPORTED_COMPRESSIONS

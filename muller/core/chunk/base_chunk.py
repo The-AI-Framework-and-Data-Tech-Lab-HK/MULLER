@@ -22,7 +22,6 @@ import numpy as np
 import muller
 from muller.constants import CONVERT_GRAYSCALE
 from muller.core.compression import get_compression_type
-from muller.core.fast_forwarding import ffw_chunk
 from muller.core.meta.encode.byte_positions import BytePositionsEncoder
 from muller.core.meta.encode.shape import ShapeEncoder
 from muller.core.meta.tensor_meta import TensorMeta
@@ -375,6 +374,8 @@ class BaseChunk(MULLERMemoryObject):
     def prepare_for_write(self):
         """Prepare for write. """
         if not self.write_initialization_done:
+            # Lazy import to avoid circular depenndency
+            from muller.core.version_control.fast_forwarding import ffw_chunk
             ffw_chunk(self)
             self.write_initialization_done = True
         self.make_data_bytearray()

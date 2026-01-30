@@ -11,8 +11,8 @@
 # Modifications Copyright (c) 2026 Xueling Lin
 
 from muller.constants import ENCODING_DTYPE
+from muller._version import __version__ as MULLER_VERSION
 import numpy as np
-import muller
 import warnings
 
 
@@ -47,15 +47,21 @@ def version_compare(v1, v2):
     return 0
 
 
+def __get_muller_version():
+    """Returns the version of muller."""
+    return MULLER_VERSION
+
+
 def _check_version(v):
     """Returns True if no fast forwarding is required (False if otherwise)."""
 
-    comparison = version_compare(v, muller.__version__)
+    muller_version = __get_muller_version()
+    comparison = version_compare(v, muller_version)
     if comparison > 0:
         warnings.warn(
             f"Loading a dataset that was created or updated with a newer version of muller. This could lead to "
             f"corruption or unexpected errors! Dataset version: {v}, current muller version: "
-            f"{muller.__version__}. It's recommended that you update to a version of muller >= {v}. "
+            f"{muller_version}. It's recommended that you update to a version of muller >= {v}. "
         )
 
     return comparison >= 0
@@ -70,7 +76,7 @@ def ffw(func):
         v = inp.version
         if not _check_version(v):
             out = func(inp, v, **kwargs)
-            inp.version = muller.__version__
+            inp.version = _get_muller_version()
             return out
 
     return decor
