@@ -16,27 +16,13 @@ from muller.util.exceptions import TensorMetaInvalidHtype
 
 
 def parse_complex_htype(htype: Optional[Union[str, None]]):
-    is_sequence = False
-
     if not htype:
         return False, False, None
 
-    elif htype.startswith("sequence"):
-        is_sequence, _, htype = parse_sequence_start(htype)
+    if htype.startswith("sequence"):
+        raise TensorMetaInvalidHtype(htype, list(HTYPE_CONFIGURATIONS))
 
     if htype and ("[" in htype or "]" in htype):
         raise TensorMetaInvalidHtype(htype, list(HTYPE_CONFIGURATIONS))
 
-    return is_sequence, False, htype
-
-
-def parse_sequence_start(htype):
-    if htype == "sequence":
-        return True, False, None
-    if htype[len("sequence")] != "[" or htype[-1] != "]":
-        raise TensorMetaInvalidHtype(htype, list(HTYPE_CONFIGURATIONS))
-    htype = htype.split("[", 1)[1][:-1]
-    if not htype:
-        return True, False, None
-
-    return True, False, htype
+    return False, False, htype

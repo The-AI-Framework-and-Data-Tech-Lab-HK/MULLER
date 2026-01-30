@@ -180,11 +180,6 @@ class ChunkEngine:
         return self._tensor_meta if self.split_tensor_meta else self._tensor_meta[self.key]
 
     @property
-    def is_sequence(self):
-        """Returns whether the tensor is a sequence. """
-        return self.tensor_meta.is_sequence
-
-    @property
     def tensor_length(self) -> int:
         """Length of primary axis of tensor (does not include samples in sequences). """
         return self.tensor_meta.length

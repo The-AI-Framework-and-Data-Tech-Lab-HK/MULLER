@@ -228,7 +228,6 @@ COMMON_CONFIGS = {
     "typestr": None,
     "max_chunk_size": None,
     "tiling_threshold": None,
-    "is_sequence": False,
     "hidden": False,
     "verify": False,
 }

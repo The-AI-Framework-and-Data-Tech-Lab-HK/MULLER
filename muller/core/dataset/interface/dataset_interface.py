@@ -427,10 +427,10 @@ def _create_tensor(
     auto_checkout(ds)
     name = filter_name(name)  # tensor name
     key = ds.version_state["tensor_names"].get(name)
-    is_sequence, _, htype = parse_complex_htype(htype)
+    _, _, htype = parse_complex_htype(htype)
     if key:
         return _validate_existing_tensor(name, key, exist_ok, ds, htype, dtype, sample_compression, chunk_compression,
-                                         hidden, is_sequence)
+                                         hidden)
     if name in ds.version_state["full_tensors"]:
         key = f"{name}_{uuid.uuid4().hex[:4]}"
     else:
@@ -438,7 +438,6 @@ def _create_tensor(
     if not name or name in dir(ds) or is_muller_keyword(name):
         raise InvalidTensorNameError(name)
 
-    kwargs["is_sequence"] = kwargs.get("is_sequence") or is_sequence
     kwargs["split_tensor_meta"] = ds.split_tensor_meta
     kwargs["verify"] = kwargs.pop("verify", True)
 
@@ -493,7 +492,7 @@ def _get_kwargs(kwargs, htype):
 
 
 def _validate_existing_tensor(name, key, exist_ok, ds, htype, dtype, sample_compression, chunk_compression,
-                              hidden, is_sequence):
+                              hidden):
     if not exist_ok:
         raise TensorAlreadyExistsError(name)
     tensor = ds[key]
@@ -504,7 +503,6 @@ def _validate_existing_tensor(name, key, exist_ok, ds, htype, dtype, sample_comp
         "sample_compression": sample_compression,
         "chunk_compression": chunk_compression,
         "hidden": hidden,
-        "is_sequence": is_sequence,
     }
 
     if current_config != new_config:

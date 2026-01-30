@@ -464,7 +464,6 @@ def create_worker_chunk_engines(
                     chunk_compression=existing_meta.chunk_compression,
                     max_chunk_size=storage_chunk_engine.max_chunk_size,
                     tiling_threshold=storage_chunk_engine.tiling_threshold,
-                    is_sequence=existing_meta.is_sequence,
                     hidden=existing_meta.hidden,
                     verify=existing_meta.verify,
                 )

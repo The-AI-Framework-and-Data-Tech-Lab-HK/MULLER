@@ -1521,14 +1521,7 @@ def _get_required_chunks_from_2_chunks(start_chunk_aligned, end_chunk_aligned, s
 
 @contextmanager
 def _as_flat_tensors(*tensors):
-    is_seq = tensors[0].is_sequence
-    if is_seq:
-        for t in tensors:
-            t.meta.is_sequence = False
     yield
-    if is_seq:
-        for t in tensors:
-            t.meta.is_sequence = True
 
 
 def _copy_samples(src_tensor, dest_tensor, start: int, end: int):

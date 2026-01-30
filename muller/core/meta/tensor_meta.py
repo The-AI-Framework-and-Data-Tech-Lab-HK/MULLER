@@ -46,7 +46,6 @@ class TensorMeta(Meta):
     max_chunk_size: int
     tiling_threshold: int
     hidden: bool
-    is_sequence: bool
     info: Dict[str, Any] = {}
 
     def __init__(
