@@ -192,5 +192,206 @@ def test_delete_view_with_multi_users(storage):
     ds.delete_view("first_11")
 
 
+def test_get_views(storage):
+    """
+    Tests get_views function to retrieve all views.
+    """
+    SensitiveConfig().uid = "test_user"
+    with populate(official_path(storage, VIEW_TEST_PATH), official_creds(storage)) as ds:
+        ds.create_tensor("samples")
+        ds.samples.extend([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        commit_1 = ds.commit("First commit")
+        
+        # Save first view
+        ds[:3].save_view(view_id="view1", message="First three samples")
+        
+        # Save second view
+        ds[5:8].save_view(view_id="view2", message="Middle samples")
+        
+        # Get all views
+        all_views = ds.get_views()
+        assert len(all_views) == 2
+        view_ids = [v.id for v in all_views]
+        assert "view1" in view_ids
+        assert "view2" in view_ids
+        
+        # Make another commit
+        ds.samples.extend([11, 12, 13])
+        commit_2 = ds.commit("Second commit")
+        
+        # Save view from second commit
+        ds[8:].save_view(view_id="view3", message="Last samples")
+        
+        # Get all views
+        all_views = ds.get_views()
+        assert len(all_views) == 3
+        
+        # Get views from specific commit
+        commit_1_views = ds.get_views(commit_id=commit_1)
+        assert len(commit_1_views) == 2
+        
+        commit_2_views = ds.get_views(commit_id=commit_2)
+        assert len(commit_2_views) == 1
+        assert commit_2_views[0].id == "view3"
+
+
+def test_get_view(storage):
+    """
+    Tests get_view function to retrieve a specific view by id.
+    """
+    SensitiveConfig().uid = "test_user"
+    with populate(official_path(storage, VIEW_TEST_PATH), official_creds(storage)) as ds:
+        ds.create_tensor("scores")
+        ds.scores.extend([10, 20, 30, 40, 50])
+        ds.commit()
+        
+        # Save a view
+        ds[:3].save_view(view_id="test_view", message="Test view")
+        
+        # Get the view by id
+        view_entry = ds.get_view("test_view")
+        assert view_entry.id == "test_view"
+        assert view_entry.message == "Test view"
+        
+        # Load the view and verify
+        loaded_view = view_entry.load()
+        assert len(loaded_view) == 3
+        np.testing.assert_array_equal(
+            loaded_view.scores.numpy(), 
+            np.array([10, 20, 30]).reshape(3, 1)
+        )
+        
+        # Test KeyError for non-existent view
+        with pytest.raises(KeyError):
+            ds.get_view("non_existent_view")
+
+
+def test_save_view_to_external_path(storage):
+    """
+    Tests save_view with external path parameter and optimize=True.
+    """
+    SensitiveConfig().uid = "test_user"
+    external_path = official_path(storage, VIEW_TEST_PATH + "_external")
+    
+    with populate(official_path(storage, VIEW_TEST_PATH), official_creds(storage)) as ds:
+        ds.create_tensor("numbers")
+        ds.numbers.extend([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        ds.commit()
+        
+        # Save view to external path with optimize=True to copy data
+        view_path = ds[:5].save_view(
+            path=external_path,
+            view_id="external_view",
+            message="External view test",
+            optimize=True
+        )
+        
+        assert view_path == external_path
+        
+        # Load the external VDS directly
+        external_ds = muller.load(external_path, creds=official_creds(storage))
+        assert len(external_ds) == 5
+        np.testing.assert_array_equal(
+            external_ds.numbers.numpy(),
+            np.array([1, 2, 3, 4, 5]).reshape(5, 1)
+        )
+        
+        # Verify external view is not in parent dataset's get_views
+        all_views = ds.get_views()
+        view_ids = [v.id for v in all_views]
+        assert "external_view" not in view_ids
+
+
+def test_save_view_to_external_path_vds(storage):
+    """
+    Tests save_view to external path as VDS (virtual dataset, optimize=False).
+    """
+    SensitiveConfig().uid = "test_user"
+    external_path = official_path(storage, VIEW_TEST_PATH + "_external_vds")
+    
+    with populate(official_path(storage, VIEW_TEST_PATH), official_creds(storage)) as ds:
+        ds.create_tensor("numbers")
+        ds.numbers.extend([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        ds.commit()
+        
+        # Save view to external path without optimization (creates VDS)
+        view_path = ds[:5].save_view(
+            path=external_path,
+            view_id="external_vds",
+            message="External VDS test"
+        )
+        
+        assert view_path == external_path
+        
+        # Load the external VDS
+        external_vds = muller.load(external_path, creds=official_creds(storage))
+        assert len(external_vds) == 5
+        
+        # Access data through get_view_for_vds (since it's a VDS, not optimized)
+        view_from_vds = external_vds.get_view_for_vds()
+        assert len(view_from_vds) == 5
+        np.testing.assert_array_equal(
+            view_from_vds.numbers.numpy(),
+            np.array([1, 2, 3, 4, 5]).reshape(5, 1)
+        )
+
+
+def test_get_view_for_vds(storage):
+    """
+    Tests get_view_for_vds function to get view from VDS.
+    """
+    SensitiveConfig().uid = "test_user"
+    with populate(official_path(storage, VIEW_TEST_PATH), official_creds(storage)) as ds:
+        ds.create_tensor("records")
+        ds.records.extend([100, 200, 300, 400, 500])
+        commit_id = ds.commit()
+        
+        # Save a view
+        ds[1:4].save_view(view_id="vds_test")
+        
+        # Get the ViewEntry to access VDS path
+        view_entry = ds.get_view("vds_test")
+        vds_path = f".queries/{view_entry.id}"
+        
+        # Load the VDS dataset object directly (not through load_view)
+        vds = ds.sub_ds(vds_path, verbose=False, read_only=True)
+        
+        # Now call get_view_for_vds on the VDS object
+        view_from_vds = vds.get_view_for_vds()
+        
+        # Verify the view
+        assert len(view_from_vds) == 3
+        np.testing.assert_array_equal(
+            view_from_vds.records.numpy(),
+            np.array([200, 300, 400]).reshape(3, 1)
+        )
+        assert view_from_vds.commit_id == commit_id
+
+
+def test_save_view_with_optimize(storage):
+    """
+    Tests save_view with optimize=True parameter.
+    """
+    SensitiveConfig().uid = "test_user"
+    with populate(official_path(storage, VIEW_TEST_PATH), official_creds(storage)) as ds:
+        ds.create_tensor("entries")
+        ds.entries.extend(list(range(20)))
+        ds.commit()
+        
+        # Save optimized view
+        ds[5:15].save_view(view_id="optimized_view", optimize=True)
+        
+        # Load the optimized view
+        optimized = ds.load_view("optimized_view")
+        
+        # Verify it's optimized
+        assert optimized.is_optimized
+        assert len(optimized) == 10
+        np.testing.assert_array_equal(
+            optimized.entries.numpy(),
+            np.array(list(range(5, 15))).reshape(10, 1)
+        )
+
+
 if __name__ == '__main__':
     pytest.main(["-s", "test_views.py"])
