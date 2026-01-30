@@ -48,7 +48,7 @@ from muller.core.chunk.chunk_compressed_chunk import ChunkCompressedChunk
 from muller.core.chunk.sample_compressed_chunk import SampleCompressedChunk
 from muller.core.chunk.uncompressed_chunk import UncompressedChunk
 from muller.core.compression import get_compression_type
-from muller.core.fast_forwarding import ffw_chunk_id_encoder
+from muller.core.version_control.fast_forwarding import ffw_chunk_id_encoder
 from muller.core.index.index import Index
 from muller.core.meta.encode.base_encoder import LAST_SEEN_INDEX_COLUMN
 from muller.core.meta.encode.chunk_id import CHUNK_ID_COLUMN, ChunkIdEncoder

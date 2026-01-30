@@ -23,7 +23,7 @@ from tqdm import tqdm
 import muller
 from muller.constants import (SAMPLE_INFO_TENSOR_MAX_CHUNK_SIZE, CREATE_TENSOR_HIDDEN_UUID, DATASET_UUID_NAME)
 from muller.core.dataset import Dataset
-from muller.core.fast_forwarding import ffw_dataset_meta
+from muller.core.version_control.fast_forwarding import ffw_dataset_meta
 from muller.core.lock import unlock_dataset
 from muller.core.meta.dataset_meta import DatasetMeta
 from muller.core.storage.local import LocalProvider

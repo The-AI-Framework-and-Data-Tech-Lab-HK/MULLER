@@ -23,7 +23,7 @@ from muller.core.compression import (
     decompress_bytes,
     decompress_multiple,
 )
-from muller.core.fast_forwarding import ffw_chunk
+from muller.core.version_control.fast_forwarding import ffw_chunk
 from muller.core.meta.encode.shape import ShapeEncoder
 from muller.core.partial_sample import PartialSample
 from muller.core.serialize import bytes_to_text, check_sample_shape
