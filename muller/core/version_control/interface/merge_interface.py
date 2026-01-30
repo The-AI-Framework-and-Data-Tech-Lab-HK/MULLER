@@ -1521,14 +1521,7 @@ def _get_required_chunks_from_2_chunks(start_chunk_aligned, end_chunk_aligned, s
 
 @contextmanager
 def _as_flat_tensors(*tensors):
-    is_seq = tensors[0].is_sequence
-    if is_seq:
-        for t in tensors:
-            t.meta.is_sequence = False
     yield
-    if is_seq:
-        for t in tensors:
-            t.meta.is_sequence = True
 
 
 def _copy_samples(src_tensor, dest_tensor, start: int, end: int):
@@ -1615,9 +1608,7 @@ def copy_tensor_slice(
     if src_tensor.meta.min_shape:
         dest_tensor.meta.update_shape_interval(src_tensor.meta.min_shape)
         dest_tensor.meta.update_shape_interval(src_tensor.meta.max_shape)
-    dest_tensor.meta.length = dest_meta_orig_length + (
-        dest_meta_seq_length if src_tensor.is_sequence else dest_meta_length
-    )
+    dest_tensor.meta.length = dest_meta_orig_length + dest_meta_length
     dest_tensor.meta.is_dirty = True
 
 

@@ -251,7 +251,7 @@ def _update_non_tiled_sample(
     chunk = chunk_engine.get_chunks_for_sample(global_sample_index, copy=True)[0]
     local_sample_index = enc.translate_index_relative_to_chunks(global_sample_index)
 
-    if len(index.values) <= 1 + int(chunk_engine.is_sequence):
+    if len(index.values) <= 1:
         chunk.update_sample(local_sample_index, sample)
     else:
         orig_sample = chunk.read_sample(local_sample_index, copy=True)

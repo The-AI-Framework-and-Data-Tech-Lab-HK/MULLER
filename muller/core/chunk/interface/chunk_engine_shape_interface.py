@@ -99,17 +99,13 @@ def shapes(
             sample_shapes,
             index,
             sample_shape_provider,
-            flatten=chunk_engine.is_sequence is True,
+            flatten=False,
         )
         # convert to list if grayscale images were stored as (H, W) instead of (H, W, 1)
         if bad_shapes and convert_bad_to_list:
             sample_shapes = sample_shapes.tolist()
             for i in bad_shapes:
                 sample_shapes[i] = sample_shapes[i][:-1]
-        if chunk_engine.is_sequence:
-            sample_shapes = _group_flat_shapes(
-                chunk_engine, sample_shapes, index_0, sample_ndim
-            )
     else:
         sample_shapes[:] = tmp_shape
 
@@ -146,7 +142,7 @@ def _populate_sample_shapes(
         flatten: bool = False,
 ):
     sample_indices = list(
-        index.values[0].indices(chunk_engine.sequence_length or chunk_engine.num_samples)
+        index.values[0].indices(chunk_engine.num_samples)
     )
     sample_ndim = chunk_engine.ndim() - 1
     bad_shapes = []
@@ -195,8 +191,6 @@ def _get_sample_shape_from_provider(
 
     if isinstance(tmp_shape, tuple) and tmp_shape == ():
         tmp_shape = (0,)
-    if chunk_engine.is_sequence and not flatten:
-        tmp_shape = _merge_seq_shape(tmp_shape, sample_index)
     return tmp_shape
 
 

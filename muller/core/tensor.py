@@ -411,17 +411,9 @@ class Tensor:
         return None
 
     @property
-    def is_sequence(self):
-        """Whether this tensor is a sequence tensor."""
-        return self.meta.is_sequence
-
-    @property
     def htype(self):
         """Htype of the tensor."""
-        htype = self.meta.htype
-        if self.is_sequence:
-            htype = f"sequence[{htype}]"
-        return htype
+        return self.meta.htype
 
     @property
     def hidden(self) -> bool:
@@ -502,7 +494,6 @@ class Tensor:
             "sample_compression": tensor_meta.sample_compression,
             "chunk_compression": tensor_meta.chunk_compression,
             "hidden": tensor_meta.hidden,
-            "is_sequence": tensor_meta.is_sequence,
         }
 
     @property
@@ -600,10 +591,6 @@ class Tensor:
                 and isinstance(item, int)
                 and item >= self.num_samples
         ):
-            if self.is_sequence:
-                raise NotImplementedError(
-                    "Random assignment is not supported for sequences yet."
-                )
             num_samples_to_pad = item - self.num_samples
 
             self.chunk_engine.pad_and_append(
@@ -611,7 +598,7 @@ class Tensor:
                 value,
             )
         else:
-            if not item_index.values[0].subscriptable() and not self.is_sequence:
+            if not item_index.values[0].subscriptable():
                 # we're modifying a single sample, convert it to a list as chunk engine expects multiple samples
                 value = [value]
 
@@ -1099,9 +1086,7 @@ class Tensor:
         """Checks if the tensor is compatible with the given htype.
         Raises an error if not compatible.
         """
-        is_sequence, _, htype = parse_complex_htype(htype)
-        if is_sequence:
-            raise ValueError(f"Cannot change htype to a sequence.")
+        _, _, htype = parse_complex_htype(htype)
         _validate_htype_exists(htype)
         if self.htype not in HTYPE_CONVERSION_LHS:
             raise NotImplementedError(
