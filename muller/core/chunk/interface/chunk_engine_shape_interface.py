@@ -38,7 +38,7 @@ def shape(
 
     index_0, sample_index = index.values[0], index.values[1:]
 
-    num_samples = index_0.length(chunk_engine.sequence_length or chunk_engine.num_samples)
+    num_samples = index_0.length(chunk_engine.num_samples)
     if chunk_engine.tensor_meta.min_shape == chunk_engine.tensor_meta.max_shape:
         if index_0.is_trivial() or num_samples == 0:
             tmp_shape = chunk_engine.shape_interval(index).astuple()
@@ -167,12 +167,10 @@ def _populate_sample_shapes(
                 sample_shapes = np.zeros((len(sample_indices), sample_ndim), dtype=np.int32)
 
         if flatten:
-            assert chunk_engine.sequence_encoder is not None
             # fill sample shapes with sequence item shapes, no nesting
-            start, end = chunk_engine.sequence_encoder[idx]
-            length = end - start
-            sample_shapes[offset: offset + length] = tmp_shape
-            offset += length
+            # Note: sequence_encoder functionality has been removed
+            sample_shapes[offset] = tmp_shape
+            offset += 1
         else:
             try:
                 sample_shapes[i] = tmp_shape
@@ -205,44 +203,15 @@ def _get_sample_shape_from_provider(
 def _get_total_samples_and_sample_ndim(chunk_engine, index_0):
     """Returns total number of samples (including sequence items) and sample ndim using first index"""
     tensor_ndim = chunk_engine.ndim()
-    if chunk_engine.is_sequence:
-        sample_indices = list(index_0.indices(chunk_engine.sequence_length))
-        num_samples = sum(
-            map(
-                lambda x: x[1] - x[0],
-                [chunk_engine.sequence_encoder[i] for i in sample_indices],
-            )
-        )
-        sample_ndim = tensor_ndim - 2
-    else:
-        num_samples = index_0.length(chunk_engine.num_samples)
-        sample_ndim = tensor_ndim - 1
+    num_samples = index_0.length(chunk_engine.num_samples)
+    sample_ndim = tensor_ndim - 1
     return num_samples, sample_ndim
 
 
 def _group_flat_shapes(chunk_engine, sample_shapes, index_0, sample_ndim):
     """Groups shapes of flattened sequence items"""
-    sample_indices = list(index_0.indices(chunk_engine.sequence_length))
-    num_samples = len(sample_indices)
-    seq_item_length = chunk_engine.sequence_encoder[sample_indices[0]]
-    seq_item_length = seq_item_length[1] - seq_item_length[0]
-    # Try reshape to (num_samples, seq_item_length, sample_ndim)
-    try:
-        if isinstance(sample_shapes, list):
-            raise ValueError
-        sample_shapes = sample_shapes[np.newaxis, :].reshape(
-            num_samples, seq_item_length, sample_ndim
-        )
-        return sample_shapes
-    except ValueError:
-        sample_shapes_list = []
-        offset = 0
-        for _, idx in enumerate(sample_indices):
-            start, end = chunk_engine.sequence_encoder[idx]
-            length = end - start
-            sample_shapes_list.append(sample_shapes[offset: offset + length])
-            offset += length
-        return sample_shapes_list
+    # Note: sequence_encoder functionality has been removed, returning shapes as-is
+    return sample_shapes
 
 
 def _merge_seq_shape(tmp_shape, sample_index):

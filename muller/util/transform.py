@@ -801,7 +801,6 @@ def _retrieve_memory_objects(all_chunk_engines):
     all_tensor_metas = {}
     all_chunk_id_encoders = {}
     all_tile_encoders = {}
-    all_sequence_encoders = {}
     all_chunk_maps = {}
     all_commit_diffs = {}
     all_hash_label_maps = {}
@@ -812,7 +811,6 @@ def _retrieve_memory_objects(all_chunk_engines):
         all_chunk_id_encoders[tensor] = chunk_engine.chunk_id_encoder
         if chunk_engine.enable_tile_encoder:
             all_tile_encoders[tensor] = chunk_engine.tile_encoder
-        all_sequence_encoders[tensor] = chunk_engine.sequence_encoder
         all_chunk_maps[tensor] = chunk_engine.commit_chunk_map
         all_commit_diffs[tensor] = chunk_engine.commit_diff
         if chunk_engine.is_temp_label_tensor:
@@ -821,7 +819,6 @@ def _retrieve_memory_objects(all_chunk_engines):
     return {
         "tensor_metas": all_tensor_metas,
         "chunk_id_encoders": all_chunk_id_encoders,
-        "sequence_encoders": all_sequence_encoders,
         "tile_encoders": all_tile_encoders,
         "commit_chunk_maps": all_chunk_maps,
         "commit_diffs": all_commit_diffs,

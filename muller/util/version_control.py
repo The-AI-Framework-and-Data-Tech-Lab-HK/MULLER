@@ -41,7 +41,6 @@ from muller.util.keys import (get_version_control_info_key,
                              get_tensor_meta_key,
                              get_chunk_id_encoder_key,
                              get_tensor_tile_encoder_key,
-                             get_sequence_encoder_key,
                              get_tensor_commit_chunk_map_key,
                              get_dataset_diff_key,
                              get_tensor_commit_diff_key)
@@ -279,9 +278,6 @@ def _copy_metas(
         dest_dict, src_key_list, dest_key_list = _get_tensor_tile_id_key(tensor, src_commit_id, dest_commit_id,
                                                                           storage, dest_dict, src_key_list,
                                                                           dest_key_list)
-        dest_dict, src_key_list, dest_key_list = _get_tensor_sequence_id_key(tensor, src_commit_id, dest_commit_id,
-                                                                         storage, dest_dict, src_key_list,
-                                                                         dest_key_list)
 
     # Postprocess
     _copy_metas_postprocess(storage, src_key_list, dest_key_list, dest_dict, initial_autoflush)
@@ -363,20 +359,6 @@ def _get_tensor_tile_id_key(tensor, src_commit_id, dest_commit_id, storage,
     return dest_dict, src_key_list, dest_key_list
 
 
-def _get_tensor_sequence_id_key(tensor, src_commit_id, dest_commit_id, storage,
-                         dest_dict, src_key_list, dest_key_list):
-    try:
-        src_sequence_encoder_key = get_sequence_encoder_key(tensor, src_commit_id)
-        dest_sequence_encoder_key = get_sequence_encoder_key(tensor, dest_commit_id)
-        src_sequence_encoder_cache = storage.get_item_from_cache(src_sequence_encoder_key)
-        if src_sequence_encoder_cache:
-            dest_dict[dest_sequence_encoder_key] = src_sequence_encoder_cache
-        else:
-            src_key_list.append(src_sequence_encoder_key)
-            dest_key_list.append(dest_sequence_encoder_key)
-    except KeyError:
-        pass
-    return dest_dict, src_key_list, dest_key_list
 
 
 def _copy_metas_postprocess(storage, src_key_list, dest_key_list, dest_dict, initial_autoflush):

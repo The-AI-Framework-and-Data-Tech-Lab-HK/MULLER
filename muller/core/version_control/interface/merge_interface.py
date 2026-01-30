@@ -32,7 +32,7 @@ from muller.util.exceptions import (MergeConflictError, MergeMismatchError, Tens
                                    ReadOnlyModeError)
 from muller.util.keys import get_tensor_commit_diff_key, get_tensor_meta_key, \
     get_chunk_id_encoder_key, get_tensor_tile_encoder_key, get_creds_encoder_key, \
-    get_sequence_encoder_key, get_dataset_meta_key, get_tensor_commit_chunk_map_key
+    get_dataset_meta_key, get_tensor_commit_chunk_map_key
 from muller.util.remove_cache import create_read_copy_dataset
 from muller.util.version_control import auto_checkout, auto_commit, commit, checkout
 
@@ -1303,7 +1303,6 @@ def _get_meta_files_for_tensor(tensor_name, commit_id, split_tensor_meta):
         get_chunk_id_encoder_key,
         get_tensor_tile_encoder_key,
         get_creds_encoder_key,
-        get_sequence_encoder_key,
     ]
     if split_tensor_meta:
         fns.append(get_tensor_meta_key)
@@ -1537,25 +1536,6 @@ def _copy_samples(src_tensor, dest_tensor, start: int, end: int):
         dest_tensor.extend(src_tensor[start:end])
 
 
-def _merge_sequence_encoders(
-        src_seq_encoder, dest_seq_encoder, start: int, end: int
-) -> Tuple[int, int]:
-    (start2, _), start_row = src_seq_encoder.__getitem__(start, return_row_index=True)
-    (_, end2), end_row = src_seq_encoder.__getitem__(end - 1, return_row_index=True)
-
-    nrows = len(dest_seq_encoder.encoded)
-    dest_seq_encoder.encoded = _merge_encodings(
-        dest_seq_encoder.encoded,
-        src_seq_encoder.encoded,
-        start_row,
-        end_row + 1,
-        start,
-        end,
-    )
-    dest_seq_encoder.post_process_state(nrows - 1)
-    return start2, end2
-
-
 def _merge_tile_encoders(
         src_tile_encoder, dest_tile_encoder, start: int, end: int
 ) -> None:
@@ -1617,21 +1597,7 @@ def copy_tensor_slice(
         len(indices) if indices else sum(end - start for start, end in ranges)
     )
 
-    if src_tensor.is_sequence:
-        dest_tensor.chunk_engine.sequence_encoder.is_dirty = True
-        dest_meta_seq_length = 0
-
-    flat_ranges = []
     for start, end in ranges:
-        if src_tensor.is_sequence:
-            start, end = _merge_sequence_encoders(
-                src_tensor.chunk_engine.sequence_encoder,
-                dest_tensor.chunk_engine.sequence_encoder,
-                start,
-                end
-            )
-            dest_meta_seq_length += end - start
-            flat_ranges.append((start, end))
         if src_tensor.chunk_engine.enable_tile_encoder and dest_tensor.chunk_engine.enable_tile_encoder:
             _merge_tile_encoders(src_tensor.chunk_engine.tile_encoder,
                                  dest_tensor.chunk_engine.tile_encoder,

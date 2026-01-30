@@ -25,7 +25,6 @@ import muller
 from muller.constants import DEFAULT_TRANSFORM_SAMPLE_CACHE_SIZE, DATASET_UUID_NAME
 from muller.core.compute.provider import get_progress_bar, ComputeProvider
 from muller.core.meta.encode.chunk_id import ChunkIdEncoder
-from muller.core.meta.encode.sequence import SequenceEncoder
 from muller.core.meta.encode.tile import TileEncoder
 from muller.core.meta.tensor_meta import TensorMeta
 from muller.core.storage import MemoryProvider
@@ -37,7 +36,6 @@ from muller.util.compute import get_compute_provider
 from muller.util.exceptions import AllSamplesSkippedError, TransformError, UnAuthorizationError
 from muller.util.json import HubJsonDecoder, HubJsonEncoder
 from muller.util.keys import (
-    get_sequence_encoder_key,
     get_tensor_commit_chunk_map_key,
     get_tensor_commit_diff_key,
     get_tensor_meta_key,
@@ -493,7 +491,6 @@ def _merge_all_meta_info(
     _merge_all_tile_encoders(result["tile_encoders"], all_num_samples, target_ds, storage, overwrite, generated_tensors)
     _merge_all_tensor_metas(result["tensor_metas"], target_ds, storage, overwrite, generated_tensors)
     _merge_all_chunk_id_encoders(result["chunk_id_encoders"], target_ds, storage, overwrite, generated_tensors)
-    _merge_all_sequence_encoders(result["sequence_encoders"], target_ds, storage, overwrite, generated_tensors)
 
     if target_ds.commit_id is not None:
         _merge_all_commit_chunk_maps(result["commit_chunk_maps"], target_ds, storage, overwrite, generated_tensors)
@@ -719,45 +716,3 @@ def _combine_commit_diffs(
 ) -> None:
     """Combines the dataset's commit_diff with a single worker's commit_diff."""
     ds_commit_diff.add_data(worker_commit_diff.num_samples_added)
-
-
-def _merge_all_sequence_encoders(
-    all_workers_sequence_encoders: List[Dict[str, SequenceEncoder]],
-    target_ds: muller.Dataset,
-    storage: StorageProvider,
-    overwrite: bool,
-    tensors: List[str],
-) -> None:
-    """Merge all sequence encoders."""
-    commit_id = target_ds.version_state["commit_id"]
-    for tensor in tensors:
-        actual_tensor = target_ds[tensor]
-        if not actual_tensor.is_sequence:
-            continue
-
-        if overwrite:
-            sequence_encoder = None
-        else:
-            sequence_encoder = actual_tensor.chunk_engine.sequence_encoder
-
-        for current_worker_sequence_encoder in all_workers_sequence_encoders:
-            current_sequence_encoder = current_worker_sequence_encoder[tensor]
-            if sequence_encoder is None:
-                sequence_encoder = current_sequence_encoder
-            else:
-                _combine_sequence_encoders(sequence_encoder, current_sequence_encoder)
-
-        sequence_key = get_sequence_encoder_key(tensor, commit_id)
-        storage[sequence_key] = sequence_encoder.tobytes()  # type: ignore
-
-
-def _combine_sequence_encoders(
-    ds_sequence_encoder: SequenceEncoder, worker_sequence_encoder: SequenceEncoder
-) -> None:
-    """Combines the dataset's sequence_encoder with a single worker's sequence_encoder."""
-    arr = worker_sequence_encoder.array
-    last_index = -1
-    for _, temp_arr in enumerate(arr):
-        next_last_index = temp_arr[2]
-        ds_sequence_encoder.register_samples(temp_arr[0], next_last_index - last_index)
-        last_index = next_last_index

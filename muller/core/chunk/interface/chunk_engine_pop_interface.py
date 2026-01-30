@@ -52,34 +52,10 @@ def pop(
                 if sample_id_tensor is not None
                 else None,
             )
-        for idx in private_idxs:
-            if private_chunk_engine.is_sequence:
-                private_chunk_engine.sequence_encoder.pop(idx)
-
-    if chunk_engine.is_sequence:
-        assert chunk_engine.sequence_encoder is not None
-        item_lengths = [
-            [index, -np.subtract(*chunk_engine.sequence_encoder[index])]
-            for index in sorted(indices)
-        ]
-        flat_indices: List[int] = []
-        for index in indices:
-            flat_indices.extend(range(*chunk_engine.sequence_encoder[index]))
-        indices = flat_indices
 
     for chunk_id, row, idxs, is_tile in chunk_engine.load_chunks(indices, reverse=True):
         idxs = list(reversed(idxs))
-        if chunk_engine.is_sequence:
-            num_flat_samples = len(idxs)
-            while item_lengths and num_flat_samples >= item_lengths[-1][1]:
-                num_flat_samples -= item_lengths[-1][1]
-                idx_2d, _ = item_lengths.pop()
-                update_links_and_encoders(chunk_engine, idx_2d)
-
-            if num_flat_samples:
-                item_lengths[-1][1] -= num_flat_samples
-        else:
-            update_links_and_encoders(chunk_engine, idxs)
+        update_links_and_encoders(chunk_engine, idxs)
         _pop_samples(chunk_engine, chunk_id, row, idxs, is_tile, rechunk)
 
     chunk_engine.cache.autoflush = initial_autoflush

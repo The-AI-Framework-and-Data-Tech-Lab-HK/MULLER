@@ -166,27 +166,6 @@ def get_tensor_tile_encoder_key(key: str, commit_id: str) -> str:
     )
 
 
-def get_sequence_encoder_key(key: str, commit_id: str) -> str:
-    """Return sequence encoder key."""
-    if commit_id == FIRST_COMMIT_ID:
-        return "/".join(
-            (
-                key,
-                ENCODED_SEQUENCE_NAMES_FOLDER,
-                UNSHARDED_ENCODER_FILENAME,
-            )
-        )
-    return "/".join(
-        (
-            "versions",
-            commit_id,
-            key,
-            ENCODED_SEQUENCE_NAMES_FOLDER,
-            UNSHARDED_ENCODER_FILENAME,
-        )
-    )
-
-
 def get_creds_encoder_key(key: str, commit_id: str) -> str:
     """Return creds encoder key."""
     if commit_id == FIRST_COMMIT_ID:

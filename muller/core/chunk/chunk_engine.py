@@ -52,7 +52,6 @@ from muller.core.fast_forwarding import ffw_chunk_id_encoder
 from muller.core.index.index import Index
 from muller.core.meta.encode.base_encoder import LAST_SEEN_INDEX_COLUMN
 from muller.core.meta.encode.chunk_id import CHUNK_ID_COLUMN, ChunkIdEncoder
-from muller.core.meta.encode.sequence import SequenceEncoder
 from muller.core.meta.encode.tile import TileEncoder
 from muller.core.meta.tensor_meta import TensorMeta, _validate_required_htype_overwrites
 from muller.core.partial_reader import PartialReader
@@ -73,7 +72,7 @@ from muller.util.exceptions import GetChunkError, DynamicTensorNumpyError
 from muller.util.exceptions import ReadOnlyModeError, ReadSampleFromChunkError
 from muller.util.exceptions import SampleHtypeMismatchError
 from muller.util.image import convert_sample, convert_img_arr
-from muller.util.keys import get_tensor_commit_chunk_map_key, get_tensor_tile_encoder_key, get_sequence_encoder_key
+from muller.util.keys import get_tensor_commit_chunk_map_key, get_tensor_tile_encoder_key
 from muller.util.keys import get_tensor_commit_diff_key
 from muller.util.keys import get_tensor_meta_key, get_chunk_id_encoder_key, get_chunk_key
 from muller.util.remove_cache import get_base_storage
@@ -105,9 +104,6 @@ class ChunkEngine:
 
         self._chunk_id_encoder: Optional[ChunkIdEncoder] = None
         self._chunk_id_encoder_commit_id: Optional[str] = None
-
-        self._sequence_encoder: Optional[SequenceEncoder] = None
-        self._sequence_encoder_commit_id: Optional[str] = None
 
         self._tile_encoder: Optional[TileEncoder] = None
         self._tile_encoder_commit_id: Optional[str] = None
@@ -191,15 +187,7 @@ class ChunkEngine:
     @property
     def tensor_length(self) -> int:
         """Length of primary axis of tensor (does not include samples in sequences). """
-        # Sherry: need to figure out the function of self._sequence_length
-        return self.sequence_length or self.tensor_meta.length  # return self.tensor_meta.length
-
-    @property
-    def sequence_length(self):
-        """Return the sequence length. """
-        if self.is_sequence:
-            return self.sequence_encoder.num_samples
-        return 0
+        return self.tensor_meta.length
 
     @property
     def chunk_id_encoder_exists(self) -> bool:
@@ -468,76 +456,6 @@ class ChunkEngine:
     def get_tile_encoder(self):
         """Returns the tile encoder (without processing)"""
         return self._tile_encoder
-
-    @property
-    def sequence_encoder_exists(self) -> bool:
-        """Returns whether the sequence encoder exists. """
-        commit_id = self.commit_id
-        if (
-                self._sequence_encoder is not None
-                and self._sequence_encoder_commit_id == commit_id
-        ):
-            return True
-        try:
-            key = get_sequence_encoder_key(self.key, commit_id)
-            _ = self.meta_cache[key]
-            return True
-        except KeyError:
-            return False
-
-    @property
-    def sequence_encoder(self) -> Optional[SequenceEncoder]:
-        """Returns whether the sequence encoder is enabled. """
-        if not self.is_sequence:
-            return None  # type: ignore
-        commit_id = self.commit_id
-        if (
-                self._sequence_encoder is None
-                or self._sequence_encoder_commit_id != commit_id
-        ):
-            commit_id = self.commit_id
-            key = get_sequence_encoder_key(self.key, commit_id)
-            if not self.sequence_encoder_exists:
-                enc = SequenceEncoder()
-                try:
-                    self.meta_cache[key] = enc
-                except ReadOnlyModeError:
-                    pass
-            else:
-                enc = self.meta_cache.get_muller_object(key, SequenceEncoder)
-            self._sequence_encoder = enc
-            self._sequence_encoder_commit_id = commit_id
-            self.meta_cache.register_muller_object(key, enc)
-        return self._sequence_encoder
-
-    @property
-    def sequence_item_length(self):
-        """Returns the length of sequence item. """
-        enc = self.sequence_encoder
-        nrows = len(enc.encoded)
-        if nrows == 0:
-            return 0
-        if nrows == 1:
-            s, e = enc[0]
-            return e - s
-        return None
-
-    @property
-    def _sequence_item_length_range(self):
-        """Returns minimum and maximum length of items in a sequence. """
-        enc = self.sequence_encoder
-        nrows = len(enc.encoded)
-        if nrows == 0:
-            return 0, 0
-        min_ = max_ = enc[0][1] - enc[0][0]
-        # sequence length is number of samples in tensor
-        for i in range(1, self.sequence_length):
-            length = enc[i][1] - enc[i][0]
-            if length < min_:
-                min_ = length
-            elif length > max_:
-                max_ = length
-        return min_, max_
 
     @property
     def is_video(self):
@@ -1400,20 +1318,10 @@ class ChunkEngine:
         buffer = chunk.memoryview_data
         if not buffer:
             return b""
-        if self.is_sequence:
-            assert self.sequence_encoder is not None
-            start_idx, end_idx = self.sequence_encoder[global_sample_index]
-            end_idx -= 1
-            start_idx, end_idx = map(
-                enc.translate_index_relative_to_chunks, (start_idx, end_idx)
-            )
-            sb = chunk.byte_positions_encoder[start_idx][0]
-            eb = chunk.byte_positions_encoder[end_idx][1]
-        else:
-            local_sample_index = enc.translate_index_relative_to_chunks(
-                global_sample_index
-            )
-            sb, eb = chunk.byte_positions_encoder[local_sample_index]
+        local_sample_index = enc.translate_index_relative_to_chunks(
+            global_sample_index
+        )
+        sb, eb = chunk.byte_positions_encoder[local_sample_index]
         return buffer[sb:eb].tobytes()
 
 
@@ -1438,18 +1346,10 @@ class ChunkEngine:
     def shape_interval(self, index: Index, sample_shape_provider: Optional[Callable] = None) -> ShapeInterval:
         """Shape interval. """
         meta = self.tensor_meta
-        if self.is_sequence:
-            tensor_length = index.length(self.sequence_length)
-        else:
-            tensor_length = index.length(meta.length)
+        tensor_length = index.length(meta.length)
 
         if index.is_trivial() or meta.min_shape == meta.max_shape or tensor_length == 0:
-            if self.is_sequence:
-                min_item_length, max_item_length = self._sequence_item_length_range
-                min_length = [tensor_length, min_item_length]
-                max_length = [tensor_length, max_item_length]
-            else:
-                min_length = max_length = [tensor_length]
+            min_length = max_length = [tensor_length]
             min_shape = min_length + list(meta.min_shape)
             max_shape = max_length + list(meta.max_shape)
         else:
@@ -1457,28 +1357,8 @@ class ChunkEngine:
             shapes = self.shapes(
                 index, sample_shape_provider, convert_bad_to_list=False
             )
-            if self.is_sequence:
-                if isinstance(shapes, np.ndarray):
-                    # uniform sequence of shape (num_samples, num_items, ...)
-                    min_shape = [*shapes.shape[:-1], *np.amin(shapes, axis=(0, 1))]
-                    max_shape = [*shapes.shape[:-1], *np.amax(shapes, axis=(0, 1))]
-                else:
-                    # non-uniform sequence
-                    item_lengths = list(map(len, shapes))
-                    min_item_length, max_item_length = min(item_lengths), max(
-                        item_lengths
-                    )
-                    min_item_shape = np.amin(
-                        list(map(lambda x: np.amin(x, axis=0), shapes)), axis=0
-                    )
-                    max_item_shape = np.amax(
-                        list(map(lambda x: np.amax(x, axis=0), shapes)), axis=0
-                    )
-                    min_shape = [len(shapes), min_item_length, *min_item_shape]
-                    max_shape = [len(shapes), max_item_length, *max_item_shape]
-            else:
-                min_shape = [len(shapes), *np.amin(shapes, axis=0)]
-                max_shape = [len(shapes), *np.amax(shapes, axis=0)]
+            min_shape = [len(shapes), *np.amin(shapes, axis=0)]
+            max_shape = [len(shapes), *np.amax(shapes, axis=0)]
 
         return ShapeInterval(min_shape, max_shape)
 
@@ -1568,13 +1448,6 @@ class ChunkEngine:
         except KeyError:
             pass
         self._tile_encoder = None
-
-        seq_encoder_key = get_sequence_encoder_key(self.key, commit_id)
-        try:
-            del self.cache[seq_encoder_key]
-        except KeyError:
-            pass
-        self._sequence_encoder = None
 
         self.tensor_meta.length = 0
         self.tensor_meta.min_shape = []

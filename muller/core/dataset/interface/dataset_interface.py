@@ -218,27 +218,14 @@ def update(ds, sample: Dict[str, Any]):
                 engine = ds[k].chunk_engine
 
                 for idx in ds.index.values[0].indices(ds[k].num_samples):
-                    if tensor_meta.is_sequence:
-                        old_sample = []
-                        for i in range(*engine.sequence_encoder[idx]):
-                            item = _get_sample_from_engine(
-                                ds,
-                                engine,
-                                i,
-                                sample_compression or chunk_compression,
-                                tensor_meta.dtype,
-                                chunk_compression is not None or engine.is_text_like,
-                            )
-                            old_sample.append(item)
-                    else:
-                        old_sample = _get_sample_from_engine(
-                            ds,
-                            engine,
-                            idx,
-                            sample_compression or chunk_compression,
-                            tensor_meta.dtype,
-                            chunk_compression is not None or engine.is_text_like,
-                        )
+                    old_sample = _get_sample_from_engine(
+                        ds,
+                        engine,
+                        idx,
+                        sample_compression or chunk_compression,
+                        tensor_meta.dtype,
+                        chunk_compression is not None or engine.is_text_like,
+                    )
 
                     saved[k].append(old_sample)
                 ds[k] = v
