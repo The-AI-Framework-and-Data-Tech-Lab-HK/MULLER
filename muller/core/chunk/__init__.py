@@ -7,7 +7,7 @@
 # Copyright (c) 2026 Xueling Lin
 
 from .interface.dataset_interface import dataset_rechunk, dataset_rechunk_if_necessary
-from .interface.chunk_engine_update_interface import update, sequence_numpy
+from .interface.chunk_engine_update_interface import update
 from .interface.chunk_engine_extend_interface import extend, pad_and_append
 from .interface.chunk_engine_pop_interface import pop
 from .interface.chunk_engine_merge_regions_interface import merge_regions
