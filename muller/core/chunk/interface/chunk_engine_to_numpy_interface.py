@@ -54,8 +54,7 @@ def numpy(
     parallel = kwargs.get('parallel', None)
     fetch_chunks = fetch_chunks or _get_full_chunk(chunk_engine, index)
 
-    return (chunk_engine.sequence_numpy if chunk_engine.is_sequence else chunk_engine.protected_numpy)(
-        # Sherry: check how to deal with sequence situation.
+    return chunk_engine.protected_numpy(
         index=index, aslist=aslist, use_data_cache=use_data_cache, fetch_chunks=fetch_chunks,
         max_workers=max_workers, continuous=continuous, full=full, batch_random_access=batch_random_access,
         index_list=index_list, parallel=parallel

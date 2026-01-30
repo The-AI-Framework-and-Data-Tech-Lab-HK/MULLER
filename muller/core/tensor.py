@@ -61,7 +61,6 @@ from muller.util.keys import (
     get_tensor_commit_diff_key,
     get_tensor_meta_key,
     get_tensor_tile_encoder_key,
-    get_sequence_encoder_key,
     tensor_exists,
     get_sample_id_tensor_key,
     get_sample_info_tensor_key,
@@ -193,12 +192,6 @@ def delete_tensor(key: str, dataset):
     tile_encoder_key = get_tensor_tile_encoder_key(key, commit_id)
     try:
         del dataset.storage[tile_encoder_key]
-    except KeyError:
-        pass
-
-    seq_encoder_key = get_sequence_encoder_key(key, commit_id)
-    try:
-        del dataset.storage[seq_encoder_key]
     except KeyError:
         pass
 
@@ -1059,34 +1052,16 @@ class Tensor:
         raise TypeError(f"Cannot infer numpy dtype for {val}")
 
     def _sample_shape_provider(self, sample_shape_tensor) -> Callable:
-        if self.is_sequence:
-
-            def get_sample_shape(global_sample_index: int):
-                assert self.chunk_engine.sequence_encoder is not None
-                seq_pos = slice(
-                    *self.chunk_engine.sequence_encoder[global_sample_index]
-                )
-                idx = Index([IndexEntry(seq_pos)])
-                shapes = sample_shape_tensor[idx].numpy(fetch_chunks=True)
-                return shapes
-
-        else:
-            def get_sample_shape(global_sample_index: int):
-                return tuple(
-                    sample_shape_tensor[global_sample_index]
-                    .numpy(fetch_chunks=True)
-                    .tolist()
-                )
+        def get_sample_shape(global_sample_index: int):
+            return tuple(
+                sample_shape_tensor[global_sample_index]
+                .numpy(fetch_chunks=True)
+                .tolist()
+            )
 
         return get_sample_shape
 
     def _get_sample_info_at_index(self, global_sample_index: int, sample_info_tensor):
-        if self.is_sequence:
-            assert self.chunk_engine.sequence_encoder is not None
-            return [
-                sample_info_tensor[i].data()
-                for i in range(*self.chunk_engine.sequence_encoder[global_sample_index])
-            ]
         return sample_info_tensor[global_sample_index].data()["value"]
 
     def _sample_info(self, index: Index):

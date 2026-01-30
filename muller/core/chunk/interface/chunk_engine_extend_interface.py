@@ -39,23 +39,15 @@ def extend(
         initial_autoflush = chunk_engine.cache.autoflush
         chunk_engine.cache.autoflush = False
 
-        if chunk_engine.is_sequence:
-            _extend_sequence(
-                chunk_engine,
-                samples,
-                progressbar,
-                ignore_errors,
-            )
-        else:
-            # extend in most cases
-            _extend(
-                chunk_engine,
-                samples,
-                progressbar,
-                pg_callback=pg_callback,
-                ignore_errors=ignore_errors,
-                is_uuid=is_uuid
-            )
+        # extend in most cases
+        _extend(
+            chunk_engine,
+            samples,
+            progressbar,
+            pg_callback=pg_callback,
+            ignore_errors=ignore_errors,
+            is_uuid=is_uuid
+        )
 
         chunk_engine.cache.autoflush = initial_autoflush
         chunk_engine.cache.maybe_flush()
@@ -79,32 +71,6 @@ def pad_and_append(
                 "Needs to pad the tensor with empty samples. Not implemented. "
             )
     chunk_engine.extend([value])
-
-
-def _extend_sequence(
-    chunk_engine, samples, progressbar, ignore_errors
-):
-    samples = tqdm(samples) if progressbar else samples
-    verified_samples = []
-    num_samples_added = 0
-    for sample in samples:
-        try:
-            if sample is None:
-                sample = []
-            sample = _extend(
-                chunk_engine,
-                sample,
-                progressbar=False,
-                update_commit_diff=False
-            )
-            verified_samples.append(sample)
-            chunk_engine.sequence_encoder.register_samples(len(sample), 1)
-            chunk_engine.commit_diff.add_data(1)
-            num_samples_added += 1
-        except Exception:
-            if ignore_errors:
-                continue
-            raise
 
 
 def _extend(
