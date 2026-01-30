@@ -1506,21 +1506,6 @@ class ChunkEngine:
         self.cache.maybe_flush()
         return labels
 
-    def sequence_numpy(
-            self,
-            index: Index,
-            aslist: bool = False,  # aslist may lead to inconsistent return types
-            use_data_cache: bool = True,
-            fetch_chunks: bool = False,
-            max_workers: int = MAX_WORKERS_FOR_CHUNK_ENGINE,
-            continuous: bool = False,
-            full: bool = False,
-    ):
-        """Returns sequence as numpy. """
-        return muller.core.chunk.sequence_numpy(self, index, aslist, use_data_cache,
-                                                                             fetch_chunks, max_workers,
-                                                                             continuous, full)
-
     def protected_numpy(
             self,
             index: Index,
