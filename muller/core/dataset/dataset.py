@@ -1693,6 +1693,60 @@ class Dataset:
                 return False
         return True
 
+    def enable_admin_mode(self, password: Optional[str] = None):
+        """Enable admin mode for dataset creator to modify all branches.
+        
+        Admin mode allows the dataset creator to override branch ownership
+        restrictions and modify branches created by other users.
+        
+        Args:
+            password: Optional password for additional security (currently not implemented)
+            
+        Raises:
+            UnAuthorizationError: If current user is not the dataset creator
+        """
+        from muller.util.authorization import obtain_current_user
+        from muller.util.exceptions import UnAuthorizationError
+        from muller.client.log import logger
+        
+        current_user = obtain_current_user()
+        
+        try:
+            creator = self.version_state.get("meta").dataset_creator if self.version_state.get("meta") else None
+        except (TypeError, AttributeError):
+            try:
+                creator = self.obtain_dataset_creator_name_from_storage()
+            except Exception:
+                creator = None
+        
+        if not creator or current_user != creator:
+            raise UnAuthorizationError(
+                f"Only dataset creator [{creator}] can enable admin mode. Current user: [{current_user}]"
+            )
+        
+        # Optional password check (placeholder for future implementation)
+        # if password and not self._verify_admin_password(password):
+        #     raise UnAuthorizationError("Invalid admin password.")
+        
+        self._admin_mode = True
+        logger.info(f"Admin mode enabled for user [{current_user}]")
+    
+    def disable_admin_mode(self):
+        """Disable admin mode."""
+        from muller.client.log import logger
+        
+        self._admin_mode = False
+        logger.info("Admin mode disabled")
+    
+    @property
+    def is_admin_mode(self) -> bool:
+        """Check if admin mode is enabled.
+        
+        Returns:
+            bool: True if admin mode is enabled, False otherwise
+        """
+        return getattr(self, '_admin_mode', False)
+
     def tensor_diff(self, id_1, id_2, tensors: List[str] = None):
         """
         displays the differences between commits (in the same branch) for certain tensor

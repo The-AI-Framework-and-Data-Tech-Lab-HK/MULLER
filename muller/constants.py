@@ -60,6 +60,12 @@ QUERIES_LOCK_FILENAME = "queries.lock"
 LOCK_LOCAL_DATASETS = not PYTEST_ENABLED
 DATASET_LOCK_VALIDITY = 300  # seconds
 LOCK_VERIFY_INTERVAL = 0.5  # seconds
+
+# Multi-user branch locking configuration
+LOCK_BY_BRANCH = True  # Branch-level locking for HEAD nodes (enables multi-user collaboration)
+AUTO_COMMIT_BEFORE_CHECKOUT = True  # Auto-commit uncommitted changes before checkout
+REQUIRE_ADMIN_MODE = True  # Require admin mode for creator to modify others' branches
+
 SHOW_ITERATION_WARNING = True
 WRITE_TILES_INDEX = False
 TILE_ENCODER_ENABLED = False

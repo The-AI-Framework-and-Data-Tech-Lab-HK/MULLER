@@ -394,7 +394,7 @@ def protect_checkout(
         verbose: bool = True,
         flush_version_control_info: bool = False,
 ) -> Optional[str]:
-    """Protected checkout."""
+    """Protected checkout with auto-commit and branch metadata support."""
     if ds.is_filtered_view:
         raise Exception(
             "Cannot perform version control operations on a filtered dataset view."
@@ -402,17 +402,49 @@ def protect_checkout(
     read_only = ds.read_only
     if read_only and create:
         raise ReadOnlyModeError()
+    
+    # Auto-commit before checkout if enabled and there are uncommitted changes
+    if muller.constants.AUTO_COMMIT_BEFORE_CHECKOUT and ds.has_head_changes:
+        from muller.util.version_control import auto_commit_before_checkout
+        auto_commit_before_checkout(ds, address)
+    
     try_flushing(ds)
+    
+    # Store old branch for lock management
+    old_branch = ds.version_state.get("branch", "main")
+    
     ds.initial_autoflush.append(ds.storage.autoflush)
     ds.storage.autoflush = False
     try:
-        unlock_dataset(ds)
+        # Release lock on old branch before checkout
+        unlock_dataset(ds, branch=old_branch)
+        
+        # Save branch metadata when creating new branch
+        if create:
+            from muller.util.authorization import obtain_current_user
+            from muller.util.version_control import save_branch_metadata
+            current_user = obtain_current_user()
+            save_branch_metadata(
+                ds.storage,
+                branch_name=address,
+                owner=current_user,
+                parent_branch=old_branch
+            )
+        
+        # Perform the actual checkout
         muller.util.version_control.checkout(ds, address, create, commit_hash, flush_version_control_info)
+        
         if not flush_version_control_info and create:
             ds.vc_info_updated = True
+        
+        # Acquire lock on new branch after checkout
+        new_branch = ds.version_state.get("branch", "main")
+        lock_dataset(ds, branch=new_branch)
+        
     finally:
         ds.set_read_only(read_only, err=True)
         ds.storage.autoflush = ds.initial_autoflush.pop()
+    
     ds.info = None
     ds.ds_diff = None
 
