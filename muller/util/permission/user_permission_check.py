@@ -31,20 +31,31 @@ def _get_view_creator_name(dataset, view_id: str = None):
 
 
 def user_permission_check(func: Callable):
-    """Function to check user permission."""
+    """Enhanced user permission check with branch-level isolation and admin mode."""
     @wraps(func)
     def inner(x, *args, **kwargs):
         ds = x if isinstance(x, muller.Dataset) else x.dataset
         current_user_name = obtain_current_user()
 
+        # Get dataset creator
         try:
             dataset_creator_name = x.version_state["meta"].dataset_creator
         except (TypeError, KeyError):
-            dataset_creator_name = x.obtain_dataset_creator_name_from_storage()
+            try:
+                dataset_creator_name = x.obtain_dataset_creator_name_from_storage()
+            except Exception:
+                dataset_creator_name = None
 
-        if dataset_creator_name and current_user_name == dataset_creator_name:
+        # Check if in admin mode
+        is_admin_mode = getattr(ds, '_admin_mode', False)
+        is_creator = dataset_creator_name and current_user_name == dataset_creator_name
+        
+        # Dataset creator in admin mode has full access
+        if is_creator and is_admin_mode:
             return func(x, *args, **kwargs)
-
+        
+        # Dataset creator without admin mode: check branch ownership like regular users
+        
         def get_target_user_name(dataset, branch_name:str = None):
             if not dataset.version_state:
                 version_state = json.loads(ds.storage.next_storage[VERSION_CONTROL_INFO_FILENAME]
@@ -67,9 +78,48 @@ def user_permission_check(func: Callable):
                     target_user_name = version_state["commit_node_map"][current_id].commit_user_name
             return target_user_name
 
+        # Check branch ownership for write operations
+        write_operations = {"commit", "protected_commit", "append", "extend", 
+                           "update", "pop", "clear", "__setitem__", "create_tensor"}
+        
+        if func.__name__ in write_operations:
+            current_branch = ds.version_state.get("branch", "main")
+            
+            # Try to get branch owner from metadata first, fallback to commit history
+            try:
+                from muller.util.version_control import get_branch_owner
+                branch_owner = get_branch_owner(ds, current_branch)
+            except Exception:
+                branch_owner = get_target_user_name(ds, None)
+            
+            # Allow if user owns the branch
+            if branch_owner and current_user_name == branch_owner:
+                return func(x, *args, **kwargs)
+            
+            # Deny if branch owned by someone else
+            if branch_owner and current_user_name != branch_owner:
+                if is_creator:
+                    raise UnAuthorizationError(
+                        f"User [{current_user_name}] (dataset creator) cannot modify branch "
+                        f"[{current_branch}] owned by [{branch_owner}]. "
+                        f"Use ds.enable_admin_mode() to override."
+                    )
+                else:
+                    raise UnAuthorizationError(
+                        f"User [{current_user_name}] is not allowed to modify branch "
+                        f"[{current_branch}] owned by [{branch_owner}]. "
+                        f"Please checkout your own branch."
+                    )
+        
+        # Special handling for dataset-level operations
         if func.__name__ in {"delete", "rename"}:
-            raise UnAuthorizationError(f"User [{current_user_name}] is not allowed to "
-                                       f"delete the dataset only [{dataset_creator_name}] is allowed to do it.")
+            if not is_creator:
+                raise UnAuthorizationError(
+                    f"User [{current_user_name}] is not allowed to "
+                    f"delete the dataset. Only [{dataset_creator_name}] is allowed to do it."
+                )
+            return func(x, *args, **kwargs)
+        
         if func.__name__ == "delete_view":
             target_user_name = _get_view_creator_name(ds, args[0])
         elif func.__name__ == "delete_branch":
@@ -79,8 +129,11 @@ def user_permission_check(func: Callable):
 
         if target_user_name and current_user_name == target_user_name:
             return func(x, *args, **kwargs)
-
-        raise UnAuthorizationError(f"User [{current_user_name}] is not allowed to access the Func: {func.__name__} "
-                                   f"which is allowed by dataset creator: [{dataset_creator_name}] "
-                                   f"and branch owner [{target_user_name}].")
+        
+        # Fallback: deny access
+        raise UnAuthorizationError(
+            f"User [{current_user_name}] is not allowed to access the Func: {func.__name__} "
+            f"which is allowed by dataset creator: [{dataset_creator_name}] "
+            f"and branch owner [{target_user_name}]."
+        )
     return inner

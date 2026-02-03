@@ -223,27 +223,57 @@ def lock_dataset(
     dataset,
     lock_lost_callback: Optional[Callable] = None,
     version: Optional[str] = None,
+    branch: Optional[str] = None,
 ):
-    """Locks a StorageProvider instance to avoid concurrent writes from multiple machines.
-
+    """Locks a dataset branch (HEAD) or commit (non-HEAD) to avoid concurrent writes.
+    
+    Strategy:
+    - HEAD node: Lock branch level for multi-user collaboration
+    - Non-HEAD node: Lock commit level to prevent history modification conflicts
+    
     Args:
         dataset: Dataset instance.
-        lock_lost_callback (Callable, Optional): Called if the lock is lost after acquiring.
-        version (str, optional): The version to be locked. If None, the current version is locked.
-
+        lock_lost_callback: Called if the lock is lost after acquiring.
+        version: Commit ID (for backward compatibility and non-HEAD locking)
+        branch: The branch to lock. If None, uses current branch.
+        
     Raises:
-        LockedException: If the storage is already locked by a different machine.
+        LockedException: If the branch/commit is already locked by another process.
     """
     storage = get_base_storage(dataset.storage)
-    version = version or dataset.version_state["commit_id"]
-    key = _get_lock_key(get_path_from_storage(storage), version)
+    
+    # Get branch and commit info from dataset
+    if branch is None:
+        branch = dataset.version_state.get("branch", "main")
+    
+    commit_id = version or dataset.version_state.get("commit_id")
+    
+    # Determine if this is a HEAD node
+    commit_node = dataset.version_state.get("commit_node")
+    is_head_node = commit_node.is_head_node if commit_node else True
+    
+    # Check if branch-based locking is enabled
+    from muller.constants import LOCK_BY_BRANCH
+    
+    # Generate lock key and path based on HEAD status and configuration
+    if LOCK_BY_BRANCH and is_head_node:
+        # HEAD node with branch locking enabled: lock by branch
+        identifier = branch
+        lock_path = _get_lock_file_path(branch, commit_id, is_head_node=True)
+    else:
+        # Non-HEAD node OR legacy commit-based locking: lock by commit
+        identifier = commit_id
+        lock_path = _get_lock_file_path(branch, commit_id, is_head_node=False)
+    
+    key = _get_lock_key(get_path_from_storage(storage), identifier)
     lock = _LOCKS.get(key)
+    
     if lock:
         lock.acquire()
     else:
         lock = PersistentLock(
             storage,
-            path=_get_lock_file_path(version),
+            path=lock_path,
             lock_lost_callback=lock_lost_callback,
             timeout=dataset._lock_timeout,
         )
@@ -251,16 +281,37 @@ def lock_dataset(
     _REFS[key].add(id(dataset))
 
 
-def unlock_dataset(dataset, version: Optional[str] = None):
-    """Unlocks a storage provider that was locked by this machine.
-
+def unlock_dataset(dataset, version: Optional[str] = None, branch: Optional[str] = None):
+    """Unlocks a dataset branch (HEAD) or commit (non-HEAD).
+    
     Args:
         dataset: The dataset to be unlocked
-        version (str, optional): The version to be unlocked. If None, the current version is unlocked.
+        version: Commit ID (for backward compatibility)
+        branch: The branch to unlock. If None, uses current branch.
     """
     storage = get_base_storage(dataset.storage)
-    version = version or dataset.version_state["commit_id"]
-    key = _get_lock_key(get_path_from_storage(storage), version)
+    
+    # Get branch and commit info from dataset
+    if branch is None:
+        branch = dataset.version_state.get("branch", "main")
+    
+    commit_id = version or dataset.version_state.get("commit_id")
+    
+    # Determine if this is a HEAD node
+    commit_node = dataset.version_state.get("commit_node")
+    is_head_node = commit_node.is_head_node if commit_node else True
+    
+    # Check if branch-based locking is enabled
+    from muller.constants import LOCK_BY_BRANCH
+    
+    # Generate lock key based on HEAD status and configuration
+    if LOCK_BY_BRANCH and is_head_node:
+        identifier = branch
+    else:
+        identifier = commit_id
+    
+    key = _get_lock_key(get_path_from_storage(storage), identifier)
+    
     try:
         lock = _LOCKS[key]
         ref_set = _REFS[key]
@@ -276,14 +327,62 @@ def unlock_dataset(dataset, version: Optional[str] = None):
         pass
 
 
-def _get_lock_key(storage_path: str, commit_id: str):
-    return storage_path + ":" + commit_id
+def _get_lock_key(storage_path: str, identifier: str, user: Optional[str] = None) -> str:
+    """Generate lock key based on storage path and branch/commit identifier.
+    
+    Args:
+        storage_path: Storage path
+        identifier: Branch name or commit ID
+        user: Optional user identifier for additional isolation
+        
+    Returns:
+        Lock key string
+    """
+    key = f"{storage_path}:{identifier}"
+    if user:
+        key = f"{key}:{user}"
+    return key
 
 
-def _get_lock_file_path(version: Optional[str] = None) -> str:
-    if version in (None, "firstdbf9474d461a19e9333c2fd19b46115348f"):
+def _get_lock_file_path(branch: str, commit_id: Optional[str] = None, 
+                       is_head_node: bool = True) -> str:
+    """Generate lock file path based on branch (HEAD) or commit (non-HEAD).
+    
+    Strategy:
+    - HEAD node: Lock at branch level (branches/{branch}/branch_lock.lock)
+    - Non-HEAD node: Lock at commit level (versions/{commit_id}/dataset_lock.lock)
+    - Backward compatibility: If LOCK_BY_BRANCH is False, use commit-based locking
+    
+    Args:
+        branch: The branch name
+        commit_id: The commit ID (used for non-HEAD nodes or legacy mode)
+        is_head_node: Whether this is a HEAD node (default: True)
+        
+    Returns:
+        Lock file path
+    """
+    from muller.constants import FIRST_COMMIT_ID, LOCK_BY_BRANCH
+    
+    # Special handling for main branch initial commit
+    if branch == "main" and commit_id in (None, FIRST_COMMIT_ID):
         return "dataset_lock.lock"
-    return "versions/" + version + "/" + "dataset_lock.lock"  # type: ignore
+    
+    # Backward compatibility: use old commit-based locking if disabled
+    if not LOCK_BY_BRANCH:
+        if commit_id:
+            return f"versions/{commit_id}/dataset_lock.lock"
+        return "dataset_lock.lock"
+    
+    # New branch-based locking for HEAD nodes
+    if is_head_node:
+        return f"branches/{branch}/branch_lock.lock"
+    
+    # Non-HEAD node: commit-level lock (backward compatible)
+    if commit_id:
+        return f"versions/{commit_id}/dataset_lock.lock"
+    
+    # Fallback to branch lock
+    return f"branches/{branch}/branch_lock.lock"
 
 
 def _get_lock_bytes(tag: Optional[bytes] = None, duration: int = 10) -> bytes:

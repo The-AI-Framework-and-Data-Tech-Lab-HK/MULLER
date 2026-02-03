@@ -1145,3 +1145,113 @@ def delete_target_commit_chunk(storage, tensor_name, commit_id):
         chunk_key = get_chunk_key(tensor_name, chunk_name)
         key_set.add(chunk_key)
     storage.del_items(key_set)
+
+
+def save_branch_metadata(storage, branch_name: str, owner: str, parent_branch: Optional[str] = None):
+    """Save branch metadata including ownership information.
+    
+    Args:
+        storage: Storage provider instance
+        branch_name: Name of the branch
+        owner: Username of the branch owner (creator)
+        parent_branch: Name of the parent branch (optional)
+    """
+    branch_meta_path = f"branches/{branch_name}/branch_meta.json"
+    
+    metadata = {
+        "branch_name": branch_name,
+        "owner": owner,
+        "created_at": datetime.utcnow().timestamp(),
+        "parent_branch": parent_branch,
+    }
+    
+    storage[branch_meta_path] = json.dumps(metadata).encode("utf-8")
+
+
+def load_branch_metadata(storage, branch_name: str) -> Dict:
+    """Load branch metadata.
+    
+    Args:
+        storage: Storage provider instance
+        branch_name: Name of the branch
+        
+    Returns:
+        Dict containing branch metadata, or default dict if not found
+    """
+    branch_meta_path = f"branches/{branch_name}/branch_meta.json"
+    
+    try:
+        return json.loads(storage[branch_meta_path].decode("utf-8"))
+    except KeyError:
+        # Fallback for existing branches without metadata
+        # Try to infer owner from the first commit on the branch
+        return {"branch_name": branch_name, "owner": None, "created_at": None, "parent_branch": None}
+
+
+def get_branch_owner(dataset, branch_name: str) -> Optional[str]:
+    """Get the owner of a branch (the user who created it).
+    
+    Args:
+        dataset: Dataset instance
+        branch_name: Name of the branch
+        
+    Returns:
+        Username of the branch owner, or None if not found
+    """
+    # First try to load from branch metadata
+    try:
+        metadata = load_branch_metadata(dataset.storage, branch_name)
+        if metadata.get("owner"):
+            return metadata["owner"]
+    except Exception:
+        pass
+    
+    # Fallback: infer from version state
+    version_state = dataset.version_state
+    
+    # Get the commit that created this branch
+    branch_commit_id = version_state.get("branch_commit_map", {}).get(branch_name)
+    if not branch_commit_id:
+        return None
+    
+    # Find the commit node that marks the branch creation
+    commit_node = version_state.get("commit_node_map", {}).get(branch_commit_id)
+    if not commit_node:
+        return None
+    
+    # Traverse back to find the first commit on this branch
+    while commit_node.parent and commit_node.parent.branch == branch_name:
+        commit_node = commit_node.parent
+    
+    return commit_node.commit_user_name
+
+
+def auto_commit_before_checkout(dataset, target_address: str) -> bool:
+    """Auto-commit uncommitted changes before checkout.
+    
+    This function automatically commits any pending changes in the current
+    branch before checking out to a different branch or commit, ensuring
+    that users always work on HEAD nodes.
+    
+    Args:
+        dataset: Dataset instance
+        target_address: The target branch or commit ID to checkout to
+        
+    Returns:
+        bool: True if auto-commit was performed, False otherwise
+    """
+    if not dataset.has_head_changes:
+        return False
+    
+    try:
+        from muller.client.log import logger
+        commit_message = f"Auto-commit before checkout to {target_address} at {datetime.utcnow().isoformat()}"
+        
+        # Use the commit function from this module
+        commit(dataset, message=commit_message)
+        logger.info(f"Auto-committed changes before checkout to {target_address}")
+        return True
+    except Exception as e:
+        from muller.client.log import logger
+        logger.warning(f"Auto-commit failed: {e}")
+        return False
