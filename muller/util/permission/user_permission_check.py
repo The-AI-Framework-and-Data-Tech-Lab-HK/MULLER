@@ -79,8 +79,13 @@ def user_permission_check(func: Callable):
             return target_user_name
 
         # Check branch ownership for write operations
-        write_operations = {"commit", "protected_commit", "append", "extend", 
-                           "update", "pop", "clear", "__setitem__", "create_tensor"}
+        write_operations = {
+            "commit", "protected_commit", "append", "extend", 
+            "update", "_update", "pop", "clear", "__setitem__", 
+            "create_tensor", "create_tensor_like", "delete_tensor", "rename_tensor",
+            "rechunk", "add_data_from_file", "add_data_from_dataframes",
+            "create_index", "create_vector_index", "merge", "reset"
+        }
         
         if func.__name__ in write_operations:
             current_branch = ds.version_state.get("branch", "main")
@@ -92,24 +97,27 @@ def user_permission_check(func: Callable):
             except Exception:
                 branch_owner = get_target_user_name(ds, None)
             
+            # If no branch owner (old dataset or single-user), allow the operation
+            if branch_owner is None:
+                return func(x, *args, **kwargs)
+            
             # Allow if user owns the branch
-            if branch_owner and current_user_name == branch_owner:
+            if current_user_name == branch_owner:
                 return func(x, *args, **kwargs)
             
             # Deny if branch owned by someone else
-            if branch_owner and current_user_name != branch_owner:
-                if is_creator:
-                    raise UnAuthorizationError(
-                        f"User [{current_user_name}] (dataset creator) cannot modify branch "
-                        f"[{current_branch}] owned by [{branch_owner}]. "
-                        f"Use ds.enable_admin_mode() to override."
-                    )
-                else:
-                    raise UnAuthorizationError(
-                        f"User [{current_user_name}] is not allowed to modify branch "
-                        f"[{current_branch}] owned by [{branch_owner}]. "
-                        f"Please checkout your own branch."
-                    )
+            if is_creator:
+                raise UnAuthorizationError(
+                    f"User [{current_user_name}] (dataset creator) cannot modify branch "
+                    f"[{current_branch}] owned by [{branch_owner}]. "
+                    f"Use ds.enable_admin_mode() to override."
+                )
+            else:
+                raise UnAuthorizationError(
+                    f"User [{current_user_name}] is not allowed to modify branch "
+                    f"[{current_branch}] owned by [{branch_owner}]. "
+                    f"Please checkout your own branch."
+                )
         
         # Special handling for dataset-level operations
         if func.__name__ in {"delete", "rename"}:

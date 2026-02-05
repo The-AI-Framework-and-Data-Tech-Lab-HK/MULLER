@@ -177,14 +177,18 @@ def test_checkout_authentication(storage):
                        creds=official_creds(storage), overwrite=True)
     ds.create_tensor('labels', htype='generic', dtype='int')
     ds.labels.extend([10, 2, 30, 4, 50, 6, 70, 8, 90, 100] * 2)
+    first_commit_id = ds.commit()
 
     SensitiveConfig().uid = "B"
     ds.checkout("dev-B", create=True)
+    
+    # Check that the main branch's first commit still belongs to User A
+    # Use the actual first commit ID after User A's commit
     try:
-        owner_name = ds.version_state['commit_node_map']['firstdbf9474d461a19e9333c2fd19b46115348f'].commit_user_name
+        owner_name = ds.version_state['commit_node_map'][first_commit_id].commit_user_name
     except KeyError:
-        assert False
-    assert owner_name == 'A'
+        assert False, f"Commit {first_commit_id} not found in commit_node_map"
+    assert owner_name == 'A', f"Expected owner 'A' but got '{owner_name}'"
 
     ds.checkout("main", create=False)
     try:
@@ -224,7 +228,7 @@ def test_limited_authentication_on_other_branches(storage):
         assert True, f"uid authorization caused exception {e}"
 
     try:
-        ds.create_tensor_like('labels', ds["labels"])
+        ds.create_tensor_like('labels_copy', ds["labels"])
         assert False, "No exception raises"
     except UnAuthorizationError as e:
         assert True, f"uid authorization caused exception {e}"

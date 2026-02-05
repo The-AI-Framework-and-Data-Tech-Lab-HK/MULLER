@@ -842,7 +842,8 @@ class Tensor:
             batch_tensors.append(self[start:start + batch_size])
             idxs.append([start, min(start + batch_size, dataset_length)])
             start = start + batch_size
-        shared_memory_name = str(uuid.uuid4())
+        # Use shorter name for macOS compatibility (31 char limit)
+        shared_memory_name = uuid.uuid4().hex[:20]
         shm = shared_memory.SharedMemory(create=True, size=dataset_length * vector_dimension * self.dtype.itemsize,
                                          name=shared_memory_name)
         batch_tensors_length = len(batch_tensors)

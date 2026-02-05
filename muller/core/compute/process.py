@@ -53,6 +53,17 @@ class ProcessProvider(ComputeProvider):
 
     def shrink_heap(self):
         """Function to shrink heap."""
+        import platform
+        
         gc.collect()
-        libc = ctypes.CDLL(ctypes.util.find_library("c"))
-        libc.malloc_trim(0)
+        
+        # malloc_trim is only available on Linux (glibc), not on macOS or Windows
+        if platform.system() != "Linux":
+            return
+        
+        try:
+            libc = ctypes.CDLL(ctypes.util.find_library("c"))
+            libc.malloc_trim(0)
+        except (AttributeError, OSError):
+            # malloc_trim not available on this platform
+            pass
