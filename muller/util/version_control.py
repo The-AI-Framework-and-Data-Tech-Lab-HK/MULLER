@@ -1243,6 +1243,12 @@ def auto_commit_before_checkout(dataset, target_address: str) -> bool:
     if not dataset.has_head_changes:
         return False
     
+    # Skip auto-commit during internal operations (e.g., transforms)
+    # When autoflush is False, it means we're in a controlled context
+    # that manages commits explicitly
+    if hasattr(dataset.storage, 'autoflush') and not dataset.storage.autoflush:
+        return False
+    
     try:
         from muller.client.log import logger
         commit_message = f"Auto-commit before checkout to {target_address} at {datetime.utcnow().isoformat()}"

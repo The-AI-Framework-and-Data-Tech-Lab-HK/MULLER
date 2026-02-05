@@ -404,7 +404,9 @@ def protect_checkout(
         raise ReadOnlyModeError()
     
     # Auto-commit before checkout if enabled and there are uncommitted changes
-    if muller.constants.AUTO_COMMIT_BEFORE_CHECKOUT and ds.has_head_changes:
+    # Skip if autoflush is False (indicates we're in a transform or other internal operation)
+    skip_auto_commit = hasattr(ds.storage, 'autoflush') and not ds.storage.autoflush
+    if muller.constants.AUTO_COMMIT_BEFORE_CHECKOUT and ds.has_head_changes and not skip_auto_commit:
         from muller.util.version_control import auto_commit_before_checkout
         auto_commit_before_checkout(ds, address)
     
