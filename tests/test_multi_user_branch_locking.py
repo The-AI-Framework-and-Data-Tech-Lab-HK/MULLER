@@ -97,44 +97,54 @@ def test_branch_ownership_enforcement(temp_dataset_path):
 
 def test_admin_mode_override(temp_dataset_path):
     """Test that dataset creator can use admin mode to modify any branch."""
-    path = os.path.join(temp_dataset_path, "test_ds")
+    import muller.constants
     
-    # Creator (user_a) creates dataset
-    SensitiveConfig().uid = 'user_a'
-    ds_creator = muller.empty(path)
-    ds_creator.create_tensor("test_data")
-    ds_creator.test_data.append([1, 2, 3])
-    ds_creator.commit("Initial commit")
+    # Enable REQUIRE_ADMIN_MODE for this test
+    original_value = muller.constants.REQUIRE_ADMIN_MODE
+    muller.constants.REQUIRE_ADMIN_MODE = True
     
-    # User B creates their branch
-    SensitiveConfig().uid = 'user_b'
-    ds_b = muller.load(path)
-    ds_b.checkout("branch_b", create=True)
-    ds_b.test_data.append([4, 5, 6])
-    ds_b.commit("User B changes")
-    
-    # Creator tries to modify User B's branch without admin mode
-    SensitiveConfig().uid = 'user_a'
-    ds_creator = muller.load(path)
-    ds_creator.checkout("branch_b")
-    
-    # Should fail without admin mode
-    with pytest.raises(UnAuthorizationError):
+    try:
+        path = os.path.join(temp_dataset_path, "test_ds")
+        
+        # Creator (user_a) creates dataset
+        SensitiveConfig().uid = 'user_a'
+        ds_creator = muller.empty(path)
+        ds_creator.create_tensor("test_data")
+        ds_creator.test_data.append([1, 2, 3])
+        ds_creator.commit("Initial commit")
+        
+        # User B creates their branch
+        SensitiveConfig().uid = 'user_b'
+        ds_b = muller.load(path)
+        ds_b.checkout("branch_b", create=True)
+        ds_b.test_data.append([4, 5, 6])
+        ds_b.commit("User B changes")
+        
+        # Creator tries to modify User B's branch without admin mode
+        SensitiveConfig().uid = 'user_a'
+        ds_creator = muller.load(path)
+        ds_creator.checkout("branch_b")
+        
+        # Should fail without admin mode (when REQUIRE_ADMIN_MODE=True)
+        with pytest.raises(UnAuthorizationError):
+            ds_creator.test_data.append([7, 8, 9])
+        
+        # Enable admin mode
+        ds_creator.enable_admin_mode()
+        
+        # Now should succeed
         ds_creator.test_data.append([7, 8, 9])
-    
-    # Enable admin mode
-    ds_creator.enable_admin_mode()
-    
-    # Now should succeed
-    ds_creator.test_data.append([7, 8, 9])
-    ds_creator.commit("Admin fix")
-    
-    # Disable admin mode
-    ds_creator.disable_admin_mode()
-    
-    # Should fail again after disabling
-    with pytest.raises(UnAuthorizationError):
-        ds_creator.test_data.append([10, 11, 12])
+        ds_creator.commit("Admin fix")
+        
+        # Disable admin mode
+        ds_creator.disable_admin_mode()
+        
+        # Should fail again after disabling
+        with pytest.raises(UnAuthorizationError):
+            ds_creator.test_data.append([10, 11, 12])
+    finally:
+        # Restore original value
+        muller.constants.REQUIRE_ADMIN_MODE = original_value
 
 
 def test_auto_commit_before_checkout(temp_dataset_path):

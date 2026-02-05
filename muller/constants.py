@@ -64,7 +64,7 @@ LOCK_VERIFY_INTERVAL = 0.5  # seconds
 # Multi-user branch locking configuration
 LOCK_BY_BRANCH = True  # Branch-level locking for HEAD nodes (enables multi-user collaboration)
 AUTO_COMMIT_BEFORE_CHECKOUT = False  # Auto-commit uncommitted changes before checkout (opt-in feature)
-REQUIRE_ADMIN_MODE = True  # Require admin mode for creator to modify others' branches
+REQUIRE_ADMIN_MODE = False  # Require admin mode for creator to modify others' branches (opt-in security feature)
 
 SHOW_ITERATION_WARNING = True
 WRITE_TILES_INDEX = False
