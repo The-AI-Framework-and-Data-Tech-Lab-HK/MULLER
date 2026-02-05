@@ -54,7 +54,11 @@ def user_permission_check(func: Callable):
         if is_creator and is_admin_mode:
             return func(x, *args, **kwargs)
         
-        # Dataset creator without admin mode: check branch ownership like regular users
+        # If REQUIRE_ADMIN_MODE is False, creator has automatic full access (backward compatibility)
+        if is_creator and not muller.constants.REQUIRE_ADMIN_MODE:
+            return func(x, *args, **kwargs)
+        
+        # Dataset creator without admin mode (when REQUIRE_ADMIN_MODE=True): check branch ownership like regular users
         
         def get_target_user_name(dataset, branch_name:str = None):
             if not dataset.version_state:
