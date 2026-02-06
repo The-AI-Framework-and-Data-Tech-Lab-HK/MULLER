@@ -1,6 +1,6 @@
 ## Advanced Operations
 
-#### 7.1. Recommendations for Ingesting Large-Scale Data into MULLER Datasets
+### 1. Recommendations for Ingesting Large-Scale Data into MULLER Datasets
 
 If you need to create a dataset or append a large amount of data in the MULLER format, it is recommended to use the `@muller.compute` decorator for parallel ingestion (typically set `num_workers` to 8–32 depending on available resources).
 
@@ -53,7 +53,7 @@ With large datasets, not every sample path is guaranteed to be valid (e.g., inva
 - For details, see `[muller.compute]()`.
 - For details, see `[eval()]()`.
 
-#### 7.2. Use `with` for Better Write Performance
+### 2. Use `with` for Better Write Performance
 
 1. In MULLER, each independent update is pushed to the target persistent storage immediately (through an LRU cache; see `_set_item()` and `flush()`). If you have many small updates and the data is stored remotely, write time can increase significantly. For example, the following pattern pushes an update on every `.append()`:
 
@@ -70,7 +70,7 @@ with ds:
         ds.my_tensor.append(i)  # or other write operations: create, update, etc.
 ```
 
-#### 7.3. Why a Dataset Become Corrupted, and How to Recover?
+### 3. Why a Dataset Become Corrupted, and How to Recover?
 
 If your program is interrupted unexpectedly (e.g., a crash during append/pop), the dataset may become inconsistent: some tensors may have been updated while others were not. In such cases, you can use `ds.reset()` to roll back illegal, uncommitted operations and return to the most recent valid commit.
 
@@ -100,7 +100,7 @@ ds.reset()
 - Note: once you reset, all uncommitted changes will be deleted.
 - For large datasets, prefer **checkpointing** or **committing frequently** so recovery is easier after unexpected failures.
 
-#### 7.4. Keys to Efficient Operations on OBS
+### 4. Keys to Efficient Operations on OBS
 
 1. Use a sufficiently capable OBS client and sufficient bandwidth.
 
@@ -113,7 +113,7 @@ ds.reset()
 
 > Note: (1) is typically a prerequisite for (2).
 
-#### 7.5. Concurrency: Write Locks in MULLER
+### 5. Concurrency: Write Locks in MULLER
 
 MULLER supports basic concurrent-write protection via **file locks** (including in the Huashan notebook environment). The following locks are used:
 
@@ -143,7 +143,7 @@ To avoid deadlocks, if you need multiple lock types, acquire them strictly in th
 
 Note: MULLER currently has no read locks, so **dirty reads** are allowed (e.g., user B may observe partial intermediate states while user A is writing).
 
-#### 7.6. How Is MULLER Different from Deeplake?
+### 6. How Is MULLER Different from Deeplake?
 
 Deeplake is closed-source. MULLER adopts a subset of Deeplake-like interfaces but uses its own file layout and includes major performance optimizations and refactoring for version control, loading, and OBS support.
 
@@ -156,7 +156,7 @@ Key differences include:
 5. Branch permission control: implemented in MULLER.
 6. High-performance DataLoader: implemented in MULLER.
 
-#### 7.7. Other
+### 7. Other
 
 1. Fetch adjacent data in the chunk
 
