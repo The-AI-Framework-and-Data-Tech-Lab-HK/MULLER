@@ -4,7 +4,7 @@ MULLER provides Git-like commands to manage dataset changes. It works with datas
 
 Below are several key commands.
 
-#### 5.1. Commit
+### 1. Commit
 
 After performing write operations (add/delete/update), call `ds.commit()` to create a new version (commit ID).
 
@@ -29,7 +29,7 @@ You can then continue to modify the dataset and commit again.
 
 - For details, see [`dataset.commit()`]().
 
-#### 5.2. Checkout
+### 2. Checkout
 
 Each newly created dataset starts on the `main` branch. Use `ds.checkout()` to create a branch or switch branches.
 
@@ -62,7 +62,7 @@ labels   generic  (5, 1)    int64    None
 - For details, see [`dataset.checkout()`]().
 - For details, see [`dataset.branch`]().
 
-#### 5.3. Load a Specific Branch/Version and View History
+### 3. Load a Specific Branch/Version and View History
 
 Use `muller.load()` to load a specific branch or commit.
 
@@ -121,7 +121,7 @@ Message: first commit.
   - List all branches: [`dataset.branches`]()
   - Get commits between a version and a branch: [`dataset_commits_between()`]()
 
-#### 5.4. Direct Diff (available in v0.6.10+)
+### 4. Direct Diff (available in v0.6.10+)
 
 Understanding changes between versions is critical. MULLER provides `ds.direct_diff(id_1, id_2)` to compute the *direct* per-tensor, per-row differences between `id_1` and `id_2` (in the direction “from `id_1` to `id_2`”). It can optionally return a pandas DataFrame for inspection.
 
@@ -173,7 +173,7 @@ final_df_dict = ds.direct_diff(dev_1, dev_2, as_dataframe=True)
 In a Jupyter environment, you can view the changes visually.
 ![image]()
 
-#### 5.5. Diff
+### 5. Diff
 
 `ds.diff()` computes differences across versions for each tensor column and each sample (row). This API primarily supports merge computation, so its output is **not** a simple “absolute diff”; it returns diffs **per commit** relative to the most recent common ancestor (a version-tree style output, similar to `log()`).
 
@@ -358,7 +358,7 @@ Example: return values as a dict.
 
 - For details, see [`dataset.diff()`](). For deeper background, see [Detailed MR](https://codehub-y.huawei.com/GTN/MULLER/merge_requests/157).
 
-#### 5.6. What Are HEAD Changes? How to Use `reset()` to Revert Uncommitted Changes
+### 6. What Are HEAD Changes? How to Use `reset()` to Revert Uncommitted Changes
 
 Unlike Git, MULLER version control has **no local staging area**. All changes are immediately synced to the persistent storage location (local or remote). As a result, any dataset change updates the current branch HEAD node immediately. Uncommitted changes do not appear on other branches, but they remain accessible on the current branch until reverted.
 
@@ -408,7 +408,7 @@ Dataset in main branch has 5 samples in the labels tensor
 
 - For details, see [`dataset.reset()`]().
 
-#### 5.7. Merge (available in v0.6.7+)
+### 7. Merge (available in v0.6.7+)
 
 Branch merging is essential for collaborative workflows. Similar to Git, MULLER supports two merge patterns:
 
@@ -560,7 +560,7 @@ Example:
 - For details, see [`dataset.detect_merge_conflict()`]().
 - For details, see [`dataset.merge()`]().
 
-#### 5.8. Branch Permission Control for the Huashan Platform (available in v0.6.6+)
+### 8. Branch Permission Control for the Huashan Platform (available in v0.6.6+)
 
 To meet permission-control requirements on the Huashan platform, the following restrictions apply:
 
