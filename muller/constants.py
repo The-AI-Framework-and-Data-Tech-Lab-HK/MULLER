@@ -66,6 +66,17 @@ LOCK_BY_BRANCH = True  # Branch-level locking for HEAD nodes (enables multi-user
 AUTO_COMMIT_BEFORE_CHECKOUT = False  # Auto-commit uncommitted changes before checkout (opt-in feature)
 REQUIRE_ADMIN_MODE = False  # Require admin mode for creator to modify others' branches (opt-in security feature)
 
+# Lock type configuration
+# Options: "file" (default) - uses file-based locking via storage provider
+#          "redis" - uses Redis-based distributed locking
+LOCK_TYPE = os.environ.get("MULLER_LOCK_TYPE", "file")
+
+# Redis lock configuration (only used when LOCK_TYPE="redis")
+REDIS_LOCK_HOST = os.environ.get("MULLER_REDIS_HOST", "localhost")
+REDIS_LOCK_PORT = int(os.environ.get("MULLER_REDIS_PORT", "6379"))
+REDIS_LOCK_DB = int(os.environ.get("MULLER_REDIS_DB", "0"))
+REDIS_LOCK_PASSWORD = os.environ.get("MULLER_REDIS_PASSWORD", None)
+
 SHOW_ITERATION_WARNING = True
 WRITE_TILES_INDEX = False
 TILE_ENCODER_ENABLED = False

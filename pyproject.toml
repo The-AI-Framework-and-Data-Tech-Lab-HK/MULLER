@@ -73,4 +73,4 @@ exclude = [
 "muller.util.sparsehash" = ["build/*.so", "*.so"]
 
 [tool.setuptools.dynamic]
-version = { attr = "muller.__version__" }
+version = { attr = "muller._version.__version__" }
