@@ -453,44 +453,66 @@ class TestConcurrentAccess:
     """Tests for concurrent lock access."""
     
     def test_filelock_concurrent_threads(self, temp_storage):
-        """Test FileLock with concurrent threads."""
-        lock = FileLock(temp_storage, "test_concurrent.lock")
+        """Test FileLock with concurrent threads simulating different processes.
+        
+        Note: FileLock uses process ID as tag, so threads in the same process
+        share the same identity. To test concurrent access, we create separate
+        lock instances with unique tags to simulate different processes.
+        """
         counter = {"value": 0}
         errors = []
+        counter_lock = threading.Lock()  # For thread-safe counter access
         
-        def increment():
+        def increment(thread_id):
             try:
-                with lock:
-                    current = counter["value"]
+                # Create a lock instance with unique tag (simulating different process)
+                lock = FileLock(temp_storage, "test_concurrent.lock", duration=30)
+                lock.tag = f"thread_{thread_id}".encode()  # Unique tag per thread
+                
+                lock.acquire(timeout=10)
+                try:
+                    with counter_lock:
+                        current = counter["value"]
                     time.sleep(0.01)  # Simulate some work
-                    counter["value"] = current + 1
+                    with counter_lock:
+                        counter["value"] = current + 1
+                finally:
+                    lock.release()
             except Exception as e:
                 errors.append(e)
         
-        threads = [threading.Thread(target=increment) for _ in range(5)]
+        threads = [threading.Thread(target=increment, args=(i,)) for i in range(5)]
         for t in threads:
             t.start()
         for t in threads:
             t.join()
         
         # All increments should have succeeded
-        assert counter["value"] == 5
+        assert counter["value"] == 5, f"Expected 5, got {counter['value']}, errors: {errors}"
         assert len(errors) == 0
     
     def test_redislock_concurrent_threads(self, redis_client):
-        """Test RedisLock with concurrent threads."""
+        """Test RedisLock with concurrent threads.
+        
+        RedisLock uses a unique token per instance, so each thread
+        naturally gets a different identity.
+        """
         lock_name = f"test_concurrent_{time.time()}"
         counter = {"value": 0}
         errors = []
+        counter_lock = threading.Lock()  # For thread-safe counter access
         
         def increment():
             try:
+                # Each thread creates its own lock instance with unique token
                 lock = RedisLock(redis_client, lock_name, duration=30)
                 lock.acquire(timeout=10)
                 try:
-                    current = counter["value"]
+                    with counter_lock:
+                        current = counter["value"]
                     time.sleep(0.01)  # Simulate some work
-                    counter["value"] = current + 1
+                    with counter_lock:
+                        counter["value"] = current + 1
                 finally:
                     lock.release()
             except Exception as e:
@@ -503,7 +525,7 @@ class TestConcurrentAccess:
             t.join()
         
         # All increments should have succeeded
-        assert counter["value"] == 5
+        assert counter["value"] == 5, f"Expected 5, got {counter['value']}, errors: {errors}"
         assert len(errors) == 0
 
 
