@@ -1,0 +1,1367 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER/getting_started/4_muller_version_control/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>4 muller version control - MULLER</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#version-control" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MULLER" class="md-header__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MULLER
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              4 muller version control
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the bright mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Change to the bright mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Change to the dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/dataset.md" class="md-tabs__link">
+          
+  
+  
+  API Documents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq.md" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MULLER" class="md-nav__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MULLER
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1_read_muller_object/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read as MULLER object
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2_create_muller_dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construct a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../3_muller_dataset_operations%28load%2Cappend%2Cupdate%2Cdelete%2Cquery%29/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Documents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Documents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/dataset.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#version-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Commit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-checkout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Checkout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-load-a-specific-branchversion-and-view-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Load a Specific Branch/Version and View History
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-direct-diff-available-in-v0610" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Direct Diff (available in v0.6.10+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Diff
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-what-are-head-changes-how-to-use-reset-to-revert-uncommitted-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. What Are HEAD Changes? How to Use reset() to Revert Uncommitted Changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-merge-available-in-v067" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Merge (available in v0.6.7+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-branch-permission-control-for-the-huashan-platform-available-in-v066" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Branch Permission Control for the Huashan Platform (available in v0.6.6+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>4 muller version control</h1>
+
+<h2 id="version-control">Version Control</h2>
+<p>MULLER provides Git-like commands to manage dataset changes. It works with datasets of any size and records key information about dataset evolution. For the full API reference, see <a href="">Dataset Version Control</a>.</p>
+<p>Below are several key commands.</p>
+<h3 id="1-commit">1. Commit</h3>
+<p>After performing write operations (add/delete/update), call <code>ds.commit()</code> to create a new version (commit ID).</p>
+<p>Example: load a dataset, create a tensor column, and commit.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;/data/muller_exp/&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">first_commit_id</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;first commit.&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">first_commit_id</span>
+<span class="s1">&#39;firstdbf9474d461a19e9333c2fd19b46115348f&#39;</span>
+</code></pre></div>
+<p>You can then continue to modify the dataset and commit again.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">second_commit_id</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;add labels.&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">second_commit_id</span>
+<span class="s1">&#39;637adeb5232f0152b866c9a2a49e8da19f00c1da&#39;</span>
+</code></pre></div>
+<ul>
+<li>For details, see <a href=""><code>dataset.commit()</code></a>.</li>
+</ul>
+<h3 id="2-checkout">2. Checkout</h3>
+<p>Each newly created dataset starts on the <code>main</code> branch. Use <code>ds.checkout()</code> to create a branch or switch branches.</p>
+<p>Create a new branch with <code>create=True</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;categories&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;agent&quot;</span><span class="p">,</span> <span class="s2">&quot;emotion&quot;</span><span class="p">,</span> <span class="s2">&quot;generation&quot;</span><span class="p">,</span> <span class="s2">&quot;writing&quot;</span><span class="p">,</span> <span class="s2">&quot;emotion&quot;</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;created categories tensor column and add values.&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>  <span class="c1"># Now dev has two tensor columns (categories and labels).</span>
+<span class="n">tensor</span>     <span class="n">htype</span>    <span class="n">shape</span>    <span class="n">dtype</span>  <span class="n">compression</span>
+ <span class="o">-------</span>    <span class="o">-------</span>  <span class="o">-------</span>  <span class="o">-------</span>  <span class="o">-------</span>
+<span class="n">categories</span>   <span class="n">text</span>    <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>     <span class="nb">str</span>     <span class="kc">None</span>
+  <span class="n">labels</span>    <span class="n">generic</span>  <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>    <span class="n">int64</span>    <span class="kc">None</span>
+</code></pre></div>
+<p>Switch to an existing branch:</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>  <span class="c1"># Switch back to main.</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">branch</span>            <span class="c1"># Check the current branch name.</span>
+<span class="s1">&#39;main&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>         <span class="c1"># This branch has only one tensor column (labels).</span>
+<span class="n">tensor</span>    <span class="n">htype</span>    <span class="n">shape</span>    <span class="n">dtype</span>  <span class="n">compression</span>
+<span class="o">-------</span>  <span class="o">-------</span>  <span class="o">-------</span>  <span class="o">-------</span>  <span class="o">-------</span>
+<span class="n">labels</span>   <span class="n">generic</span>  <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>    <span class="n">int64</span>    <span class="kc">None</span>
+</code></pre></div>
+<ul>
+<li>For details, see <a href=""><code>dataset.checkout()</code></a>.</li>
+<li>For details, see <a href=""><code>dataset.branch</code></a>.</li>
+</ul>
+<h3 id="3-load-a-specific-branchversion-and-view-history">3. Load a Specific Branch/Version and View History</h3>
+<p>Use <code>muller.load()</code> to load a specific branch or commit.</p>
+<p>Load the latest commit on <code>main</code> (default):</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;/data/muller_exp/&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Load a specific branch using <code>@{branch_name}</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;/data/muller_exp@dev&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Load a specific commit using <code>@{commit_id}</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;/data/muller_exp@3e49cded62b6b335c74ff07e97f8451a37aca7b2&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><code>ds.log()</code> prints the log to the console and returns commit records starting from the current version.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;/data/muller_exp@dev&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">log</span><span class="p">()</span>
+<span class="o">---------------</span>
+<span class="n">MULLER</span> <span class="n">Version</span> <span class="n">Log</span>
+<span class="o">---------------</span>
+
+<span class="n">Current</span> <span class="n">Branch</span><span class="p">:</span> <span class="n">dev</span>
+<span class="n">Commit</span> <span class="p">:</span> <span class="mi">476</span><span class="n">be1766915dfe652f39e39f5370f9c04528df9</span> <span class="p">(</span><span class="n">dev</span><span class="p">)</span>
+<span class="n">Author</span> <span class="p">:</span> <span class="n">public</span>
+<span class="n">Time</span>   <span class="p">:</span> <span class="mi">2025</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">28</span> <span class="mi">08</span><span class="p">:</span><span class="mi">07</span><span class="p">:</span><span class="mi">48</span>
+<span class="n">Message</span><span class="p">:</span> <span class="n">created</span> <span class="n">categories</span> <span class="n">tensor</span> <span class="n">column</span> <span class="ow">and</span> <span class="n">add</span> <span class="n">values</span><span class="o">.</span>
+
+<span class="n">Commit</span> <span class="p">:</span> <span class="mi">637</span><span class="n">adeb5232f0152b866c9a2a49e8da19f00c1da</span> <span class="p">(</span><span class="n">main</span><span class="p">)</span>
+<span class="n">Author</span> <span class="p">:</span> <span class="n">public</span>
+<span class="n">Time</span>   <span class="p">:</span> <span class="mi">2025</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">28</span> <span class="mi">08</span><span class="p">:</span><span class="mi">03</span><span class="p">:</span><span class="mi">16</span>
+<span class="n">Message</span><span class="p">:</span> <span class="n">add</span> <span class="n">labels</span><span class="o">.</span>
+
+<span class="n">Commit</span> <span class="p">:</span> <span class="n">firstdbf9474d461a19e9333c2fd19b46115348f</span> <span class="p">(</span><span class="n">main</span><span class="p">)</span>
+<span class="n">Author</span> <span class="p">:</span> <span class="n">public</span>
+<span class="n">Time</span>   <span class="p">:</span> <span class="mi">2025</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">28</span> <span class="mi">03</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mi">53</span>
+<span class="n">Message</span><span class="p">:</span> <span class="n">first</span> <span class="n">commit</span><span class="o">.</span>
+</code></pre></div>
+<ul>
+<li>For details, see <a href=""><code>dataset.log()</code></a>.</li>
+<li>If needed, we may extend <code>log()</code> to also return the history of commits merged into the current branch.</li>
+<li>Other related APIs:</li>
+<li>Get commit details: <a href=""><code>dataset.get_commit_details(commit_id)</code></a></li>
+<li>Get current commit ID: <a href=""><code>dataset.commit_id</code></a></li>
+<li>Get the next (pending) commit ID: <a href=""><code>dataset.pending_commit_id</code></a></li>
+<li>Check whether the current branch has uncommitted changes: <a href=""><code>dataset.has_head_changes</code></a></li>
+<li>List all commits (without printing): <a href=""><code>dataset.commits</code></a></li>
+<li>List all branches: <a href=""><code>dataset.branches</code></a></li>
+<li>Get commits between a version and a branch: <a href=""><code>dataset_commits_between()</code></a></li>
+</ul>
+<h3 id="4-direct-diff-available-in-v0610">4. Direct Diff (available in v0.6.10+)</h3>
+<p>Understanding changes between versions is critical. MULLER provides <code>ds.direct_diff(id_1, id_2)</code> to compute the <em>direct</em> per-tensor, per-row differences between <code>id_1</code> and <code>id_2</code> (in the direction “from <code>id_1</code> to <code>id_2</code>”). It can optionally return a pandas DataFrame for inspection.</p>
+<p>Parameters (note that the order matters):</p>
+<ul>
+<li><strong>id_1 (str)</strong>: the first version ID or branch name.</li>
+<li><strong>id_2 (str)</strong>: the second version ID or branch name.</li>
+<li><strong>as_dataframe (bool, optional)</strong>: if <code>True</code>, return DataFrame(s).</li>
+<li><strong>force (bool, optional)</strong>: when the resulting DataFrame is large (over 100,000 rows by default), set <code>force=True</code> to confirm execution.</li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;categories&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">])</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">test1</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">104</span><span class="p">])</span>
+
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">categories</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;haha&quot;</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">test1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">105</span><span class="p">)</span>
+<span class="n">dev_1</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;first on dev&quot;</span><span class="p">)</span>
+
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;dev_2&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">delete_tensor</span><span class="p">(</span><span class="s2">&quot;test1&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">])</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;first on dev_2&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">111</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">categories</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;xixixi&quot;</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test2&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">test2</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">101</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">104</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">106</span><span class="p">])</span>
+<span class="n">dev_2</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;sec on dev_2&quot;</span><span class="p">)</span>
+
+<span class="n">final_df_dict</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">direct_diff</span><span class="p">(</span><span class="n">dev_1</span><span class="p">,</span> <span class="n">dev_2</span><span class="p">,</span> <span class="n">as_dataframe</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>In a Jupyter environment, you can view the changes visually.
+<img alt="image" src="" /></p>
+<h3 id="5-diff">5. Diff</h3>
+<p><code>ds.diff()</code> computes differences across versions for each tensor column and each sample (row). This API primarily supports merge computation, so its output is <strong>not</strong> a simple “absolute diff”; it returns diffs <strong>per commit</strong> relative to the most recent common ancestor (a version-tree style output, similar to <code>log()</code>).</p>
+<p>Notes:</p>
+<ul>
+<li>If you call <code>diff()</code> while you are on one of the versions being compared <em>and</em> your current state is the branch HEAD, then <strong>uncommitted HEAD changes</strong> will also be included.</li>
+<li>By default, <code>diff()</code> returns <strong>row indices</strong> only. To return actual values, set <code>show_value=True</code>. Since loading values requires I/O, consider using <code>offset</code> and <code>limit</code> for large datasets, especially when the data is stored remotely.</li>
+<li>Use <code>as_dict=True</code> to return diffs as a Python dict.</li>
+</ul>
+<p>Common usages:</p>
+<p>1) Diff between the current state and the previous commit:</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>  <span class="c1"># If nothing changed since the last commit, nothing will be returned.</span>
+</code></pre></div>
+<p>2) Diff between the current state and <code>id_1</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">id_1</span><span class="o">=&lt;</span><span class="n">commit_id</span><span class="o">&gt;</span><span class="p">)</span>      <span class="c1"># id_1 can be a commit ID</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">id_1</span><span class="o">=&lt;</span><span class="n">branch_name</span><span class="o">&gt;</span><span class="p">)</span>    <span class="c1"># id_1 can be a branch name (its latest commit)</span>
+</code></pre></div>
+<p>3) Diff between <code>id_1</code> and <code>id_2</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">id_1</span><span class="o">=&lt;</span><span class="n">commit_id_1</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">id_2</span><span class="o">=&lt;</span><span class="n">commit_id_2</span><span class="o">&gt;</span><span class="p">)</span>          <span class="c1"># commit IDs</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">id_1</span><span class="o">=&lt;</span><span class="n">branch_name_1</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">id_2</span><span class="o">=&lt;</span><span class="n">branch_name_2</span><span class="o">&gt;</span><span class="p">)</span>      <span class="c1"># branch names (latest commits)</span>
+</code></pre></div>
+<p>Key parameters:</p>
+<ul>
+<li><strong>id_1 (str, optional)</strong>: first version ID or branch name.</li>
+<li><strong>id_2 (str, optional)</strong>: second version ID or branch name.</li>
+<li><strong>as_dict (bool, optional)</strong>: if <code>True</code>, return structured diffs as Python objects.</li>
+<li><strong>show_value (bool)</strong>: if <code>True</code>, return actual values for append/update/pop.</li>
+<li><strong>offset (int)</strong>: number of items to skip (effective only when <code>show_value=True</code>).</li>
+<li><strong>limit (int)</strong>: maximum number of items to show (effective only when <code>show_value=True</code>, default 1000).</li>
+<li><strong>asrow (bool)</strong>: return values row-wise (list of dicts) when <code>show_value=True</code>. This is only applicable when tensor-count and row-count changes are exactly aligned between the two versions; otherwise it may raise an error. In general, prefer <code>asrow=False</code> for flexibility.</li>
+</ul>
+<p>Example (based on the dataset created in Section 5.2): show indices only.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="s2">&quot;main&quot;</span><span class="p">)</span>  <span class="c1"># default: do not show values</span>
+<span class="c1">## MULLER Diff</span>
+<span class="n">The</span> <span class="mi">2</span> <span class="n">diffs</span> <span class="n">are</span> <span class="n">calculated</span> <span class="n">relative</span> <span class="n">to</span> <span class="n">the</span> <span class="n">most</span> <span class="n">recent</span> <span class="n">common</span> <span class="n">ancestor</span> <span class="p">(</span><span class="mi">637</span><span class="n">adeb5232f0152b866c9a2a49e8da19f00c1da</span><span class="p">)</span> <span class="n">of</span> <span class="n">the</span> <span class="n">two</span> <span class="n">commits</span> <span class="n">passed</span><span class="o">.</span>
+<span class="o">------------------------------------------------------------------------------------------------------------------------</span>
+<span class="n">Diff</span> <span class="ow">in</span> <span class="n">dev</span> <span class="p">(</span><span class="n">target</span> <span class="nb">id</span> <span class="mi">1</span><span class="p">):</span>
+
+<span class="o">********************************************************************************</span>
+<span class="n">commit</span> <span class="n">UNCOMMITTED</span> <span class="n">HEAD</span>
+<span class="n">Author</span><span class="p">:</span> <span class="n">public</span>
+<span class="n">Date</span><span class="p">:</span> <span class="kc">None</span>
+<span class="n">Message</span><span class="p">:</span> <span class="kc">None</span>
+
+<span class="n">No</span> <span class="n">changes</span> <span class="n">were</span> <span class="n">made</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">commit</span><span class="o">.</span>
+<span class="o">********************************************************************************</span>
+<span class="n">commit</span> <span class="mi">476</span><span class="n">be1766915dfe652f39e39f5370f9c04528df9</span>
+<span class="n">Author</span><span class="p">:</span> <span class="n">public</span>
+<span class="n">Date</span><span class="p">:</span> <span class="mi">2025</span><span class="o">-</span><span class="mi">02</span><span class="o">-</span><span class="mi">28</span> <span class="mi">08</span><span class="p">:</span><span class="mi">07</span><span class="p">:</span><span class="mi">48</span>
+<span class="n">Message</span><span class="p">:</span> <span class="n">created</span> <span class="n">categories</span> <span class="n">tensor</span> <span class="n">column</span> <span class="ow">and</span> <span class="n">add</span> <span class="n">values</span><span class="o">.</span>
+
+<span class="n">categories</span>
+<span class="o">*</span> <span class="n">Created</span> <span class="n">tensor</span>
+<span class="o">*</span> <span class="n">Added</span> <span class="mi">5</span> <span class="n">samples</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span>
+
+<span class="o">------------------------------------------------------------------------------------------------------------------------</span>
+<span class="n">Diff</span> <span class="ow">in</span> <span class="n">main</span> <span class="p">(</span><span class="n">target</span> <span class="nb">id</span> <span class="mi">2</span><span class="p">):</span>
+
+<span class="o">********************************************************************************</span>
+<span class="n">commit</span> <span class="n">UNCOMMITTED</span> <span class="n">HEAD</span>
+<span class="n">Author</span><span class="p">:</span> <span class="n">public</span>
+<span class="n">Date</span><span class="p">:</span> <span class="kc">None</span>
+<span class="n">Message</span><span class="p">:</span> <span class="kc">None</span>
+
+<span class="n">No</span> <span class="n">changes</span> <span class="n">were</span> <span class="n">made</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">commit</span><span class="o">.</span>
+<span class="o">------------------------------------------------------------------------------------------------------------------------</span>
+<span class="p">{}</span>
+<span class="o">&gt;&gt;&gt;</span>
+</code></pre></div>
+<p>Example: show actual values.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">id_1</span><span class="o">=</span><span class="n">third_commit_id</span><span class="p">,</span> <span class="n">id_2</span><span class="o">=</span><span class="n">first_commit_id</span><span class="p">,</span> <span class="n">show_value</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1">## MULLER Diff</span>
+<span class="n">The</span> <span class="mi">2</span> <span class="n">diffs</span> <span class="n">are</span> <span class="n">calculated</span> <span class="n">relative</span> <span class="n">to</span> <span class="n">the</span> <span class="n">most</span> <span class="n">recent</span> <span class="n">common</span> <span class="n">ancestor</span> <span class="p">(</span><span class="n">firstdbf9474d461a19e9333c2fd19b46115348f</span><span class="p">)</span> <span class="n">of</span> <span class="n">the</span> <span class="n">two</span> <span class="n">commits</span> <span class="n">passed</span><span class="o">.</span>
+<span class="o">------------------------------------------------------------------------------------------------------------------------</span>
+<span class="n">Diff</span> <span class="ow">in</span> <span class="mi">51</span><span class="n">f5bb41c4a1d74d881269366e3718285b8145db</span> <span class="p">(</span><span class="n">target</span> <span class="nb">id</span> <span class="mi">1</span><span class="p">):</span>
+
+<span class="o">********************************************************************************</span>
+<span class="n">commit</span> <span class="mi">51</span><span class="n">f5bb41c4a1d74d881269366e3718285b8145db</span>
+<span class="n">Author</span><span class="p">:</span> <span class="n">public</span>
+<span class="n">Date</span><span class="p">:</span> <span class="mi">2025</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">03</span> <span class="mi">04</span><span class="p">:</span><span class="mi">03</span><span class="p">:</span><span class="mi">13</span>
+<span class="n">Message</span><span class="p">:</span> <span class="n">created</span> <span class="n">categories</span> <span class="n">tensor</span> <span class="n">column</span> <span class="ow">and</span> <span class="n">add</span> <span class="n">values</span><span class="o">.</span>
+
+<span class="n">categories</span>
+<span class="o">*</span> <span class="n">Created</span> <span class="n">tensor</span>
+<span class="o">*</span> <span class="n">Added</span> <span class="mi">5</span> <span class="n">samples</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">5</span><span class="p">],</span>
+<span class="n">The</span> <span class="n">appended</span> <span class="n">data</span> <span class="n">values</span> <span class="n">are</span> <span class="p">{</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;cleared&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;info_updated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;data_added&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;data_updated&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span> <span class="s1">&#39;data_deleted&#39;</span><span class="p">:</span> <span class="n">SortedSet</span><span class="p">([]),</span> <span class="s1">&#39;data_deleted_ids&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;data_transformed_in_place&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;add_value&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;agent&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U5&#39;</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="s1">&#39;emotion&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U7&#39;</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="s1">&#39;generation&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U10&#39;</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="s1">&#39;writing&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U7&#39;</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="s1">&#39;emotion&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U7&#39;</span><span class="p">)],</span> <span class="s1">&#39;updated_values&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;data_deleted_values&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="o">********************************************************************************</span>
+<span class="n">commit</span> <span class="mi">6536</span><span class="n">edb5ee077de334d6f23133bcf7e209d1be80</span>
+<span class="n">Author</span><span class="p">:</span> <span class="n">public</span>
+<span class="n">Date</span><span class="p">:</span> <span class="mi">2025</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">03</span> <span class="mi">04</span><span class="p">:</span><span class="mi">03</span><span class="p">:</span><span class="mi">12</span>
+<span class="n">Message</span><span class="p">:</span> <span class="n">add</span> <span class="n">labels</span><span class="o">.</span>
+
+<span class="n">labels</span>
+<span class="o">*</span> <span class="n">Added</span> <span class="mi">5</span> <span class="n">samples</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">5</span><span class="p">],</span>
+<span class="n">The</span> <span class="n">appended</span> <span class="n">data</span> <span class="n">values</span> <span class="n">are</span> <span class="p">{</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;cleared&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;info_updated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;data_added&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;data_updated&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span> <span class="s1">&#39;data_deleted&#39;</span><span class="p">:</span> <span class="n">SortedSet</span><span class="p">([]),</span> <span class="s1">&#39;data_deleted_ids&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;data_transformed_in_place&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;add_value&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">])],</span> <span class="s1">&#39;updated_values&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;data_deleted_values&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="o">------------------------------------------------------------------------------------------------------------------------</span>
+<span class="n">Diff</span> <span class="ow">in</span> <span class="n">firstdbf9474d461a19e9333c2fd19b46115348f</span> <span class="p">(</span><span class="n">target</span> <span class="nb">id</span> <span class="mi">2</span><span class="p">):</span>
+
+<span class="n">No</span> <span class="n">changes</span> <span class="n">were</span> <span class="n">made</span><span class="o">.</span>
+
+<span class="o">------------------------------------------------------------------------------------------------------------------------</span>
+<span class="p">{}</span>
+</code></pre></div>
+<p>Example: return values as a dict.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">id_1</span><span class="o">=</span><span class="n">third_commit_id</span><span class="p">,</span> <span class="n">id_2</span><span class="o">=</span><span class="n">first_commit_id</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_value</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="p">{</span><span class="s1">&#39;dataset&#39;</span><span class="p">:</span> <span class="p">([{</span><span class="s1">&#39;commit_id&#39;</span><span class="p">:</span> <span class="s1">&#39;51f5bb41c4a1d74d881269366e3718285b8145db&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="s1">&#39;public&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;created categories tensor column and add values.&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;date&#39;</span><span class="p">:</span> <span class="s1">&#39;2025-03-03 04:03:13&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;info_updated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;renamed&#39;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(),</span>
+    <span class="s1">&#39;deleted&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s1">&#39;commit_diff_exist&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;tensor_info_updated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+   <span class="p">{</span><span class="s1">&#39;commit_id&#39;</span><span class="p">:</span> <span class="s1">&#39;6536edb5ee077de334d6f23133bcf7e209d1be80&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;author&#39;</span><span class="p">:</span> <span class="s1">&#39;public&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;add labels.&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;date&#39;</span><span class="p">:</span> <span class="s1">&#39;2025-03-03 04:03:12&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;info_updated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;renamed&#39;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(),</span>
+    <span class="s1">&#39;deleted&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s1">&#39;commit_diff_exist&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;tensor_info_updated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}],</span>
+  <span class="p">[]),</span>
+ <span class="s1">&#39;tensor&#39;</span><span class="p">:</span> <span class="p">([{</span><span class="s1">&#39;commit_id&#39;</span><span class="p">:</span> <span class="s1">&#39;51f5bb41c4a1d74d881269366e3718285b8145db&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;categories&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+     <span class="s1">&#39;cleared&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;info_updated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;data_added&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+     <span class="s1">&#39;data_updated&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+     <span class="s1">&#39;data_deleted&#39;</span><span class="p">:</span> <span class="n">SortedSet</span><span class="p">([]),</span>
+     <span class="s1">&#39;data_deleted_ids&#39;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s1">&#39;data_transformed_in_place&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;add_value&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;agent&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U5&#39;</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="s1">&#39;emotion&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U7&#39;</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="s1">&#39;generation&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U10&#39;</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="s1">&#39;writing&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U7&#39;</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="s1">&#39;emotion&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U7&#39;</span><span class="p">)],</span>
+     <span class="s1">&#39;updated_values&#39;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s1">&#39;data_deleted_values&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+    <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;cleared&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;info_updated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;data_added&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+     <span class="s1">&#39;data_updated&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+     <span class="s1">&#39;data_deleted&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+     <span class="s1">&#39;data_deleted_ids&#39;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s1">&#39;data_transformed_in_place&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;add_value&#39;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s1">&#39;updated_values&#39;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s1">&#39;data_deleted_values&#39;</span><span class="p">:</span> <span class="p">[]}},</span>
+   <span class="p">{</span><span class="s1">&#39;commit_id&#39;</span><span class="p">:</span> <span class="s1">&#39;6536edb5ee077de334d6f23133bcf7e209d1be80&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;created&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;cleared&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;info_updated&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;data_added&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+     <span class="s1">&#39;data_updated&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+     <span class="s1">&#39;data_deleted&#39;</span><span class="p">:</span> <span class="n">SortedSet</span><span class="p">([]),</span>
+     <span class="s1">&#39;data_deleted_ids&#39;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s1">&#39;data_transformed_in_place&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+     <span class="s1">&#39;add_value&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">])],</span>
+     <span class="s1">&#39;updated_values&#39;</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="s1">&#39;data_deleted_values&#39;</span><span class="p">:</span> <span class="p">[]}}],</span>
+  <span class="p">[])}</span>
+</code></pre></div>
+<ul>
+<li>For details, see <a href=""><code>dataset.diff()</code></a>. For deeper background, see <a href="https://codehub-y.huawei.com/GTN/MULLER/merge_requests/157">Detailed MR</a>.</li>
+</ul>
+<h3 id="6-what-are-head-changes-how-to-use-reset-to-revert-uncommitted-changes">6. What Are HEAD Changes? How to Use <code>reset()</code> to Revert Uncommitted Changes</h3>
+<p>Unlike Git, MULLER version control has <strong>no local staging area</strong>. All changes are immediately synced to the persistent storage location (local or remote). As a result, any dataset change updates the current branch HEAD node immediately. Uncommitted changes do not appear on other branches, but they remain accessible on the current branch until reverted.</p>
+<p>In the example below, we return to <code>main</code>, which has a <code>labels</code> tensor with 5 samples. We then append one sample and use <code>ds.has_head_changes</code> to confirm there are HEAD changes.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;temp_dataset/&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+<span class="o">...</span>     <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">)</span>
+<span class="o">...</span>     <span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+<span class="o">...</span>     <span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">has_head_changes</span>
+<span class="kc">True</span>
+</code></pre></div>
+<p>On the <code>dev</code> branch, the <code>labels</code> tensor still has 5 samples.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;dev&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dataset in </span><span class="si">{}</span><span class="s2"> branch has </span><span class="si">{}</span><span class="s2"> samples in the labels tensor&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="p">)))</span>
+<span class="n">Dataset</span> <span class="ow">in</span> <span class="n">dev</span> <span class="n">branch</span> <span class="n">has</span> <span class="mi">5</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">labels</span> <span class="n">tensor</span>
+</code></pre></div>
+<p>Switch back to <code>main</code>, and the uncommitted change is still present (6 samples).</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dataset in </span><span class="si">{}</span><span class="s2"> branch has </span><span class="si">{}</span><span class="s2"> samples in the labels tensor&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="p">)))</span>
+<span class="n">Dataset</span> <span class="ow">in</span> <span class="n">main</span> <span class="n">branch</span> <span class="n">has</span> <span class="mi">6</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">labels</span> <span class="n">tensor</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">has_head_changes</span>
+<span class="kc">True</span>
+</code></pre></div>
+<p>Use <code>ds.reset()</code> to revert uncommitted changes on the current branch.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">has_head_changes</span>
+<span class="kc">False</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dataset in </span><span class="si">{}</span><span class="s2"> branch has </span><span class="si">{}</span><span class="s2"> samples in the labels tensor&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="p">)))</span>
+<span class="n">Dataset</span> <span class="ow">in</span> <span class="n">main</span> <span class="n">branch</span> <span class="n">has</span> <span class="mi">5</span> <span class="n">samples</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">labels</span> <span class="n">tensor</span>
+</code></pre></div>
+<ul>
+<li>For details, see <a href=""><code>dataset.reset()</code></a>.</li>
+</ul>
+<h3 id="7-merge-available-in-v067">7. Merge (available in v0.6.7+)</h3>
+<p>Branch merging is essential for collaborative workflows. Similar to Git, MULLER supports two merge patterns:</p>
+<ul>
+<li><strong>Fast-forward merge (no conflict)</strong>: if <code>main</code> has not moved since creating the feature branch, merging can fast-forward without creating a new merge commit.
+  <img alt="image" src="" /></li>
+<li><strong>3-way merge (may conflict)</strong>: if both branches have diverged, MULLER may need to create a new merge commit and may require conflict resolution.
+  <img alt="image" src="" /></li>
+</ul>
+<p>In multi-branch development, 3-way merges are common. For example: after creating <code>dev_1</code> and <code>dev_2</code> from <code>main</code>, if <code>main</code> merges <code>dev_1</code> first, then <code>main</code> changes and may conflict with <code>dev_2</code>. In other words, after <code>ds.merge("dev_1")</code>, merging <code>dev_2</code> into <code>main</code> can become a 3-way merge.</p>
+<p><img alt="image" src="" /></p>
+<p>MULLER currently follows the merge workflow below:</p>
+<p><img alt="image" src="" /></p>
+<p>1) Use <code>ds.detect_merge_conflict(target_id="...")</code> to preview possible conflicts. High level:</p>
+<ul>
+<li>Find the most recent common ancestor (e.g., <code>M1</code>) between the current branch HEAD (e.g., <code>M3</code>) and the target branch head (e.g., <code>D4</code>).</li>
+<li>Compute diffs <code>D4</code> vs <code>M1</code> and <code>M3</code> vs <code>M1</code>.</li>
+<li>For tensors common to both branches, compare each sample by its UUID to detect conflicts. If conflicts exist, they are printed and also cached (in-memory) for subsequent merge steps.</li>
+</ul>
+<p>Conflict types recorded:</p>
+<ul>
+<li><strong>pop conflicts</strong>: both sides performed <code>pop</code>, but on different rows (popping the same row does not conflict).</li>
+<li><strong>update conflicts</strong>: both sides updated the same row (updating different rows does not conflict).</li>
+<li><strong>append conflicts</strong>: both sides appended new rows.</li>
+</ul>
+<p>2) Merge with <code>ds.merge(target_id="...")</code>. You can choose conflict-resolution strategies:</p>
+<ul>
+<li><strong>append_resolution</strong>: <code>None</code> (default, raise), <code>"ours"</code>, <code>"theirs"</code>, <code>"both"</code></li>
+<li><strong>update_resolution</strong>: <code>None</code> (default, raise), <code>"ours"</code>, <code>"theirs"</code></li>
+<li><strong>pop_resolution</strong>: <code>None</code> (default, raise), <code>"ours"</code>, <code>"theirs"</code>, <code>"both"</code></li>
+</ul>
+<p>Additional merge parameters:</p>
+<ul>
+<li><strong>delete_removed_tensors (bool, default False)</strong>: if <code>True</code>, tensors deleted in the current-branch diff are discarded.</li>
+<li><strong>force (bool, default False)</strong>: relaxes certain rename-related constraints; for example, it may register a renamed tensor as a new tensor if the counterpart tensor is missing on the other side, or merge tensors under certain rename collisions.</li>
+</ul>
+<p>Important notes:</p>
+<ul>
+<li>Because <code>pop</code> and <code>append</code> change dataset length and global indices, conflict detection/resolution is UUID-based.</li>
+<li>The execution order of conflict resolutions affects the final result.</li>
+<li>Be careful to distinguish “conflict” vs “no conflict”. Example: if <code>main</code> has 20 rows, you branch to <code>dev</code>, delete row 2 in <code>dev</code>, then merge <code>dev</code> into <code>main</code>, this conflicts because row 2 still exists in <code>main</code>. You may use <code>pop_resolution="theirs"</code> to accept the deletion from <code>dev</code>.</li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create a dataset and add data on main</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;categories&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">])</span>
+
+<span class="c1"># Create dev-1 and perform add/update/delete operations</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;dev-1&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">50</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">70</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;ff&quot;</span><span class="p">,</span> <span class="s2">&quot;gg&quot;</span><span class="p">,</span> <span class="s2">&quot;hh&quot;</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+<span class="p">[[</span> <span class="mi">0</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mi">2</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">30</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mi">4</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">50</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">60</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">70</span><span class="p">]]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="c1"># Back to main, create dev-2 and perform add/update/delete operations</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;dev-2&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="mi">800</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;fff&quot;</span><span class="p">,</span> <span class="s2">&quot;ggg&quot;</span><span class="p">,</span> <span class="s2">&quot;hhh&quot;</span><span class="p">,</span> <span class="s2">&quot;iii&quot;</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">300</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">400</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">pop</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+<span class="p">[[</span>  <span class="mi">0</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">300</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">400</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">500</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">600</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">700</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">800</span><span class="p">]]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="c1"># Merge dev-1 into main (take dev-1&#39;s pop changes)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="s2">&quot;dev-1&quot;</span><span class="p">,</span> <span class="n">pop_resolution</span><span class="o">=</span><span class="s2">&quot;theirs&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+<span class="p">[[</span> <span class="mi">0</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mi">2</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">30</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mi">4</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">50</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">60</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">70</span><span class="p">]]</span>
+
+<span class="c1"># Detect conflicts between main and dev-2</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">conflict_tensors</span><span class="p">,</span> <span class="n">conflict_records</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">detect_merge_conflict</span><span class="p">(</span><span class="s2">&quot;dev-2&quot;</span><span class="p">,</span> <span class="n">show_value</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">pprint</span><span class="p">(</span><span class="n">conflict_records</span><span class="p">)</span>
+<span class="p">{</span><span class="s1">&#39;categories&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;app_ori_idx&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+                <span class="s1">&#39;app_ori_values&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;ff&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U2&#39;</span><span class="p">),</span>
+                                   <span class="n">array</span><span class="p">([</span><span class="s1">&#39;gg&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U2&#39;</span><span class="p">),</span>
+                                   <span class="n">array</span><span class="p">([</span><span class="s1">&#39;hh&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U2&#39;</span><span class="p">)],</span>
+                <span class="s1">&#39;app_tar_idx&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+                <span class="s1">&#39;app_tar_values&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;fff&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U3&#39;</span><span class="p">),</span>
+                                   <span class="n">array</span><span class="p">([</span><span class="s1">&#39;ggg&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U3&#39;</span><span class="p">),</span>
+                                   <span class="n">array</span><span class="p">([</span><span class="s1">&#39;hhh&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U3&#39;</span><span class="p">),</span>
+                                   <span class="n">array</span><span class="p">([</span><span class="s1">&#39;iii&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U3&#39;</span><span class="p">)],</span>
+                <span class="s1">&#39;del_ori_idx&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;del_ori_values&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;del_tar_idx&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s1">&#39;del_tar_values&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;c&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U1&#39;</span><span class="p">)],</span>
+                <span class="s1">&#39;update_values&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;update_ori&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;update_tar&#39;</span><span class="p">:</span> <span class="p">[]}},</span>
+ <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;app_ori_idx&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+            <span class="s1">&#39;app_ori_values&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="mi">50</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">60</span><span class="p">]),</span> <span class="n">array</span><span class="p">([</span><span class="mi">70</span><span class="p">])],</span>
+            <span class="s1">&#39;app_tar_idx&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+            <span class="s1">&#39;app_tar_values&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="mi">500</span><span class="p">]),</span>
+                               <span class="n">array</span><span class="p">([</span><span class="mi">600</span><span class="p">]),</span>
+                               <span class="n">array</span><span class="p">([</span><span class="mi">700</span><span class="p">]),</span>
+                               <span class="n">array</span><span class="p">([</span><span class="mi">800</span><span class="p">])],</span>
+            <span class="s1">&#39;del_ori_idx&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;del_ori_values&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;del_tar_idx&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="s1">&#39;del_tar_values&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">])],</span>
+            <span class="s1">&#39;update_values&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;update_ori&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="mi">2</span><span class="p">:</span> <span class="n">array</span><span class="p">([</span><span class="mi">30</span><span class="p">])}],</span>
+                              <span class="s1">&#39;update_tar&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="mi">1</span><span class="p">:</span> <span class="n">array</span><span class="p">([</span><span class="mi">300</span><span class="p">])}]}}}</span>
+
+<span class="c1"># Merge dev-2 into main with explicit resolutions</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="s2">&quot;dev-2&quot;</span><span class="p">,</span> <span class="n">append_resolution</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">pop_resolution</span><span class="o">=</span><span class="s2">&quot;ours&quot;</span><span class="p">,</span> <span class="n">update_resolution</span><span class="o">=</span><span class="s2">&quot;theirs&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+<span class="p">[[</span>  <span class="mi">0</span><span class="p">]</span>
+ <span class="p">[</span>  <span class="mi">2</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">300</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">400</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mi">50</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mi">60</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mi">70</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">500</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">600</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">700</span><span class="p">]</span>
+ <span class="p">[</span><span class="mi">800</span><span class="p">]]</span>
+</code></pre></div>
+<ul>
+<li>For details, see <a href=""><code>dataset.detect_merge_conflict()</code></a>.</li>
+<li>For details, see <a href=""><code>dataset.merge()</code></a>.</li>
+</ul>
+<h3 id="8-branch-permission-control-for-the-huashan-platform-available-in-v066">8. Branch Permission Control for the Huashan Platform (available in v0.6.6+)</h3>
+<p>To meet permission-control requirements on the Huashan platform, the following restrictions apply:</p>
+<ol>
+<li>Only the user who created the <code>main</code> branch has write/delete permissions on <strong>all branches</strong>.</li>
+<li>Only the <code>main</code> creator can delete or rename a dataset via:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">rename</span><span class="p">()</span>
+</code></pre></div>
+<ol>
+<li>Non-creators only have write/delete permissions on <strong>branches they created</strong>, and read-only access on other branches. The following APIs are restricted to “your own branch”:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_tensor_like</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">dataset_object</span><span class="p">])</span>
+<span class="n">ds</span><span class="o">.&lt;</span><span class="n">tensor</span><span class="o">&gt;.</span><span class="n">extend</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">delete_branch</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">rechunk</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">dataset_object</span><span class="p">])</span>
+<span class="n">ds</span><span class="o">.&lt;</span><span class="n">tensor</span><span class="o">&gt;.</span><span class="n">append</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>  <span class="c1"># there are two update methods</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">delete_tensor</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">rename</span><span class="p">()</span>
+<span class="n">muller</span><span class="o">.</span><span class="n">api_dataset</span><span class="o">.</span><span class="n">create_dataset_from_dataframes</span><span class="p">()</span>
+<span class="n">muller</span><span class="o">.</span><span class="n">api_dataset</span><span class="o">.</span><span class="n">create_dataset_from_file</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.&lt;</span><span class="n">tensor</span><span class="o">&gt;.</span><span class="n">clear</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index</span><span class="p">()</span>
+</code></pre></div>
+<ol>
+<li>Users can only delete search views they created:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="n">muller</span><span class="o">.</span><span class="n">delete_view</span><span class="p">()</span>
+</code></pre></div>
+<ul>
+<li>Implementation note: in practice, non-creators have write permission to one file on <code>main</code> (<code>version_control_info.json</code>) that stores version metadata.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.tracking", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

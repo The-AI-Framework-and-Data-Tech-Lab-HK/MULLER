@@ -1,0 +1,1986 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER/getting_started/3_muller_dataset_operations%28load%2Cappend%2Cupdate%2Cdelete%2Cquery%29/">
+      
+      
+        <link rel="prev" href="../2_create_muller_dataset/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Load, Append, Update, Delete, Query in a MULLER dataset - MULLER</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#basic-dataset-operations-load-append-update-delete-query" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MULLER" class="md-header__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MULLER
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Load, Append, Update, Delete, Query in a MULLER dataset
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the bright mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Change to the bright mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Change to the dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/dataset.md" class="md-tabs__link">
+          
+  
+  
+  API Documents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq.md" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MULLER" class="md-nav__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MULLER
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../1_read_muller_object/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read as MULLER object
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../2_create_muller_dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construct a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-loading-an-existing-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Loading an Existing Dataset
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-inspecting-dataset-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Inspecting Dataset Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-adding-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Adding Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-deleting-samples-or-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Deleting Samples or Datasets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Deleting Samples or Datasets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#removing-a-sample-by-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing a sample by index:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-multiple-samples-by-index-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing multiple samples by index list:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-tensor-column-and-all-of-its-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting a tensor column and all of its data:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-dataset-method-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting a dataset (Method 1):
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-dataset-method-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting a dataset (Method 2):
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-inspecting-data-by-random-access-via-row-id-and-column-name-and-full-scan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Inspecting Data by random access (via row id and column name) and full scan
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Inspecting Data by random access (via row id and column name) and full scan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#access-the-i-th-row-in-a-tensor-column-first-access-the-column-then-the-row" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access the i-th row in a tensor column (first access the column, then the row):
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-multiple-rows-of-in-tensor-column-first-access-the-column-then-the-row" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access multiple rows of in tensor column (first access the column, then the row):
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-the-value-of-a-column-of-the-i-th-row-first-access-the-row-then-the-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access the value of a column of the i-th row (first access the row, then the column):
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-the-value-of-columns-in-multiple-rows-first-access-the-row-then-the-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access the value of columns in multiple rows (first access the row, then the column):
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-update-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Update Data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Update Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-1-directly-update-the-i-th-row-in-a-given-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method 1: Directly update the i-th row in a given column
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-2-update-data-by-specifying-the-column-name-and-update-values-via-the-update-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method 2: Update data by specifying the column name and update values via the update API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-query-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Query Data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Query Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-exact-match-query-without-index-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 1: Exact Match Query (without index acceleration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-exact-match-query-without-index-acceleration-negation-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 2: Exact Match Query (without index acceleration) — Negation (NOT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-3-exact-match-query-with-index-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 3: Exact Match Query (with Index Acceleration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-4-exact-match-query-without-index-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 4: Exact Match Query (without Index Acceleration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-5-exact-match-query-with-index-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 5: Exact Match Query (with Index Acceleration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-6-exact-match-query-with-logical-connectors-and-or-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 6: Exact Match Query with Logical Connectors (AND, OR, NOT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-7-exact-match-query-with-offset-and-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 7: Exact Match Query with Offset and Limit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-8-text-keyword-search-index-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 8: Text Keyword Search (Index Required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-9-regex-based-text-matching-using-like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 9: Regex-Based Text Matching (Using LIKE)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-11-aggregation-and-group-by-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 11: Aggregation and Group-By Statistics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-12-vector-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 12: Vector Search
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-saving-and-loading-dataset-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Saving and Loading Dataset Views
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-other-dataset-related-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Other Dataset-Related APIs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Documents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Documents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/dataset.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-loading-an-existing-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Loading an Existing Dataset
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-inspecting-dataset-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Inspecting Dataset Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-adding-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Adding Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-deleting-samples-or-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Deleting Samples or Datasets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Deleting Samples or Datasets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#removing-a-sample-by-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing a sample by index:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-multiple-samples-by-index-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing multiple samples by index list:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-tensor-column-and-all-of-its-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting a tensor column and all of its data:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-dataset-method-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting a dataset (Method 1):
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-dataset-method-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deleting a dataset (Method 2):
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-inspecting-data-by-random-access-via-row-id-and-column-name-and-full-scan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Inspecting Data by random access (via row id and column name) and full scan
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Inspecting Data by random access (via row id and column name) and full scan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#access-the-i-th-row-in-a-tensor-column-first-access-the-column-then-the-row" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access the i-th row in a tensor column (first access the column, then the row):
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-multiple-rows-of-in-tensor-column-first-access-the-column-then-the-row" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access multiple rows of in tensor column (first access the column, then the row):
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-the-value-of-a-column-of-the-i-th-row-first-access-the-row-then-the-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access the value of a column of the i-th row (first access the row, then the column):
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-the-value-of-columns-in-multiple-rows-first-access-the-row-then-the-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access the value of columns in multiple rows (first access the row, then the column):
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-update-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Update Data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Update Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-1-directly-update-the-i-th-row-in-a-given-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method 1: Directly update the i-th row in a given column
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-2-update-data-by-specifying-the-column-name-and-update-values-via-the-update-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method 2: Update data by specifying the column name and update values via the update API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-query-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Query Data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Query Data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-exact-match-query-without-index-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 1: Exact Match Query (without index acceleration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-exact-match-query-without-index-acceleration-negation-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 2: Exact Match Query (without index acceleration) — Negation (NOT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-3-exact-match-query-with-index-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 3: Exact Match Query (with Index Acceleration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-4-exact-match-query-without-index-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 4: Exact Match Query (without Index Acceleration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-5-exact-match-query-with-index-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 5: Exact Match Query (with Index Acceleration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-6-exact-match-query-with-logical-connectors-and-or-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 6: Exact Match Query with Logical Connectors (AND, OR, NOT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-7-exact-match-query-with-offset-and-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 7: Exact Match Query with Offset and Limit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-8-text-keyword-search-index-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 8: Text Keyword Search (Index Required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-9-regex-based-text-matching-using-like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 9: Regex-Based Text Matching (Using LIKE)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-11-aggregation-and-group-by-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 11: Aggregation and Group-By Statistics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-12-vector-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 12: Vector Search
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-saving-and-loading-dataset-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Saving and Loading Dataset Views
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-other-dataset-related-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Other Dataset-Related APIs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="basic-dataset-operations-load-append-update-delete-query">Basic Dataset Operations (Load, Append, Update, Delete, Query)</h1>
+<h2 id="1-loading-an-existing-dataset">1. Loading an Existing Dataset</h2>
+<p>By default, the <strong><code>main</code></strong> branch of the dataset is loaded:</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;my_muller_dataset&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>To load a specific branch (if available), append <code>@{branch_name}</code> to the path:</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;my_muller_dataset@dev&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>To load a specific commit (if available), append <code>@{commit_id}</code> to the path:</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;my_muller_dataset@3e49cded62b6b335c74ff07e97f8451a37aca7b2&quot;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>The usage of <code>path</code> is the same as described in [Creating an Empty Dataset]. Please add the appropriate prefix based on the storage backend.</li>
+<li>In addition to <code>muller.load()</code>, you may also use <code>muller.dataset()</code> to load an existing dataset (do not set overwrite=True).</li>
+<li>For details on branches and commit versions, see [Section 5: Version Management].</li>
+<li>Additional parameters and advanced usage are documented in the API reference: [muller.load()].</li>
+</ul>
+<h2 id="2-inspecting-dataset-metadata">2. Inspecting Dataset Metadata</h2>
+<p>To view schema-level information for all columns in a dataset:</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my_muller_dataset&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+<span class="n">ensor</span>     <span class="n">htype</span>          <span class="n">shape</span>           <span class="n">dtype</span>  <span class="n">compression</span>
+ <span class="o">-------</span>   <span class="o">-------</span>        <span class="o">-------</span>         <span class="o">-------</span>  <span class="o">-------</span> 
+<span class="n">my_label</span>   <span class="n">generic</span>         <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>          <span class="n">int32</span>    <span class="kc">None</span>   
+<span class="n">my_photos</span>   <span class="n">image</span>   <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">300</span><span class="p">:</span><span class="mi">500</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>   <span class="n">uint8</span>    <span class="n">jpeg</span>   
+ <span class="n">my_text</span>    <span class="n">text</span>           <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>           <span class="nb">str</span>     <span class="kc">None</span>
+</code></pre></div>
+<ul>
+<li>Usage reference: [<code>muller.summary()</code>]</li>
+</ul>
+<p>Additional APIs for inspecting dataset properties include:</p>
+<ul>
+<li>List all columns: [<code>dataset.tensors()</code>]</li>
+<li>Get the number of samples (rows): [<code>dataset.num_samples()</code>]</li>
+<li>Get the maximum and minimum lengths across columns:<br />
+  [<code>dataset.max_len()</code>], [<code>dataset.min_len()</code>]</li>
+<li>Dataset-level statistics (e.g., per-column min / max / median / variance):<br />
+  [<code>dataset.statistics()</code>]</li>
+</ul>
+<p>APIs for inspecting detailed tensor (column) metadata include:</p>
+<ul>
+<li>Column type: [<code>tensor.htype</code>]</li>
+<li>Column data type: [<code>tensor.dtype</code>]</li>
+<li>Tensor shape (column-level or per-sample):<br />
+  [<code>tensor.shape_interval</code>], [<code>tensor.shape</code>]</li>
+<li>Tensor dimensionality: [<code>tensor.ndim</code>]</li>
+<li>Number of samples (rows) in a column:<br />
+  [<code>tensor.num_samples</code>], [<code>tensor.__len__()</code>]</li>
+<li>Source file metadata for a specific sample:<br />
+  [<code>tensor.sample_info</code>]<br />
+<em>(Effective for recovering image/video/audio metadata; requires<br />
+<code>create_sample_info_tensor=True</code> when calling <code>create_tensor()</code>.)</em></li>
+</ul>
+<h2 id="3-adding-data">3. Adding Data</h2>
+<p>Data can be appended to tensor columns using the same APIs and workflows
+described in Section 3.1 (Step 3: Adding Data to Tensor Columns).</p>
+<h2 id="4-deleting-samples-or-datasets">4. Deleting Samples or Datasets</h2>
+<h4 id="removing-a-sample-by-index">Removing a sample by index:</h4>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Removes the sample at index 2</span>
+</code></pre></div>
+<h4 id="removing-multiple-samples-by-index-list">Removing multiple samples by index list:</h4>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">pop</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>  <span class="c1"># Removes samples at indices [1, 2, 4, 5]</span>
+</code></pre></div>
+<h4 id="deleting-a-tensor-column-and-all-of-its-data">Deleting a tensor column and all of its data:</h4>
+<p><div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">delete_tensor</span><span class="p">(</span><span class="o">&lt;</span><span class="n">tensor_name</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="c1"># Note: `large_ok` defaults to False. When deleting a column with a large</span>
+<span class="c1"># number of samples, set `large_ok=True` to explicitly confirm the operation</span>
+<span class="c1"># and prevent accidental data loss.</span>
+</code></pre></div>
+- For detailed usage, see [<code>pop()</code>] and [<code>delete_tensor()</code>].
+- <strong>Note:</strong> To ensure dataset integrity, data can only be deleted <strong>by entire rows or entire columns</strong>.</p>
+<h4 id="deleting-a-dataset-method-1">Deleting a dataset (Method 1):</h4>
+<p>For an already loaded dataset, invoke the delete operation directly on the dataset object.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+</code></pre></div></p>
+<h4 id="deleting-a-dataset-method-2">Deleting a dataset (Method 2):</h4>
+<p>For a dataset that is not currently loaded, you can delete it using the <code>muller</code> library directly.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;/your/data/path/&quot;</span><span class="p">,</span> <span class="n">creds</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;optional&#39;</span><span class="p">})</span>
+</code></pre></div>
+- For detailed usage, see [<code>muller.core.dataset.delete()</code>] and [<code>muller.delete()</code>].</p>
+<h2 id="5-inspecting-data-by-random-access-via-row-id-and-column-name-and-full-scan">5. Inspecting Data by random access (via row id and column name) and full scan</h2>
+<h4 id="access-the-i-th-row-in-a-tensor-column-first-access-the-column-then-the-row">Access the i-th row in a tensor column (first access the column, then the row):</h4>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">tensors</span>
+<span class="p">{</span><span class="s1">&#39;my_label&#39;</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;my_label&#39;</span><span class="p">),</span>
+ <span class="s1">&#39;my_photos&#39;</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;my_photos&#39;</span><span class="p">),</span>
+ <span class="s1">&#39;my_text&#39;</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;my_text&#39;</span><span class="p">)}</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">my_label</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>       <span class="c1"># Returns the sample as a NumPy array</span>
+<span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int32</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">my_label</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">()[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>  <span class="c1"># Returns the sample value</span>
+<span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int32</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">my_label</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>      <span class="c1"># Returns the sample as bytes</span>
+<span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x01\x00\x00\x00</span><span class="s1">&#39;</span>
+</code></pre></div>
+<h4 id="access-multiple-rows-of-in-tensor-column-first-access-the-column-then-the-row">Access multiple rows of in tensor column (first access the column, then the row):</h4>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">my_label</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>   <span class="c1"># Returns the sample as a NumPy array</span>
+<span class="n">array</span><span class="p">([[</span><span class="mi">2</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">4</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int32</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">my_label</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(</span><span class="n">aslist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># Returns the sample as a list of NumPy arrays</span>
+<span class="p">[</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int32</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int32</span><span class="p">),</span> <span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int32</span><span class="p">)]</span>
+</code></pre></div>
+<h4 id="access-the-value-of-a-column-of-the-i-th-row-first-access-the-row-then-the-column">Access the value of a column of the i-th row (first access the row, then the column):</h4>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">my_label</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int32</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="access-the-value-of-columns-in-multiple-rows-first-access-the-row-then-the-column">Access the value of columns in multiple rows (first access the row, then the column):</h4>
+<p><div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">my_label</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>  <span class="c1"># You may alsi use .data()[&#39;value&#39;]</span>
+<span class="n">array</span><span class="p">([[</span><span class="mi">2</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">4</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int32</span><span class="p">)</span>
+</code></pre></div>
+Lazy loading for rows and columns involves several <code>Tensor</code>-related APIs, each with additional optional parameters. Refer to the API documentation for more details
+- [[tensor.numpy()]]. Note that there are three important parameters:</p>
+<blockquote>
+<ul>
+<li>
+<p><code>aslist</code> (<code>bool</code>):<br />
+  If <code>True</code>, returns data as a list of <code>np.ndarray</code>s. Recommended for dynamic-shape tensors.<br />
+  If <code>False</code>, returns a single <code>np.ndarray</code>. May raise an error if samples have dynamic shapes.<br />
+  Default: <code>False</code>.</p>
+</li>
+<li>
+<p><code>fetch_chunks</code> (<code>bool</code>):<br />
+  If <code>True</code>, reads the entire chunk containing the sample.<br />
+  If <code>False</code>, only reads the bytes needed for the sample.<br />
+<strong>Exceptions:</strong> Even if <code>False</code>, it will be automatically set to <code>True</code> if:  </p>
+<ol>
+<li>The tensor is <code>ChunkCompressed</code>.  </li>
+<li>The chunk being accessed contains more than 128 samples.<br />
+  Default can be adjusted as needed.</li>
+</ol>
+</li>
+<li>
+<p><code>asrow</code> (<code>bool</code>):<br />
+  If <code>True</code>, returns samples in <strong>row-oriented</strong> format as a list of dictionaries, one dict per row.<br />
+  If samples have inconsistent lengths, an error will be raised (use <code>False</code> to avoid this).<br />
+  If <code>False</code>, returns data in <strong>column-oriented</strong> format as a dictionary, where each key maps to a list containing the column data.</p>
+</li>
+</ul>
+</blockquote>
+<ul>
+<li>[<a href="">tensor.data()</a>]</li>
+<li>[<a href="">tensor.tobytes()</a>]</li>
+<li>[<a href="">tensor.text()</a>]</li>
+<li>[<a href="">tensor.dict()</a>]</li>
+<li>[<a href="">tensor.list()</a>]</li>
+</ul>
+<h2 id="6-update-data">6. Update Data</h2>
+<h4 id="method-1-directly-update-the-i-th-row-in-a-given-column">Method 1: Directly update the i-th row in a given column</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">my_tensor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;image.jpg&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="method-2-update-data-by-specifying-the-column-name-and-update-values-via-the-update-api">Method 2: Update data by specifying the column name and update values via the <code>update</code> API</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;my_tensor&quot;</span><span class="p">:</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;image.jpg&quot;</span><span class="p">)})</span>
+</code></pre></div>
+<ul>
+<li>Method 1 API: [<a href="">tensor._<em>setitem_</em>()</a>]</li>
+<li>Method 2 API: [<a href="">dataset.update()</a>]</li>
+</ul>
+<h2 id="7-query-data">7. Query Data</h2>
+<p>MULLER provides a comprehensive suite of query functionalities tailored for AI data lakes:
+* Comparison Operators: Supports exact and range matching using <code>&gt;</code>,<code>&lt;</code>, <code>&gt;=</code>, and <code>&lt;=</code> for numerical types (<code>int</code>/<code>float</code>) where the tensor htype is generic.
+* Equality and Inequality: Supports <code>==</code> and <code>!=</code> for <code>int</code>, <code>float</code>, <code>str</code>, and <code>bool</code> types (<code>generic</code> or <code>text</code> htypes). Users can optionally build inverted indexes to significantly accelerate retrieval performance.
+* Full-Text Search: Supports the <code>CONTAINS</code> operator for <code>str</code> types (<code>text</code> htype), backed by an inverted index. For Chinese text, tokenization is handled by the open-source Jieba tokenizer.
+* Pattern Matching: Supports <code>LIKE</code> for regular expression matching on <code>str</code> types (<code>text</code> htype).
+* Boolean Logic: Supports complex query compositions using <code>AND</code>, <code>OR</code>, and <code>NOT</code> logical connectors.
+* Pagination: Supports query results with <code>OFFSET</code> and <code>LIMIT</code> clauses for efficient data sampling.
+* Data Aggregation: Supports standard SQL-like aggregation workflows, including <code>SELECT</code>, <code>GROUP BY</code>, and <code>ORDER BY</code>, alongside aggregate functions such as <code>COUNT</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>, and <code>SUM</code>.
+* Vector Similarity Search: Supports high-dimensional vector similarity retrieval based on IVFPQ, HNSW and DISKANN for AI-centric embedding analysis.</p>
+<h4 id="example-1-exact-match-query-without-index-acceleration">Example 1: Exact Match Query (without index acceleration)</h4>
+<p>Retrieve all values in the <code>test1</code> column (of type <code>generic</code>) that are greater than 2.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">)</span>   
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">test1</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_1</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)])</span> <span class="c1">#Note: If the fourth parameter is not specified, it defaults to `False`, which is equivalent to the usage in the next line.</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_1</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="kc">False</span><span class="p">)])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_1</span><span class="o">.</span><span class="n">test1</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">array</span><span class="p">([[</span><span class="mi">4</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+       <span class="o">...</span><span class="p">,</span>
+       <span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">4</span><span class="p">]],</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3922</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_1</span><span class="o">.</span><span class="n">filtered_index</span>
+<span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+ <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+ <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
+ <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="mi">7</span><span class="p">),</span> <span class="o">...</span><span class="p">]</span>
+</code></pre></div></p>
+<h4 id="example-2-exact-match-query-without-index-acceleration-negation-not">Example 2: Exact Match Query (without index acceleration) — Negation (NOT)</h4>
+<p>Retrieve all values in the <code>test1</code> column (of type <code>generic</code>) that <strong>do NOT satisfy</strong> the condition <code>&gt; 2</code>.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">)</span>   
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">test1</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_1</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;NOT&quot;</span><span class="p">)])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_1</span><span class="o">.</span><span class="n">test1</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">array</span><span class="p">([[</span><span class="mi">2</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+       <span class="o">...</span><span class="p">,</span>
+       <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">6078</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></p>
+<h4 id="example-3-exact-match-query-with-index-acceleration">Example 3: Exact Match Query (with Index Acceleration)</h4>
+<p>Retrieve all values in the <code>test1</code> column (of type <code>generic</code>) that are equal to 2.</p>
+<blockquote>
+<p><strong>Note:</strong> Index creation only applies to data that has been recorded in a commit.<br />
+Before creating an index, <strong>ensure that <code>ds.commit()</code> is executed</strong> to consolidate all pending changes into a commit version.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">)</span>   
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">test1</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_index</span><span class="p">([</span><span class="s2">&quot;test1&quot;</span><span class="p">])</span> <span class="c1"># Create inverted index</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_1</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="kc">True</span><span class="p">)])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_1</span><span class="o">.</span><span class="n">test1</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">array</span><span class="p">([[</span><span class="mi">2</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+       <span class="o">...</span><span class="p">,</span>
+       <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+       <span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2006</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></p>
+</blockquote>
+<h4 id="example-4-exact-match-query-without-index-acceleration">Example 4: Exact Match Query (without Index Acceleration)</h4>
+<p>Retrieve all values in the <code>test2</code> column (of type <code>text</code>) that are equal to <code>"hi"</code>.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test2&quot;</span><span class="p">,</span><span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+         <span class="n">ds</span><span class="o">.</span><span class="n">test2</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;hi&quot;</span><span class="p">,</span> <span class="s2">&quot;bye&quot;</span><span class="p">,</span> <span class="s2">&quot;oops&quot;</span><span class="p">,</span> <span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="s2">&quot;world&quot;</span><span class="p">]</span><span class="o">*</span><span class="mi">2000</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_2</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test2&quot;</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="s2">&quot;hi&quot;</span> <span class="p">)])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_2</span><span class="o">.</span><span class="n">test2</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">array</span><span class="p">([[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="o">...</span><span class="p">,</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">]],</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U2&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="example-5-exact-match-query-with-index-acceleration">Example 5: Exact Match Query (with Index Acceleration)</h4>
+<p>Retrieve all values in the <code>test2</code> column (of type <code>text</code>) that are equal to <code>"hi"</code>.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test2&quot;</span><span class="p">,</span><span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+         <span class="n">ds</span><span class="o">.</span><span class="n">test2</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;hi&quot;</span><span class="p">,</span> <span class="s2">&quot;bye&quot;</span><span class="p">,</span> <span class="s2">&quot;oops&quot;</span><span class="p">,</span> <span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="s2">&quot;world&quot;</span><span class="p">]</span><span class="o">*</span><span class="mi">2000</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_index</span><span class="p">([</span><span class="s2">&quot;test2&quot;</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_2</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test2&quot;</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="s2">&quot;hi&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_2</span><span class="o">.</span><span class="n">test2</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">array</span><span class="p">([[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="o">...</span><span class="p">,</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;hi&#39;</span><span class="p">]],</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U2&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="example-6-exact-match-query-with-logical-connectors-and-or-not">Example 6: Exact Match Query with Logical Connectors (AND, OR, NOT)</h4>
+<p>Perform an exact-match query combining multiple conditions using logical connectors.  </p>
+<blockquote>
+<p><strong>Note:</strong> The number of elements in <code>connector_list</code> must be <strong>one less</strong> than the number of elements in <code>condition_list</code>.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test3&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">test3</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test4&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">test4</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_3</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">(</span><span class="n">condition_list</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;test3&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;test3&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;test4&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;NOT&quot;</span><span class="p">)],</span> <span class="n">connector_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;AND&quot;</span><span class="p">,</span> <span class="s2">&quot;OR&quot;</span><span class="p">])</span> 
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds_3</span><span class="p">)</span>
+<span class="mi">6319</span>
+</code></pre></div></p>
+</blockquote>
+<h4 id="example-7-exact-match-query-with-offset-and-limit">Example 7: Exact Match Query with Offset and Limit</h4>
+<p>Perform an exact-match query while applying <strong><code>offset</code></strong> and <strong><code>limit</code></strong> to control the subset of returned results.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test5&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">test5</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_5</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test5&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;test5&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">)],</span> <span class="p">[</span><span class="s2">&quot;AND&quot;</span><span class="p">],</span> <span class="n">offset</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># Start the query from row 60 and return only 10 results.</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds_5</span><span class="p">)</span>
+<span class="mi">10</span>
+</code></pre></div></p>
+<h4 id="example-8-text-keyword-search-index-required">Example 8: Text Keyword Search (Index Required)</h4>
+<p>Perform a keyword-based search on text columns.  </p>
+<p>(1) English keyword query</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test6&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+         <span class="n">ds</span><span class="o">.</span><span class="n">test6</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;A majestic long-haired Maine Coon cat perched on a wooden bookshelf, staring intently at a tree outside with its bright amber eyes.&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;A soft, white lop-eared rabbit with bright eyes nestled in a patch of clover, twitching its pink nose while nibbling on a fresh garden carrot.&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;A focused German Shepherd sitting patiently on a cobblestone street, wearing a professional service harness and looking up at its handler for the next command.&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;A domestic short-hair cat with a distinctive tuxedo pattern stretching lazily across a velvet sofa in a dimly lit living room.&quot;</span><span class="p">]</span><span class="o">*</span><span class="mi">2500</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_index</span><span class="p">([</span><span class="s2">&quot;test6&quot;</span><span class="p">])</span> 
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_6</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test6&quot;</span><span class="p">,</span> <span class="s2">&quot;CONTAINS&quot;</span><span class="p">,</span> <span class="s2">&quot;bright eyes&quot;</span><span class="p">)])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_6</span><span class="o">.</span><span class="n">test6</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">()[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+<span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">str_</span><span class="p">(</span><span class="s1">&#39;A majestic long-haired Maine Coon ... with its bright amber eyes.&#39;</span><span class="p">),</span>
+ <span class="n">np</span><span class="o">.</span><span class="n">str_</span><span class="p">(</span><span class="s1">&#39;A soft, white lop-eared rabbit with bright eyes...&#39;</span><span class="p">),</span> <span class="o">...</span><span class="p">]</span>
+<span class="c1"># Jointly query</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_7</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test5&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;test5&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;test6&quot;</span><span class="p">,</span> <span class="s2">&quot;CONTAINS&quot;</span><span class="p">,</span> <span class="s2">&quot;中山大学&quot;</span><span class="p">)],</span> <span class="p">[</span><span class="s2">&quot;AND&quot;</span><span class="p">,</span> <span class="s2">&quot;OR&quot;</span><span class="p">],</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div>
+<p>(2) Chinese keywrod query - The tokenization is implemented using the Chinese word segmentation tool <strong>jieba</strong>.</p>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test6&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+         <span class="n">ds</span><span class="o">.</span><span class="n">test6</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;我毕业于香港科技大学。&quot;</span><span class="p">,</span> <span class="s2">&quot;我毕业于中山大学。&quot;</span><span class="p">]</span><span class="o">*</span><span class="mi">5000</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_index</span><span class="p">([</span><span class="s2">&quot;test6&quot;</span><span class="p">])</span> <span class="c1">#倒排索引</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_6</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test6&quot;</span><span class="p">,</span> <span class="s2">&quot;CONTAINS&quot;</span><span class="p">,</span> <span class="s2">&quot;中山大学&quot;</span><span class="p">)])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_6</span><span class="o">.</span><span class="n">test6</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">()[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+<span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">str_</span><span class="p">(</span><span class="s1">&#39;我毕业于中山大学。&#39;</span><span class="p">),</span>
+ <span class="n">np</span><span class="o">.</span><span class="n">str_</span><span class="p">(</span><span class="s1">&#39;我毕业于中山大学。&#39;</span><span class="p">),</span> <span class="o">...</span><span class="p">]</span>
+<span class="c1"># Jointly query</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_7</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test5&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;test5&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;test6&quot;</span><span class="p">,</span> <span class="s2">&quot;CONTAINS&quot;</span><span class="p">,</span> <span class="s2">&quot;中山大学&quot;</span><span class="p">)],</span> <span class="p">[</span><span class="s2">&quot;AND&quot;</span><span class="p">,</span> <span class="s2">&quot;OR&quot;</span><span class="p">],</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="example-9-regex-based-text-matching-using-like">Example 9: Regex-Based Text Matching (Using <code>LIKE</code>)</h4>
+<p>Perform text matching using regular expressions, with <code>LIKE</code> specified as the query operator.
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;test7&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">test7</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s1">&#39;A0&#39;</span><span class="p">,</span> <span class="s1">&#39;A1&#39;</span><span class="p">,</span> <span class="s1">&#39;A2&#39;</span><span class="p">,</span> <span class="s1">&#39;A3&#39;</span><span class="p">,</span> <span class="s1">&#39;A4&#39;</span><span class="p">,</span> <span class="s1">&#39;B0&#39;</span><span class="p">,</span> <span class="s1">&#39;B1&#39;</span><span class="p">,</span> <span class="s1">&#39;C0&#39;</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_8</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;test7&quot;</span><span class="p">,</span> <span class="s2">&quot;LIKE&quot;</span><span class="p">,</span> <span class="s2">&quot;A[0-2]&quot;</span><span class="p">)])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds_8</span><span class="o">.</span><span class="n">test7</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">array</span><span class="p">([[</span><span class="s1">&#39;A0&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;A1&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s1">&#39;A2&#39;</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U2&#39;</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="example-11-aggregation-and-group-by-statistics">Example 11: Aggregation and Group-By Statistics</h4>
+<p>Perform aggregation operations equivalent to the SQL statement:</p>
+<p><div class="highlight"><pre><span></span><code><span class="k">select</span><span class="w"> </span><span class="n">ori_query</span><span class="p">,</span><span class="w"> </span><span class="n">ori_response</span><span class="p">,</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
+<span class="k">from</span><span class="w"> </span><span class="n">dataset</span>
+<span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">ori_query</span><span class="p">,</span><span class="w"> </span><span class="n">ori_response</span>
+<span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">ori_query</span><span class="p">;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">gtn_f</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;temp_test&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">tensors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ori_query&quot;</span><span class="p">,</span> <span class="s2">&quot;ori_response&quot;</span><span class="p">,</span> <span class="s2">&quot;query_analysis&quot;</span><span class="p">,</span> <span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;ori_query&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;ori_response&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;query_analysis&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float64&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float64&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">np_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+  <span class="p">[</span>
+    <span class="s2">&quot;1. Use if-else statements to implement comparison logic&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;if in1 &gt; in2:&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">Fluency Score</span><span class="se">\&quot;</span><span class="s2">: 5.0, </span><span class="se">\&quot;</span><span class="s2">Completeness Score</span><span class="se">\&quot;</span><span class="s2">: 3.0}&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Overall Quality Score: 6&quot;</span><span class="p">,</span>
+    <span class="mf">6.0</span><span class="p">,</span>
+    <span class="mf">5.0</span>
+  <span class="p">],</span>
+  <span class="p">[</span>
+    <span class="s2">&quot;Write a Python program that uses regular expressions to match mobile phone numbers.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;First, we need to import the re module.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">Fluency Score</span><span class="se">\&quot;</span><span class="s2">: 5.0, </span><span class="se">\&quot;</span><span class="s2">Completeness Score</span><span class="se">\&quot;</span><span class="s2">: 2.0}&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Overall Quality Score: 0&quot;</span><span class="p">,</span>
+    <span class="mf">0.0</span><span class="p">,</span>
+    <span class="mf">4.0</span>
+  <span class="p">],</span>
+  <span class="p">[</span>
+    <span class="s2">&quot;Compile in C language: calculate the surface area and volume of a cylinder&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Four variables are defined: `r`, `h`, `surface_area`, `volume`&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">Fluency Score</span><span class="se">\&quot;</span><span class="s2">: 5.0, </span><span class="se">\&quot;</span><span class="s2">Completeness Score</span><span class="se">\&quot;</span><span class="s2">: 4.0}&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Overall Quality Score: 6&quot;</span><span class="p">,</span>
+    <span class="mf">6.0</span><span class="p">,</span>
+    <span class="mf">6.0</span>
+  <span class="p">],</span>
+  <span class="p">[</span>
+    <span class="s2">&quot;How to combine the three RGB channel values into a single RGB value&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;In Java, the extracted R, G, and B channel values are added together to form an RGB value.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">Fluency Score</span><span class="se">\&quot;</span><span class="s2">: 5.0, </span><span class="se">\&quot;</span><span class="s2">Completeness Score</span><span class="se">\&quot;</span><span class="s2">: 4.0}&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Overall Quality Score: 7&quot;</span><span class="p">,</span>
+    <span class="mf">7.0</span><span class="p">,</span>
+    <span class="mf">4.0</span>
+  <span class="p">],</span>
+  <span class="p">[</span>
+    <span class="s2">&quot;How to combine the three RGB channel values into a single RGB value&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;In Java, the extracted R, G, and B channel values are added together to form an RGB value.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">Fluency Score</span><span class="se">\&quot;</span><span class="s2">: 5.0, </span><span class="se">\&quot;</span><span class="s2">Completeness Score</span><span class="se">\&quot;</span><span class="s2">: 4.0}&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Overall Quality Score: 7&quot;</span><span class="p">,</span>
+    <span class="mf">7.0</span><span class="p">,</span>
+    <span class="mf">4.0</span>
+  <span class="p">],</span>
+  <span class="p">[</span>
+    <span class="s2">&quot;Design an intelligent customer service system based on deep learning&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;A deep learning–based intelligent customer service system includes steps such as data preprocessing, model construction, model training, and prediction.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">Fluency Score</span><span class="se">\&quot;</span><span class="s2">: 5.0, </span><span class="se">\&quot;</span><span class="s2">Completeness Score</span><span class="se">\&quot;</span><span class="s2">: 5.0}&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Overall Quality Score: 6&quot;</span><span class="p">,</span>
+    <span class="mf">6.0</span><span class="p">,</span>
+    <span class="mf">3.0</span>
+  <span class="p">]</span>
+<span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tensors</span><span class="p">):</span>
+         <span class="n">ds</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np_data</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">result2</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">aggregate_vectorized</span><span class="p">(</span>
+        <span class="n">group_by_tensors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ori_query&#39;</span><span class="p">,</span> <span class="s1">&#39;ori_response&#39;</span><span class="p">],</span>
+        <span class="n">selected_tensors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ori_query&#39;</span><span class="p">,</span> <span class="s1">&#39;ori_response&#39;</span><span class="p">],</span>
+        <span class="n">order_by_tensors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ori_query&#39;</span><span class="p">],</span>
+        <span class="n">aggregate_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">result2</span>
+<span class="n">array</span><span class="p">([[</span><span class="s2">&quot;Write a Python program that uses regular expressions to match mobile phone numbers.&quot;</span><span class="p">,</span> <span class="s2">&quot;First, we need to import the re module.&quot;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s2">&quot;Compile in C language: calculate the surface area and volume of a cylinder&quot;</span><span class="p">,</span> <span class="s2">&quot;Four variables are defined: `r`, `h`, `surface_area`, `volume`&quot;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s2">&quot;How to combine the three RGB channel values into a single RGB value&quot;</span><span class="p">,</span> <span class="s2">&quot;In Java, the extracted R, G, and B channel values are added together to form an RGB value.&quot;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s2">&quot;Design an intelligent customer service system based on deep learning&quot;</span><span class="p">,</span> <span class="s2">&quot;A deep learning–based intelligent customer service system includes steps such as data preprocessing, model construction, model training, and prediction.&quot;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">],</span>
+       <span class="p">[</span><span class="s2">&quot;1. Use if-else statements to implement comparison logic&quot;</span><span class="p">,</span> <span class="s2">&quot;if in1 &gt; in2:&quot;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;U38&#39;</span><span class="p">)</span>
+</code></pre></div>
+* For detailed usage, please refer to the following API documentation:</p>
+<blockquote>
+<ul>
+<li>filter_vectorized(): vectorized query interface for conditional filtering</li>
+<li>aggregate_vectorized(): vectorized aggregation interface (e.g., group by + count(*))</li>
+<li>create_index(): interface for creating inverted indexes</li>
+</ul>
+</blockquote>
+<h4 id="example-12-vector-search">Example 12: Vector Search</h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create a sample dataset</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">ds_vec</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;test_data_vec/&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ds_vec</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;vector&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">ds_vec</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">320000</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+
+<span class="c1"># Create index</span>
+<span class="n">ds_vec</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">ds_vec</span><span class="o">.</span><span class="n">create_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="n">index_type</span><span class="o">=</span><span class="s2">&quot;FLAT&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;l2&quot;</span><span class="p">)</span>
+<span class="n">ds_vec</span><span class="o">.</span><span class="n">create_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;hnsw&quot;</span><span class="p">,</span> <span class="n">index_type</span><span class="o">=</span><span class="s2">&quot;HNSWFLAT&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;l2&quot;</span><span class="p">,</span> <span class="n">ef_construction</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+
+<span class="c1"># Vector search</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+<span class="n">ds_vec</span><span class="o">.</span><span class="n">load_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;flat&quot;</span><span class="p">)</span>
+<span class="n">res_7</span> <span class="o">=</span> <span class="n">ds_vec</span><span class="o">.</span><span class="n">vector_search</span><span class="p">(</span><span class="n">query_vector</span><span class="o">=</span><span class="n">q</span><span class="p">,</span> <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="n">topk</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">_</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="o">=</span> <span class="n">res_7</span>
+
+<span class="n">ds_vec</span><span class="o">.</span><span class="n">load_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;hnsw&quot;</span><span class="p">)</span>
+<span class="n">res_8</span> <span class="o">=</span> <span class="n">ds_vec</span><span class="o">.</span><span class="n">vector_search</span><span class="p">(</span><span class="n">query_vector</span><span class="o">=</span><span class="n">q</span><span class="p">,</span> <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;hnsw&quot;</span><span class="p">,</span> <span class="n">ef_search</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">_</span><span class="p">,</span> <span class="n">res_id</span> <span class="o">=</span> <span class="n">res_8</span>
+
+<span class="c1"># Compute the recall</span>
+<span class="n">recall</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">res_id</span><span class="p">))[(</span><span class="n">ground_truth</span><span class="o">==</span><span class="n">res_id</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_id</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="8-saving-and-loading-dataset-views">8. Saving and Loading Dataset Views</h2>
+<p>Each query result can be persisted as a materialized view and assigned a unique ID. For subsequent identical queries, the corresponding materialized view can be loaded directly using this ID, avoiding redundant computation.
+<div class="highlight"><pre><span></span><code><span class="n">my_view</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">([(</span><span class="s2">&quot;lable&quot;</span><span class="p">,</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+<span class="n">my_view</span><span class="o">.</span><span class="n">save_view</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;my_query_id&#39;</span><span class="p">)</span>  <span class="c1"># Note: need to specify the `id`!</span>
+<span class="n">my_view</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">load_view</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s1">&#39;my_query_id&#39;</span><span class="p">)</span> <span class="c1"># Note: need to specify the `id`!</span>
+</code></pre></div></p>
+<p>Materialized view–related APIs support additional parameters to optimize read and write performance, such as <code>optimize</code> and <code>num_workers</code>. For details, please refer to the view-related API documentation.</p>
+<h2 id="9-other-dataset-related-apis">9. Other Dataset-Related APIs</h2>
+<p>For the complete API reference, see [<a href="">Datasets</a>] and its subpages. Key APIs include:</p>
+<ul>
+<li>Dataset copying:<blockquote>
+<ul>
+<li>Full copy including all branches: [dataset.deepcopy()]</li>
+<li>Copy only the latest commit on the main branch: [dataset.copy()]</li>
+</ul>
+</blockquote>
+</li>
+<li>Dataset rechunking (optimize chunk sizes for each tensor): [dataset.rechunk()]</li>
+<li>Export dataset to MindRecord: [dataset.to_mindrecord()]</li>
+<li>Export dataset to JSON: [dataset.to_json()]</li>
+<li>Export dataset to Arrow: [dataset.to_arrow()]</li>
+<li>Convert dataset to a pandas DataFrame (for inspection and visualization): [dataset.to_dataframe()]</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.tracking", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
