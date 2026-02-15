@@ -16,7 +16,7 @@ import muller
 from muller.constants import MB
 from muller.core.index import Index
 from muller.core.storage import MemoryProvider
-from muller.core.storage.local import StorageProvider
+from muller.core.storage.provider import StorageProvider
 from muller.core.storage.lru_cache import LRUCache
 
 

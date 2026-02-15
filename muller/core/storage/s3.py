@@ -13,7 +13,7 @@ from typing import Set, Dict, Optional
 import boto3
 
 from muller.client.log import logger
-from muller.core import StorageProvider
+from muller.core.storage.provider import StorageProvider
 
 
 class S3Provider(StorageProvider):

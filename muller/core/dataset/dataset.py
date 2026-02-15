@@ -45,7 +45,7 @@ from muller.core.version_control.interface.diff_interface import get_changes_and
 from muller.core.view.view_entry import ViewEntry
 from muller.htype import (UNSPECIFIED)
 from muller.util.authorization import obtain_current_user
-from muller.util.cache_chain import generate_chain
+from muller.core.storage.cache_chain import generate_chain
 from muller.util.exceptions import (LockedException,
                                    ReadOnlyModeError,
                                    CheckoutError,
@@ -66,7 +66,7 @@ from muller.util.path import get_path_from_storage, convert_pathlib_to_string_if
 from muller.util.permission.index_permission_check import index_permission_check
 from muller.util.permission.invalid_view_op import invalid_view_op
 from muller.util.permission.user_permission_check import user_permission_check
-from muller.util.remove_cache import get_base_storage
+from muller.core.storage.cache_utils import get_base_storage
 from muller.util.spinner import spinner
 
 

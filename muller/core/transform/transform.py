@@ -43,7 +43,7 @@ from muller.util.keys import (
     get_chunk_id_encoder_key,
     get_tensor_tile_encoder_key,
 )
-from muller.util.remove_cache import get_base_storage
+from muller.core.storage.cache_utils import get_base_storage
 from muller.core.transform.pipeline import (
     check_lengths,
     check_transform_data_in,

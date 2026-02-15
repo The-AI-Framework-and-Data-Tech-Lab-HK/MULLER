@@ -16,7 +16,7 @@ from typing import Set
 
 from muller.core.storage.muller_memory_object import MULLERMemoryObject
 from muller.core.storage.provider import StorageProvider
-from muller.core.storage.util import _get_nbytes
+from muller.core.storage.helpers import _get_nbytes
 
 
 class MemoryProvider(StorageProvider):

@@ -37,8 +37,8 @@ from muller.util.exceptions import (InvalidOutputDatasetError, AllSamplesSkipped
                                    TensorDoesNotExistError, InvalidTransformDataset, TensorMismatchError,
                                    TransformError, SampleAppendError)
 from muller.util.keys import get_tensor_meta_key
-from muller.util.remove_cache import get_base_storage
-from muller.util.remove_cache import get_dataset_with_zero_size_cache
+from muller.core.storage.cache_utils import get_base_storage
+from muller.core.storage.cache_utils import get_dataset_with_zero_size_cache
 from muller.core.version_control.functions import auto_checkout, load_meta, load_version_info
 
 

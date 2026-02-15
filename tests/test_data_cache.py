@@ -10,7 +10,7 @@ import time
 import pytest
 
 import muller
-from muller.util.cache import DataCache
+from muller.core.storage.data_cache import DataCache
 from tests.constants import TEST_CACHE_PATH
 from tests.utils import official_path, official_creds
 

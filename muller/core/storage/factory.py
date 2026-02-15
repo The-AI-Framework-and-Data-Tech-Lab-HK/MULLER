@@ -19,7 +19,7 @@ from muller.core.storage.local import LocalProvider
 from muller.core.storage.memory import MemoryProvider
 from muller.core.storage.roma import RomaProvider
 from muller.core.storage.s3 import S3Provider
-from muller.util.cache_chain import generate_chain
+from muller.core.storage.cache_chain import generate_chain
 
 
 def storage_provider_from_path(

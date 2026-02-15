@@ -40,7 +40,7 @@ from muller.util.exceptions import EmptyCommitError, ReadOnlyModeError, Checkout
 from muller.util.keys import get_tensor_meta_key, get_dataset_meta_key, get_sample_id_tensor_key, \
     get_chunk_id_encoder_key, get_chunk_key
 from muller.core.version_control.interface.merge_interface import merge_detect, get_node_tensors, direct_detect
-from muller.util.remove_cache import create_read_copy_dataset
+from muller.core.storage.cache_utils import create_read_copy_dataset
 from ..functions import integrity_check, reset_and_checkout, current_commit_has_change, \
     warn_node_checkout, load_meta, replace_head
 

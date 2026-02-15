@@ -19,7 +19,7 @@ from muller.core.storage.local import LocalProvider
 from muller.core.storage.memory import MemoryProvider
 from muller.core.storage.provider import StorageProvider
 from muller.util.exceptions import ProviderSizeListMismatch, ProviderListEmptyError
-from ..core.storage.lru_cache import LRUCache
+from muller.core.storage.lru_cache import LRUCache
 
 
 def get_cache_chain(storage_list: List[StorageProvider], size_list: List[int]):

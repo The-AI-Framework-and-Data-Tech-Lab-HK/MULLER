@@ -23,7 +23,7 @@ from typing import Callable, Dict, Optional, Set
 from muller.core.lock.base import BaseLock
 from muller.core.lock.persistent import PersistentLock
 from muller.util.path import get_path_from_storage
-from muller.util.remove_cache import get_base_storage
+from muller.core.storage.cache_utils import get_base_storage
 
 
 # Global lock registry

@@ -24,7 +24,7 @@ from muller.core.partial_reader import PartialReader
 from muller.core.storage.muller_memory_object import MULLERMemoryObject
 from muller.core.storage.memory import MemoryProvider
 from muller.core.storage.provider import StorageProvider
-from muller.core.storage.util import _get_nbytes, identity
+from muller.core.storage.helpers import _get_nbytes, identity
 from muller.util.exceptions import ReadOnlyModeError
 from muller.util.json import HubJsonDecoder, HubJsonEncoder
 
@@ -274,7 +274,7 @@ class LRUCache(StorageProvider):
                 self.insert_in_cache(key, obj)
             return obj
         if url:
-            from muller.util.remove_cache import get_base_storage
+            from muller.core.storage.cache_utils import get_base_storage
 
             item = get_base_storage(self).get_presigned_url(key).encode("utf-8")
             if issubclass(expected_class, BaseChunk):

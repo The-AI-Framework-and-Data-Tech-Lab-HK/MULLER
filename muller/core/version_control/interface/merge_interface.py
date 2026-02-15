@@ -33,7 +33,7 @@ from muller.util.exceptions import (MergeConflictError, MergeMismatchError, Tens
 from muller.util.keys import get_tensor_commit_diff_key, get_tensor_meta_key, \
     get_chunk_id_encoder_key, get_tensor_tile_encoder_key, get_creds_encoder_key, \
     get_dataset_meta_key, get_tensor_commit_chunk_map_key
-from muller.util.remove_cache import create_read_copy_dataset
+from muller.core.storage.cache_utils import create_read_copy_dataset
 from ..functions import auto_checkout, auto_commit, commit, checkout
 
 Records = collections.namedtuple("Records", ["del_ori_idx", "del_ori_values", "del_tar_idx",

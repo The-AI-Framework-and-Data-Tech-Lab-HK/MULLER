@@ -39,7 +39,7 @@ from muller.util.keys import dataset_exists
 from muller.util.path import process_dataset_path
 from muller.util.path import verify_dataset_name, convert_pathlib_to_string_if_needed
 from muller.util.permission.invalid_user_op import validate_permissions
-from muller.util.storage import get_storage_and_cache_chain
+from muller.core.storage.factory import get_storage_and_cache_chain
 
 
 class DatasetAPI:

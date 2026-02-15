@@ -76,7 +76,7 @@ from muller.util.image import convert_sample, convert_img_arr
 from muller.util.keys import get_tensor_commit_chunk_map_key, get_tensor_tile_encoder_key
 from muller.util.keys import get_tensor_commit_diff_key
 from muller.util.keys import get_tensor_meta_key, get_chunk_id_encoder_key, get_chunk_key
-from muller.util.remove_cache import get_base_storage
+from muller.core.storage.cache_utils import get_base_storage
 from muller.util.shape_interval import ShapeInterval
 
 

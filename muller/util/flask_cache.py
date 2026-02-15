@@ -6,7 +6,7 @@
 #
 # Copyright (c) 2026 Xueling Lin
 
-from muller.util.cache import DataCache
+from muller.core.storage.data_cache import DataCache
 
 
 class FlaskCache(DataCache):

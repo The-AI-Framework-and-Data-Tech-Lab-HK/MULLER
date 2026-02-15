@@ -44,7 +44,7 @@ from muller.util.keys import (get_version_control_info_key,
                              get_tensor_commit_chunk_map_key,
                              get_dataset_diff_key,
                              get_tensor_commit_diff_key)
-from muller.util.remove_cache import get_base_storage
+from muller.core.storage.cache_utils import get_base_storage
 
 branch_commit_map_rebuild: Dict[str, str] = {}
 commits_rebuild: Dict[str, Dict] = {}
