@@ -29,7 +29,7 @@ from muller.core.storage import MemoryProvider
 from muller.util.authorization import obtain_current_user
 from muller.util.exceptions import DatasetViewSavingError
 from muller.util.hash import hash_inputs
-from muller.util.keys import get_queries_key, get_queries_lock_key
+from muller.core.storage_keys import get_queries_key, get_queries_lock_key
 from muller.util.path import convert_pathlib_to_string_if_needed
 
 

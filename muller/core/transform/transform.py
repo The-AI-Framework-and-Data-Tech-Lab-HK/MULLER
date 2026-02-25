@@ -36,7 +36,7 @@ from muller.core.version_control.commit_diff import CommitDiff
 from muller.core.version_control.functions import auto_checkout
 from muller.util.exceptions import AllSamplesSkippedError, TransformError, UnAuthorizationError
 from muller.util.json import HubJsonDecoder, HubJsonEncoder
-from muller.util.keys import (
+from muller.core.storage_keys import (
     get_tensor_commit_chunk_map_key,
     get_tensor_commit_diff_key,
     get_tensor_meta_key,

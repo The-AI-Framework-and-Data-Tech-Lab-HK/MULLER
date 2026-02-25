@@ -19,7 +19,7 @@ from muller.client.log import logger
 from muller.core.chunk.base_chunk import BaseChunk
 from muller.util.exceptions import SampleAppendError
 from muller.util.exceptions import UnAuthorizationError
-from muller.util.keys import get_chunk_key
+from muller.core.storage_keys import get_chunk_key
 
 
 def extend(

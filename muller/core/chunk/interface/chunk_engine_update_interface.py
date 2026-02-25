@@ -26,10 +26,9 @@ from muller.core.chunk.base_chunk import InputSample
 from muller.core.index.index import Index, IndexEntry
 from muller.core.tiling.deserialize import coalesce_tiles, translate_slices
 from muller.core.tiling.serialize import break_into_tiles
-from muller.util.casting import intelligent_cast
-from muller.util.exceptions import DynamicTensorNumpyError, SampleUpdateError
-from muller.util.exceptions import UnAuthorizationError
-from muller.util.keys import get_tensor_commit_chunk_map_key
+from muller.core.types.casting import intelligent_cast
+from muller.util.exceptions import DynamicTensorNumpyError, SampleUpdateError, UnAuthorizationError
+from muller.core.storage_keys import get_tensor_commit_chunk_map_key
 
 
 def update(

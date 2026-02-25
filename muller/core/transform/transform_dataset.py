@@ -14,15 +14,19 @@ import json
 
 import numpy as np
 
-from muller.constants import MB, DATASET_UUID_NAME
+from muller.constants import DATASET_UUID_NAME, MB
 from muller.core.partial_sample import PartialSample
 from muller.core.sample import Sample
 from muller.core.tensor import Tensor
 from muller.core.transform.transform_tensor import TransformTensor
-from muller.util.casting import intelligent_cast
-from muller.util.exceptions import SampleAppendError, SampleAppendingError, SampleExtendingError, \
-    TensorDtypeMismatchError
-from muller.util.json import validate_json_object, HubJsonEncoder
+from muller.core.types.casting import intelligent_cast
+from muller.util.exceptions import (
+    SampleAppendError,
+    SampleAppendingError,
+    SampleExtendingError,
+    TensorDtypeMismatchError,
+)
+from muller.util.json import HubJsonEncoder, validate_json_object
 
 
 class TransformDataset:

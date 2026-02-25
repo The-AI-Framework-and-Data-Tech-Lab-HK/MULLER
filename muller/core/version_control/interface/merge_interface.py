@@ -19,22 +19,37 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
-from muller.constants import DATASET_UUID_NAME, CREATE_TENSOR_HIDDEN_UUID, FIRST_COMMIT_ID
+from muller.constants import CREATE_TENSOR_HIDDEN_UUID, DATASET_UUID_NAME, FIRST_COMMIT_ID
 from muller.core.meta.dataset_meta import DatasetMeta
 from muller.core.meta.encode.chunk_id import ChunkIdEncoder
+from muller.core.storage.cache_utils import create_read_copy_dataset
+from muller.core.types.class_label import convert_to_text
 from muller.core.version_control.commit_chunk_map import CommitChunkMap
 from muller.core.version_control.commit_diff import CommitDiff
 from muller.core.version_control.commit_node import CommitNode
-from muller.core.version_control.interface.diff_interface import sanitize_commit, get_lowest_common_ancestor, \
-    merge_renamed_deleted, has_change
-from muller.util.class_label import convert_to_text
-from muller.util.exceptions import (MergeConflictError, MergeMismatchError, TensorDoesNotExistError, MergeLostUUid,
-                                   ReadOnlyModeError)
-from muller.util.keys import get_tensor_commit_diff_key, get_tensor_meta_key, \
-    get_chunk_id_encoder_key, get_tensor_tile_encoder_key, get_creds_encoder_key, \
-    get_dataset_meta_key, get_tensor_commit_chunk_map_key
-from muller.core.storage.cache_utils import create_read_copy_dataset
-from ..functions import auto_checkout, auto_commit, commit, checkout
+from muller.core.version_control.functions import auto_checkout, auto_commit, checkout, commit
+from muller.core.version_control.interface.diff_interface import (
+    get_lowest_common_ancestor,
+    has_change,
+    merge_renamed_deleted,
+    sanitize_commit,
+)
+from muller.util.exceptions import (
+    MergeConflictError,
+    MergeLostUUid,
+    MergeMismatchError,
+    ReadOnlyModeError,
+    TensorDoesNotExistError,
+)
+from muller.core.storage_keys import (
+    get_chunk_id_encoder_key,
+    get_creds_encoder_key,
+    get_dataset_meta_key,
+    get_tensor_commit_chunk_map_key,
+    get_tensor_commit_diff_key,
+    get_tensor_meta_key,
+    get_tensor_tile_encoder_key,
+)
 
 Records = collections.namedtuple("Records", ["del_ori_idx", "del_ori_values", "del_tar_idx",
                                              "del_tar_values", "app_ori_idx", "app_ori_values", "app_tar_idx",

@@ -18,7 +18,7 @@ from typing import Optional, Set, Sequence, Dict, Any
 
 from muller.constants import BYTE_PADDING
 from muller.util.exceptions import ReadOnlyModeError, InvalidBytesRequestedError
-from muller.util.keys import get_dataset_lock_key
+from muller.core.storage_keys import get_dataset_lock_key
 
 _STORAGES: Dict[str, "StorageProvider"] = {}
 

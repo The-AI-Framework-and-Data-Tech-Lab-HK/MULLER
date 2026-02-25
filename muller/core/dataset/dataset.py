@@ -25,7 +25,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 import muller
-from muller.api.info import Info
 from muller.constants import (FIRST_COMMIT_ID, VDS_INDEX, CREATE_TENSOR_HIDDEN_UUID, DATASET_UUID_NAME,
                              INVERTED_INDEX_BATCH_SIZE, VIEW_SUMMARY_SAFE_LIMIT, TO_DATAFRAME_SAFE_LIMIT,
                              DEFAULT_MEMORY_CACHE_SIZE, DEFAULT_LOCAL_CACHE_SIZE, MB)
@@ -33,19 +32,28 @@ from muller.core.dataset.uuid.shard_hash import divide_to_shard, load_all_shards
 from muller.core.index import Index
 from muller.core.lock import lock_dataset, unlock_dataset
 from muller.core.meta.dataset_meta import DatasetMeta
+from muller.core.storage.cache_chain import generate_chain
+from muller.core.storage.info import Info
 from muller.core.storage.local import LocalProvider
 from muller.core.storage.lru_cache import LRUCache
 from muller.core.tensor import Tensor
 from muller.core.version_control.commit_node import CommitNode
 from muller.core.version_control.dataset_diff import DatasetDiff
-from muller.core.version_control.functions import load_meta, load_statistics, save_statistics, load_version_info, \
-                                                  rebuild_version_info, current_commit_has_change, save_version_info, \
-                                                  save_commit_info, get_dataset_diff_at_commit
+from muller.core.version_control.functions import (
+    current_commit_has_change,
+    get_dataset_diff_at_commit,
+    load_meta,
+    load_statistics,
+    load_version_info,
+    rebuild_version_info,
+    save_commit_info,
+    save_statistics,
+    save_version_info,
+)
 from muller.core.version_control.interface.diff_interface import get_changes_and_messages
 from muller.core.view.view_entry import ViewEntry
-from muller.htype import (UNSPECIFIED)
+from muller.htype import UNSPECIFIED
 from muller.util.authorization import obtain_current_user
-from muller.core.storage.cache_chain import generate_chain
 from muller.util.exceptions import (LockedException,
                                    ReadOnlyModeError,
                                    CheckoutError,
@@ -60,8 +68,8 @@ from muller.util.exceptions import (LockedException,
                                    ToDataFrameLimit, InvalidTensorList)
 from muller.util.iteration_warning import (suppress_iteration_warning,
                                           check_if_iteration)
-from muller.util.keys import dataset_exists, get_dataset_diff_key
-from muller.util.keys import (get_dataset_meta_key)
+from muller.core.storage_keys import dataset_exists, get_dataset_diff_key
+from muller.core.storage_keys import (get_dataset_meta_key)
 from muller.util.path import get_path_from_storage, convert_pathlib_to_string_if_needed
 from muller.util.permission.index_permission_check import index_permission_check
 from muller.util.permission.invalid_view_op import invalid_view_op

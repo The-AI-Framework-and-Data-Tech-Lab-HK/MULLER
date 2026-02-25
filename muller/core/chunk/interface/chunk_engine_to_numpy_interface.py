@@ -32,7 +32,7 @@ from muller.core.meta.encode.chunk_id import ChunkIdEncoder
 from muller.util.exceptions import GetChunkError, DynamicTensorNumpyError
 from muller.util.exceptions import NumpyDataNotContinuousError
 from muller.util.exceptions import ReadSampleFromChunkError
-from muller.util.keys import get_chunk_key
+from muller.core.storage_keys import get_chunk_key
 
 
 def numpy(

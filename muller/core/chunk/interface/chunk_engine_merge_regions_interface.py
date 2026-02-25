@@ -22,7 +22,7 @@ from muller.constants import (
     MAX_WORKERS_FOR_CHUNK_ENGINE
 )
 from muller.core.meta.encode.chunk_id import ChunkIdEncoder
-from muller.util.keys import get_chunk_key
+from muller.core.storage_keys import get_chunk_key
 from .chunk_engine_to_numpy_interface import get_samples_full
 
 

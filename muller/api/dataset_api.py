@@ -35,7 +35,7 @@ from muller.util.exceptions import (AgreementError,
                                     DatasetAlreadyExistsError,
                                     DatasetNotExistsError,
                                     DatasetViewDeletionError, DirectoryAtPathException)
-from muller.util.keys import dataset_exists
+from muller.core.storage_keys import dataset_exists
 from muller.util.path import process_dataset_path
 from muller.util.path import verify_dataset_name, convert_pathlib_to_string_if_needed
 from muller.util.permission.invalid_user_op import validate_permissions

@@ -31,9 +31,9 @@ import numpy as np
 from tqdm import tqdm
 
 import muller
-from muller.api.info import Info
 from muller.compression import (
-    VIDEO_COMPRESSIONS, BYTE_COMPRESSION,
+    BYTE_COMPRESSION,
+    VIDEO_COMPRESSIONS,
 )
 from muller.constants import (
     FAST_EXTEND_BAIL,
@@ -58,25 +58,33 @@ from muller.core.partial_reader import PartialReader
 from muller.core.sample import Sample
 from muller.core.serialize import HEADER_SIZE_BYTES, deserialize_chunkids
 from muller.core.storage import MemoryProvider, RomaProvider
-from muller.core.storage.lru_cache import LRUCache
-from muller.core.storage.lru_cache import _get_nbytes  # Sherry: not elegant
+from muller.core.storage.cache_utils import get_base_storage
+from muller.core.storage.info import Info
+from muller.core.storage.lru_cache import LRUCache, _get_nbytes
 from muller.core.storage.provider import StorageProvider
-from muller.core.tiling.deserialize import coalesce_tiles, translate_slices, combine_chunks
+from muller.core.image.processing import convert_img_arr, convert_sample
+from muller.core.tiling.deserialize import coalesce_tiles, combine_chunks, translate_slices
+from muller.core.types.casting import get_dtype, get_empty_text_like_sample, get_htype
+from muller.core.types.class_label import convert_to_hash, convert_to_idx
 from muller.core.version_control.commit_chunk_map import CommitChunkMap
 from muller.core.version_control.commit_diff import CommitDiff
 from muller.core.version_control.functions import get_dataset_diff_at_commit
-from muller.util.casting import get_empty_text_like_sample
-from muller.util.casting import get_htype, get_dtype
-from muller.util.class_label import convert_to_hash, convert_to_idx
-from muller.util.exceptions import CorruptedMetaError
-from muller.util.exceptions import GetChunkError, DynamicTensorNumpyError
-from muller.util.exceptions import ReadOnlyModeError, ReadSampleFromChunkError
-from muller.util.exceptions import SampleHtypeMismatchError
-from muller.util.image import convert_sample, convert_img_arr
-from muller.util.keys import get_tensor_commit_chunk_map_key, get_tensor_tile_encoder_key
-from muller.util.keys import get_tensor_commit_diff_key
-from muller.util.keys import get_tensor_meta_key, get_chunk_id_encoder_key, get_chunk_key
-from muller.core.storage.cache_utils import get_base_storage
+from muller.util.exceptions import (
+    CorruptedMetaError,
+    DynamicTensorNumpyError,
+    GetChunkError,
+    ReadOnlyModeError,
+    ReadSampleFromChunkError,
+    SampleHtypeMismatchError,
+)
+from muller.core.storage_keys import (
+    get_chunk_id_encoder_key,
+    get_chunk_key,
+    get_tensor_commit_chunk_map_key,
+    get_tensor_commit_diff_key,
+    get_tensor_meta_key,
+    get_tensor_tile_encoder_key,
+)
 from muller.util.shape_interval import ShapeInterval
 
 

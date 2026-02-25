@@ -25,7 +25,7 @@ from muller.core.chunk.chunk_compressed_chunk import ChunkCompressedChunk
 from muller.core.meta.encode.base_encoder import LAST_SEEN_INDEX_COLUMN
 from muller.core.meta.encode.chunk_id import ChunkIdEncoder
 from muller.core.sample import Sample
-from muller.util.keys import get_chunk_key
+from muller.core.storage_keys import get_chunk_key
 
 
 def check_rechunk(chunk_engine, chunk: BaseChunk, chunk_row: int):

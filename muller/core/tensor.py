@@ -21,7 +21,6 @@ from typing import Dict, List, Sequence, Union, Optional, Tuple, Any, Callable
 import numpy as np
 
 import muller
-from muller.api.info import Info
 from muller.compression import (
     get_compression_type,
     BYTE_COMPRESSION,
@@ -36,18 +35,17 @@ from muller.core.chunk.chunk_engine import ChunkEngine
 from muller.core.index import Index, IndexEntry
 from muller.core.meta.tensor_meta import TensorMeta, _validate_htype_exists
 from muller.core.storage import StorageProvider
+from muller.core.storage.info import Info
 from muller.core.storage.lru_cache import LRUCache
-
+from muller.core.types.class_label import convert_to_text
 from muller.core.version_control.commit_chunk_map import CommitChunkMap
 from muller.core.version_control.commit_diff import CommitDiff
+from muller.core.version_control.functions import auto_checkout
 from muller.htype import (
-    HTYPE_CONVERSION_LHS,
     HTYPE_CONSTRAINTS,
+    HTYPE_CONVERSION_LHS,
     HTYPE_SUPPORTED_COMPRESSIONS,
 )
-from muller.core.version_control.functions import auto_checkout
-
-from muller.util.class_label import convert_to_text
 from muller.util.exceptions import (
     TensorDoesNotExistError,
     InvalidKeyTypeError,
@@ -56,7 +54,7 @@ from muller.util.exceptions import (
 )
 from muller.util.htype import parse_complex_htype
 from muller.util.iteration_warning import check_if_iteration
-from muller.util.keys import (
+from muller.core.storage_keys import (
     get_chunk_id_encoder_key,
     get_chunk_key,
     get_tensor_commit_chunk_map_key,

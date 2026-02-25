@@ -28,7 +28,7 @@ from muller.core.storage import LRUCache
 from muller.core.version_control.commit_diff import CommitDiff
 from muller.core.version_control.commit_node import CommitNode
 from muller.core.version_control.dataset_diff import DatasetDiff
-from muller.util.keys import get_tensor_commit_diff_key, get_dataset_meta_key, get_dataset_diff_key, get_chunk_key, \
+from muller.core.storage_keys import get_tensor_commit_diff_key, get_dataset_meta_key, get_dataset_diff_key, get_chunk_key, \
     get_tensor_meta_key
 
 

@@ -37,7 +37,7 @@ from muller.core.version_control.interface.diff_interface import (sanitize_commi
 from muller.core.dataset.operations import try_flushing
 from muller.util.exceptions import EmptyCommitError, ReadOnlyModeError, CheckoutError, UnAuthorizationError, \
     DatasetCorruptError, ExportDataFrameLimit, VersionControlError
-from muller.util.keys import get_tensor_meta_key, get_dataset_meta_key, get_sample_id_tensor_key, \
+from muller.core.storage_keys import get_tensor_meta_key, get_dataset_meta_key, get_sample_id_tensor_key, \
     get_chunk_id_encoder_key, get_chunk_key
 from muller.core.version_control.interface.merge_interface import merge_detect, get_node_tensors, direct_detect
 from muller.core.storage.cache_utils import create_read_copy_dataset

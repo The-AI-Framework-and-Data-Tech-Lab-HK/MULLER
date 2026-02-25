@@ -21,7 +21,7 @@ import numpy as np
 from muller.core.chunk.base_chunk import BaseChunk
 from muller.core.meta.encode.base_encoder import LAST_SEEN_INDEX_COLUMN
 from muller.core.meta.encode.chunk_id import ChunkIdEncoder
-from muller.util.keys import get_chunk_key
+from muller.core.storage_keys import get_chunk_key
 
 
 def pop(

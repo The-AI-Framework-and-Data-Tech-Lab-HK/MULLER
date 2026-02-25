@@ -18,18 +18,18 @@ import numpy as np
 
 import muller
 from muller.compression import (
-    BYTE_COMPRESSION,
-    VIDEO_COMPRESSION,
     AUDIO_COMPRESSION,
+    BYTE_COMPRESSION,
     MESH_COMPRESSION,
     NIFTI_COMPRESSION,
+    VIDEO_COMPRESSION,
+    get_compression_ratio,
 )
-from muller.compression import get_compression_ratio
 from muller.core.compression import compress_array, compress_bytes, get_compression_type
 from muller.core.partial_sample import PartialSample
 from muller.core.sample import Sample, SampleValue
 from muller.core.tiling.sample_tiles import SampleTiles
-from muller.util.casting import intelligent_cast
+from muller.core.types.casting import intelligent_cast
 from muller.util.exceptions import TensorInvalidSampleShapeError
 from muller.util.json import HubJsonDecoder, HubJsonEncoder, validate_json_object
 

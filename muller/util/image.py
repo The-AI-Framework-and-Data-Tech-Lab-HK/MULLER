@@ -3,63 +3,30 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
-#
-# This file was originally part of Hub (now Deep Lake) project: https://github.com/activeloopai/deeplake/tree/release/2.8.5
-# Commit: https://github.com/activeloopai/deeplake/tree/94c5e100292c164b80132baf741ef233dd41f3d7
-# Source: https://github.com/activeloopai/deeplake/blob/94c5e100292c164b80132baf741ef233dd41f3d7/hub/util/image.py
-#
-# Modifications Copyright (c) 2026 Bingyu Liu
 
-from io import BytesIO
+"""
+Deprecated: This module has been moved to muller.core.image.processing
 
-import numpy as np
-from PIL import Image  # type: ignore
+This module is kept for backward compatibility and will be removed in a future version.
+Please update your imports to use muller.core.image.processing instead.
+"""
 
-from muller.core.sample import Sample
+import warnings
 
+# Re-export all functions from the new location
+from muller.core.image.processing import (  # noqa: F401
+    convert_img_arr,
+    convert_sample,
+)
 
-def convert_sample(image_sample: Sample, mode: str) -> Sample:
-    if image_sample.path:
-        image = Image.open(image_sample.path)
-    elif image_sample._buffer:
-        image = Image.open(BytesIO(image_sample._buffer))
-    if image.mode == mode:
-        image.close()
-        return image_sample
+warnings.warn(
+    "muller.util.image is deprecated and will be removed in a future version. "
+    "Please use muller.core.image.processing instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
-    image = image.convert(mode)
-    image_bytes = BytesIO()
-    image.save(image_bytes, format=image_sample.compression)
-    converted = Sample(
-        buffer=image_bytes.getvalue(), compression=image_sample.compression
-    )
-    image.close()
-    return converted
-
-
-def to_grayscale(arr: np.ndarray) -> np.ndarray:
-    transform = np.array([[[299 / 1000, 587 / 1000, 114 / 1000]]])
-    gray = np.sum(transform * arr[:, :, :3], axis=2, dtype=np.uint8)
-    return gray
-
-
-def convert_img_arr(image_arr: np.ndarray, mode: str) -> np.ndarray:
-    if len(image_arr.shape) == 2:
-        if mode == "L":
-            return image_arr
-        elif mode == "RGB":
-            return np.tile(image_arr[:, :, np.newaxis], (1, 1, 3))
-
-    if (image_arr.shape[-1]) == 4:
-        if mode == "L":
-            return to_grayscale(image_arr)
-        elif mode == "RGB":
-            return image_arr[:, :, :3]
-
-    elif (image_arr.shape[-1]) == 3:
-        if mode == "L":
-            return to_grayscale(image_arr)
-        elif mode == "RGB":
-            return image_arr
-
-    raise ValueError("Invalid image")
+__all__ = [
+    'convert_img_arr',
+    'convert_sample',
+]

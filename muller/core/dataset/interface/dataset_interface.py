@@ -44,12 +44,12 @@ from muller.util.exceptions import (RenameError,
                                    DatasetTooLargeToDelete)
 from muller.util.muller_keywords import is_muller_keyword
 from muller.util.htype import parse_complex_htype
-from muller.util.keys import (filter_name,
+from muller.core.storage_keys import (filter_name,
                              get_sample_shape_tensor_key,
                              get_sample_id_tensor_key,
                              get_sample_info_tensor_key,
                              tensor_exists)
-from muller.util.keys import get_downsampled_tensor_key
+from muller.core.storage_keys import get_downsampled_tensor_key
 from muller.util.path import convert_pathlib_to_string_if_needed
 
 

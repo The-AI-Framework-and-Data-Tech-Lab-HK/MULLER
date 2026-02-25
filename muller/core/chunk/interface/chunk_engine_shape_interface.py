@@ -20,7 +20,7 @@ import numpy as np
 
 from muller.core.index.index import Index
 from muller.core.meta.encode.chunk_id import ChunkIdEncoder
-from muller.util.keys import get_chunk_key
+from muller.core.storage_keys import get_chunk_key
 
 
 def shape(
