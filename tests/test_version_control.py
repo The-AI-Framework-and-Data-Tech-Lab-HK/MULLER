@@ -13,14 +13,19 @@ from pandas.testing import assert_frame_equal
 
 import muller
 from muller.constants import FIRST_COMMIT_ID
+from muller.core.auth.authorization import obtain_current_user
 from muller.core.version_control.commit_node import CommitNode
-from muller.util.authorization import obtain_current_user
-from muller.util.exceptions import VersionControlError, MergeConflictError, ExportDataFrameLimit
 from muller.core.version_control.functions import (
     _merge_commit_node_maps,
-    _version_info_to_json,
     _version_info_from_json,
+    _version_info_to_json,
 )
+from muller.util.exceptions import (
+    ExportDataFrameLimit,
+    MergeConflictError,
+    VersionControlError,
+)
+
 from tests.constants import VERSION_CONTROL_TEST_PATH
 from tests.utils import official_path, official_creds
 

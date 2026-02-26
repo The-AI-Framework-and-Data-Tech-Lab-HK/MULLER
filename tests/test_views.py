@@ -10,9 +10,10 @@ import numpy as np
 import pytest
 
 import muller
-from muller.util.authorization import obtain_current_user
+from muller.core.auth.authorization import obtain_current_user
 from muller.util.exceptions import EmptyTensorError, UnAuthorizationError
 from muller.util.sensitive_config import SensitiveConfig
+
 from tests.constants import VIEW_TEST_PATH
 from tests.utils import official_path, official_creds
 
