@@ -21,35 +21,45 @@ import numpy as np
 from tqdm import tqdm
 
 import muller
-from muller.constants import (SAMPLE_INFO_TENSOR_MAX_CHUNK_SIZE, CREATE_TENSOR_HIDDEN_UUID, DATASET_UUID_NAME)
+from muller.constants import (
+    CREATE_TENSOR_HIDDEN_UUID,
+    DATASET_UUID_NAME,
+    SAMPLE_INFO_TENSOR_MAX_CHUNK_SIZE,
+)
 from muller.core.dataset import Dataset
-from muller.core.version_control.fast_forwarding import ffw_dataset_meta
-from muller.core.version_control.functions import auto_checkout
 from muller.core.lock import unlock_dataset
 from muller.core.meta.dataset_meta import DatasetMeta
 from muller.core.storage.local import LocalProvider
+from muller.core.storage_keys import (
+    filter_name,
+    get_downsampled_tensor_key,
+    get_sample_id_tensor_key,
+    get_sample_info_tensor_key,
+    get_sample_shape_tensor_key,
+    tensor_exists,
+)
 from muller.core.tensor import Tensor
-from muller.htype import (UNSPECIFIED,
-                         HTYPE_CONFIGURATIONS,
-                         verify_htype_key_value)
-from muller.util.exceptions import (RenameError,
-                                   RenameStorageError,
-                                   TensorDoesNotExistError,
-                                   TensorAlreadyExistsError,
-                                   TensorTooLargeToDelete,
-                                   InvalidTensorNameError,
-                                   SampleAppendingError,
-                                   SampleAppendError,
-                                   SampleExtendError,
-                                   DatasetTooLargeToDelete)
+from muller.core.types.htype import (
+    HTYPE_CONFIGURATIONS,
+    UNSPECIFIED,
+    parse_complex_htype,
+    verify_htype_key_value,
+)
+from muller.core.version_control.fast_forwarding import ffw_dataset_meta
+from muller.core.version_control.functions import auto_checkout
+from muller.util.exceptions import (
+    DatasetTooLargeToDelete,
+    InvalidTensorNameError,
+    RenameError,
+    RenameStorageError,
+    SampleAppendError,
+    SampleAppendingError,
+    SampleExtendError,
+    TensorAlreadyExistsError,
+    TensorDoesNotExistError,
+    TensorTooLargeToDelete,
+)
 from muller.util.muller_keywords import is_muller_keyword
-from muller.core.types.htype import parse_complex_htype
-from muller.core.storage_keys import (filter_name,
-                             get_sample_shape_tensor_key,
-                             get_sample_id_tensor_key,
-                             get_sample_info_tensor_key,
-                             tensor_exists)
-from muller.core.storage_keys import get_downsampled_tensor_key
 from muller.util.path import convert_pathlib_to_string_if_needed
 
 

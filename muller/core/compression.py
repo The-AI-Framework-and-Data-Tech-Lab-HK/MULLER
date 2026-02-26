@@ -11,6 +11,7 @@
 # Modifications Copyright (c) 2026 Xueling Lin
 
 import re
+import struct
 import sys
 from gzip import GzipFile
 from io import BytesIO

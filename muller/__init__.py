@@ -32,7 +32,7 @@ from muller.compression import SUPPORTED_COMPRESSIONS
 from muller.core.dataset import Dataset
 from muller.core.tensor import Tensor
 from muller.core.transform import compute
-from muller.htype import HTYPE_CONFIGURATIONS
+from muller.core.types.htype import HTYPE_CONFIGURATIONS
 
 compressions = list(SUPPORTED_COMPRESSIONS)
 

@@ -14,60 +14,62 @@ import inspect
 import uuid
 import warnings
 from concurrent.futures import ProcessPoolExecutor
-from functools import reduce, partial
+from functools import partial, reduce
 from multiprocessing import shared_memory
-from typing import Dict, List, Sequence, Union, Optional, Tuple, Any, Callable
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 import muller
-from muller.compression import (
-    get_compression_type,
-    BYTE_COMPRESSION,
-)
 from muller.constants import (
+    CREATE_TENSOR_HIDDEN_UUID,
+    DATASET_UUID_NAME,
+    DEFAULT_MAX_NUMPY_BATCH_SIZE,
     FIRST_COMMIT_ID,
-    CREATE_TENSOR_HIDDEN_UUID, DATASET_UUID_NAME,
-    MAX_WORKERS_FOR_CHUNK_ENGINE, DEFAULT_MAX_NUMPY_BATCH_SIZE
+    MAX_WORKERS_FOR_CHUNK_ENGINE,
 )
+from muller.core.auth.permission.invalid_view_op import invalid_view_op
+from muller.core.auth.permission.user_permission_check import user_permission_check
 from muller.core.chunk.base_chunk import InputSample
 from muller.core.chunk.chunk_engine import ChunkEngine
+from muller.core.compression import BYTE_COMPRESSION, get_compression_type
 from muller.core.index import Index, IndexEntry
 from muller.core.meta.tensor_meta import TensorMeta, _validate_htype_exists
 from muller.core.storage import StorageProvider
 from muller.core.storage.info import Info
 from muller.core.storage.lru_cache import LRUCache
-from muller.core.types.class_label import convert_to_text
-from muller.core.version_control.commit_chunk_map import CommitChunkMap
-from muller.core.version_control.commit_diff import CommitDiff
-from muller.core.version_control.functions import auto_checkout
-from muller.htype import (
-    HTYPE_CONSTRAINTS,
-    HTYPE_CONVERSION_LHS,
-    HTYPE_SUPPORTED_COMPRESSIONS,
-)
-from muller.util.exceptions import (
-    TensorDoesNotExistError,
-    InvalidKeyTypeError,
-    TensorAlreadyExistsError,
-    UnsupportedCompressionError, MultiProcessUnsupportedError, UnsupportedMethod, MetaNotFound
-)
-from muller.core.types.htype import parse_complex_htype
-from muller.util.iteration_warning import check_if_iteration
 from muller.core.storage_keys import (
     get_chunk_id_encoder_key,
     get_chunk_key,
+    get_sample_id_tensor_key,
+    get_sample_info_tensor_key,
+    get_sample_shape_tensor_key,
     get_tensor_commit_chunk_map_key,
     get_tensor_commit_diff_key,
     get_tensor_meta_key,
     get_tensor_tile_encoder_key,
     tensor_exists,
-    get_sample_id_tensor_key,
-    get_sample_info_tensor_key,
-    get_sample_shape_tensor_key,
 )
-from muller.core.auth.permission.invalid_view_op import invalid_view_op
-from muller.core.auth.permission.user_permission_check import user_permission_check
+from muller.core.types.class_label import convert_to_text
+from muller.core.types.htype import (
+    HTYPE_CONSTRAINTS,
+    HTYPE_CONVERSION_LHS,
+    HTYPE_SUPPORTED_COMPRESSIONS,
+    parse_complex_htype,
+)
+from muller.core.version_control.commit_chunk_map import CommitChunkMap
+from muller.core.version_control.commit_diff import CommitDiff
+from muller.core.version_control.functions import auto_checkout
+from muller.util.exceptions import (
+    InvalidKeyTypeError,
+    MetaNotFound,
+    MultiProcessUnsupportedError,
+    TensorAlreadyExistsError,
+    TensorDoesNotExistError,
+    UnsupportedCompressionError,
+    UnsupportedMethod,
+)
+from muller.util.iteration_warning import check_if_iteration
 from muller.util.shape_interval import ShapeInterval
 
 

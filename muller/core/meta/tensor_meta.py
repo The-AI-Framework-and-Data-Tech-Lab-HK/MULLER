@@ -10,25 +10,26 @@
 #
 # Modifications Copyright (c) 2026 Bingyu Liu
 
-from typing import Any, Callable, Dict, List, Sequence, Union, Optional
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 
 import muller
 from muller.compression import COMPRESSION_ALIASES
 from muller.core.meta.meta import Meta
-from muller.htype import (HTYPE_CONFIGURATIONS,
-                         HTYPE_SUPPORTED_COMPRESSIONS,
-                         htype as HTYPE,
-                         )
+from muller.core.types.htype import (
+    HTYPE_CONFIGURATIONS,
+    HTYPE_SUPPORTED_COMPRESSIONS,
+    htype as HTYPE,
+)
 from muller.util.exceptions import (
+    TensorInvalidSampleShapeError,
     TensorMetaInvalidHtype,
-    TensorMetaInvalidHtypeOverwriteValue,
     TensorMetaInvalidHtypeOverwriteKey,
+    TensorMetaInvalidHtypeOverwriteValue,
     TensorMetaMissingRequiredValue,
     TensorMetaMutuallyExclusiveKeysError,
     UnsupportedCompressionError,
-    TensorInvalidSampleShapeError,
 )
 from muller.util.json import validate_json_schema
 
