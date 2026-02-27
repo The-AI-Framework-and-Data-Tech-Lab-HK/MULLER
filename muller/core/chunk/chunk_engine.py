@@ -1538,8 +1538,7 @@ class ChunkEngine:
             Union[np.ndarray, List[np.ndarray]]: Either a list of numpy arrays or a single numpy array
             (depending on the `aslist` argument).
         """
-        return muller.core.chunk.protected_numpy(self, index, aslist, index_list,
-                                                                                **kwargs)
+        return muller.core.chunk.protected_numpy(self, index, aslist, index_list, **kwargs)
 
     def create_new_chunk(self, register=True, row: Optional[int] = None) -> BaseChunk:
         """Creates and returns a new `Chunk`. Automatically creates an ID for it and puts a reference in the cache."""

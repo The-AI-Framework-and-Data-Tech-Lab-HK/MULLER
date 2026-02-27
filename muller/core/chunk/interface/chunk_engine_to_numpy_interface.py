@@ -129,12 +129,20 @@ def protected_numpy(
 
         # Sherry: Here we start to get the samples in a batch mode
         if _validate_batch_samples(chunk_engine, fetch_chunks):
+            # Auto-detect access pattern if not explicitly specified
+            if not continuous and not full and not batch_random_access:
+                access_pattern = _detect_access_pattern(chunk_engine, index, index_list)
+                continuous = access_pattern['continuous']
+                full = access_pattern['full']
+                batch_random_access = access_pattern['batch_random_access']
+
             if continuous and chunk_engine.is_fixed_shape:
                 samples = get_samples_continuous(chunk_engine, index, max_workers)
             elif full and chunk_engine.is_fixed_shape:
                 samples = get_samples_full(chunk_engine, None, max_workers)
             elif batch_random_access:
                 samples = get_samples_batch_random_access(chunk_engine,
+                                                          index=index,
                                                           index_list=index_list,
                                                           max_workers=max_workers,
                                                           parallel=parallel)
@@ -160,12 +168,63 @@ def protected_numpy(
     return np.array(samples)
 
 
+def _detect_access_pattern(chunk_engine, index: Index, index_list=None):
+    """Automatically detect the optimal access pattern based on index characteristics.
+
+    Args:
+        chunk_engine: The chunk engine to use.
+        index (Index): Index applied on the tensor.
+        index_list: Optional list of indices for batch random access.
+
+    Returns:
+        Dict with keys 'continuous', 'full', 'batch_random_access' indicating which pattern to use.
+    """
+    pattern = {'continuous': False, 'full': False, 'batch_random_access': False}
+
+    # Check if we're accessing the full dataset
+    if isinstance(index.values[0].value, slice):
+        start = index.values[0].value.start or 0
+        stop = index.values[0].value.stop or chunk_engine.num_samples
+        step = index.values[0].value.step or 1
+
+        # Normalize negative indices
+        if start < 0:
+            start = chunk_engine.num_samples + start
+        if stop < 0:
+            stop = chunk_engine.num_samples + stop
+
+        # Full access: reading entire dataset
+        if start == 0 and stop == chunk_engine.num_samples and step == 1:
+            pattern['full'] = True
+            return pattern
+
+        # Continuous access: reading a continuous slice
+        if step == 1:
+            pattern['continuous'] = True
+            return pattern
+
+    # Batch random access: tuple of indices or explicit index_list
+    elif isinstance(index.values[0].value, tuple) or index_list is not None:
+        pattern['batch_random_access'] = True
+        return pattern
+
+    return pattern
+
+
 def _validate_batch_samples(chunk_engine, fetch_chunks):
+    """Validate if batch sample optimization can be applied.
+
+    The optimization methods (get_samples_continuous, get_samples_full, get_samples_batch_random_access)
+    only work with UncompressedChunk because they directly access raw bytes via chunk.data_bytes.
+    Compressed chunks require decompression before accessing individual samples.
+    """
     from muller.core.storage import MemoryProvider  # Sherry: import recursion risk
     return (
                 fetch_chunks
                 and not chunk_engine.is_video
                 and not isinstance(chunk_engine.base_storage, MemoryProvider)
+                and chunk_engine.chunk_compression is None  # Only uncompressed chunks
+                and chunk_engine.sample_compression is None  # Only uncompressed chunks
         )
 
 
@@ -236,14 +295,38 @@ def get_samples_continuous(
     results = []
 
     # The first chunk
-    if chunk_engine.translate_to_local_index(idxs[0], first_chunk_index) == 0:  # Read the whole chunk
-        results.append(_get_chunk_numpy_full(chunk_engine, chunk_names[0]))
+    if first_chunk_index == last_chunk_index:
+        # All samples are in the same chunk
+        start_local_idx = chunk_engine.translate_to_local_index(idxs[0], first_chunk_index)
+        end_local_idx = chunk_engine.translate_to_local_index(idxs[-1], first_chunk_index)
+
+        # Check if we're reading the entire chunk
+        chunk_start = 0 if first_chunk_index == 0 else last_id_list[first_chunk_index - 1] + 1
+        chunk_end = last_id_list[first_chunk_index]
+
+        if start_local_idx == 0 and idxs[-1] == chunk_end:
+            # Reading the whole chunk
+            results.append(_get_chunk_numpy_full(chunk_engine, chunk_names[0]))
+        else:
+            # Reading part of the chunk
+            results.append(_get_chunk_numpy_continuous(chunk_engine,
+                                                       chunk_names[0],
+                                                       start_local_idx,
+                                                       end_local_idx))
     else:
-        results.append(_get_chunk_numpy_continuous(chunk_engine,
-                                                   chunk_names[0],
-                                                   chunk_engine.translate_to_local_index(idxs[0],
-                                                   first_chunk_index),
-                                                   int(last_id_list[first_chunk_index])))
+        # Samples span multiple chunks
+        start_local_idx = chunk_engine.translate_to_local_index(idxs[0], first_chunk_index)
+
+        if start_local_idx == 0:
+            # Read the whole first chunk
+            results.append(_get_chunk_numpy_full(chunk_engine, chunk_names[0]))
+        else:
+            # Read from start_local_idx to end of first chunk
+            end_local_idx = int(last_id_list[first_chunk_index])
+            results.append(_get_chunk_numpy_continuous(chunk_engine,
+                                                       chunk_names[0],
+                                                       start_local_idx,
+                                                       end_local_idx))
     # The chunks in the middle
     # Note: If we use ProcessPool here, it may cause file look error.
     with ThreadPoolExecutor(min(max_workers, len(chunk_names))) as executor:
@@ -261,8 +344,9 @@ def get_samples_continuous(
                                                         int(chunk_engine.translate_to_local_index(idxs[-1],
                                                                                                   last_chunk_index))))
     final_results = np.concatenate(results)
-    final_results = final_results.reshape(len(final_results), 1)
-    return final_results
+    # Convert to list of numpy arrays to match get_samples() return type
+    # Each element is a sample with its original shape
+    return [final_results[i] for i in range(len(final_results))]
 
 
 def get_samples_full(
@@ -294,12 +378,14 @@ def get_samples_full(
             for chunk_name in all_chunk_names:
                 results.append(executor.submit(_get_chunk_numpy_full, chunk_engine, chunk_name))
     final_results = np.concatenate([result.result() for result in results])
-    final_results = final_results.reshape(len(final_results), 1)
-    return final_results
+    # Convert to list of numpy arrays to match get_samples() return type
+    # Each element is a sample with its original shape
+    return [final_results[i] for i in range(len(final_results))]
 
 
 def get_samples_batch_random_access(chunk_engine,
-                                    index_list: List,
+                                    index: Optional[Index] = None,
+                                    index_list: Optional[List] = None,
                                     max_workers: int = MAX_WORKERS_FOR_CHUNK_ENGINE,
                                     parallel: Optional[str] = None):
     """【Added by Sherry】
@@ -307,13 +393,22 @@ def get_samples_batch_random_access(chunk_engine,
 
     Args:
         chunk_engine: The chunk engine to be used.
-        index_list (List): Index applied on the tensor.
+        index (Optional[Index]): Index applied on the tensor.
+        index_list (Optional[List]): Explicit list of indices. If not provided, will be extracted from index.
         max_workers (int): max workers used in thread pool.
         parallel (Optional[str]): whether using threads for parallel computing or not.
 
     Returns:
         List of samples.
     """
+    # Extract index_list from index if not provided
+    if index_list is None:
+        if index is None:
+            raise ValueError("Either index or index_list must be provided")
+        if isinstance(index.values[0].value, tuple):
+            index_list = list(index.values[0].value)
+        else:
+            index_list = list(index.values[0].indices(chunk_engine.num_samples))
 
     load_res = _load_chunk_infos(chunk_engine, list(index_list))  # Note: this rearrange the index_list
 
@@ -534,20 +629,39 @@ def _obtain_cache_range(chunk_engine, enc, global_sample_index, as_arrow):
 
 def _get_chunk_numpy_continuous(chunk_engine, chunk_name, start_idx, end_idx):
     sample_dtype = chunk_engine.tensor_meta.dtype
-    sample_size = np.array([], dtype=sample_dtype).itemsize
+    sample_shape = tuple(chunk_engine.tensor_meta.max_shape)
+    sample_size = np.prod(sample_shape, dtype=int) * np.dtype(sample_dtype).itemsize
+
     chunk_key = get_chunk_key(chunk_engine.key, chunk_name)
     chunk = chunk_engine.get_chunk(chunk_key)
-    np_bytes = chunk.data_bytes[start_idx*sample_size: end_idx*sample_size + sample_size]
-    final_results = np.frombuffer(np_bytes, dtype=sample_dtype)
+    np_bytes = chunk.data_bytes[start_idx*sample_size: (end_idx+1)*sample_size]
+
+    # Calculate number of samples
+    num_samples = end_idx - start_idx + 1
+
+    # Reshape to (num_samples,) + sample_shape
+    full_shape = (num_samples,) + sample_shape
+    final_results = np.frombuffer(np_bytes, dtype=sample_dtype).reshape(full_shape)
+
     return final_results
 
 
 def _get_chunk_numpy_full(chunk_engine, chunk_name):
     sample_dtype = chunk_engine.tensor_meta.dtype
+    sample_shape = tuple(chunk_engine.tensor_meta.max_shape)
+
     chunk_key = get_chunk_key(chunk_engine.key, chunk_name)
     chunk = chunk_engine.get_chunk(chunk_key)
     np_bytes = chunk.data_bytes
-    final_results = np.frombuffer(np_bytes, dtype=sample_dtype)
+
+    # Calculate number of samples in this chunk
+    sample_size = np.prod(sample_shape, dtype=int) * np.dtype(sample_dtype).itemsize
+    num_samples = len(np_bytes) // sample_size
+
+    # Reshape to (num_samples,) + sample_shape
+    full_shape = (num_samples,) + sample_shape
+    final_results = np.frombuffer(np_bytes, dtype=sample_dtype).reshape(full_shape)
+
     return final_results
 
 
