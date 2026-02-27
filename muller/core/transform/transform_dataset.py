@@ -47,9 +47,12 @@ class TransformDataset:
         self.is_batch = is_batch
         self.pg_callback = None
         self.start_input_idx = None
+        self.batch_samples_written = 0  # Track samples written in batch mode
         self._init_tensors()
 
     def __len__(self):
+        if self.is_batch and self.batch_samples_written > 0:
+            return self.batch_samples_written
         return max(len(self[tensor]) for tensor in self.data)
 
     def __getattr__(self, tensor):

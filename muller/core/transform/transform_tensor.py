@@ -64,35 +64,28 @@ class TransformTensor:
     def append(self, item):
         """Adds an item to the tensor."""
         try:
-            # optimization applicable only if extending
-            self.non_numpy_only()
-
             if self.is_batch:
-                updated_tensor = []
+                updated_tensor = 0
                 try:
-                    updated_tensor = 0
                     chunk_engine = self.dataset.all_chunk_engines[self.name]
-                    if self.numpy_only:
-                        for sample in item:
-                            chunk_engine.extend(
-                                sample,
-                                pg_callback=self.dataset.pg_callback,
-                            )
-                            updated_tensor += len(sample)
-                        self.items.clear()
-                    else:
-                        chunk_engine.extend(
-                            item,
-                            pg_callback=self.dataset.pg_callback,
-                            is_uuid=(self.name == DATASET_UUID_NAME)
-                        )
-                        updated_tensor += len(item)
-                        self.items.clear()
+                    # In batch mode, item is always a list of samples
+                    # Directly extend with the entire list
+                    chunk_engine.extend(
+                        item,
+                        pg_callback=self.dataset.pg_callback,
+                        is_uuid=(self.name == DATASET_UUID_NAME)
+                    )
+                    updated_tensor = len(item)
+                    # Update batch_samples_written for the first non-uuid tensor
+                    if self.name != DATASET_UUID_NAME and self.dataset.batch_samples_written == 0:
+                        self.dataset.batch_samples_written = updated_tensor
                 except Exception as e:
-                    self.dataset.rollback({self.name: updated_tensor}, self.name)
+                    self.dataset._rollback({self.name: updated_tensor}, [])
                     e = e.__cause__ if isinstance(e, SampleAppendError) else e  # type: ignore
                     raise SampleAppendError(self.name) from e
             else:
+                # optimization applicable only if extending
+                self.non_numpy_only()
                 self.items.append(item)  # only not uuid, self.items=list
                 self._item_added(item)  # calculate size
         except Exception as e:

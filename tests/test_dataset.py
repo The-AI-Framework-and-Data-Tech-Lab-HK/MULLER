@@ -168,6 +168,115 @@ def test_create_cifar10_dataset_isbatch(storage):
     assert ds_batch_process.labels[6:9].numpy()[0][0] == 2
 
 
+def test_batch_enable_optimized_pattern(storage):
+    """Test the recommended optimized batch_enable pattern with append() and optimized parameters."""
+    class_names = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+    ds_cifar = muller.dataset(path=official_path(storage, CIFAR10_MULTI_TEST_PATH),
+                              creds=official_creds(storage), overwrite=True)
+    with ds_cifar:
+        ds_cifar.create_tensor("images", htype="image", sample_compression="jpg")
+        ds_cifar.create_tensor("labels", htype="class_label", class_names=class_names)
+
+    # Prepare data - preload images and labels
+    pics_list = get_cifar10_huashan(mode="train")
+    images = []
+    labels = []
+    for path in pics_list:
+        with open(path.with_suffix(".txt"), "r") as fh:
+            cls = int(fh.read())
+        images.append(muller.read(path))
+        labels.append(np.uint32(cls))
+
+    @muller.compute(batch_enable=True)
+    def file_to_muller_optimized(images, labels, sample_out):
+        sample_out.images.append(images)
+        sample_out.labels.append(labels)
+        return sample_out
+
+    with ds_cifar:
+        file_to_muller_optimized().eval(
+            images, labels, ds_cifar,
+            num_workers=4,
+            scheduler="processed",
+            cache_size=64,
+            disable_rechunk=True
+        )
+
+    assert len(ds_cifar) == len(pics_list)
+    assert ds_cifar.images[0].shape == (32, 32, 3)
+    assert ds_cifar.labels[0].numpy()[0] in range(10)
+
+
+def test_batch_enable_with_numpy_arrays(storage):
+    """Test batch_enable mode with numpy arrays to verify numpy_only path works correctly."""
+    ds = muller.dataset(path=official_path(storage, SMALL_TEST_PATH),
+                       creds=official_creds(storage), overwrite=True)
+    with ds:
+        ds.create_tensor("scores", htype="generic", dtype="int32")
+        ds.create_tensor("categories", htype="class_label")
+
+    # Prepare numpy arrays
+    scores_data = [np.int32(i) for i in range(100)]
+    categories_data = [np.uint32(i % 10) for i in range(100)]
+
+    @muller.compute(batch_enable=True)
+    def batch_add_data(scores, categories, sample_out):
+        sample_out.scores.append(scores)
+        sample_out.categories.append(categories)
+        return sample_out
+
+    with ds:
+        batch_add_data().eval(scores_data, categories_data, ds, num_workers=2, scheduler="threaded")
+
+    assert len(ds) == 100
+    assert ds.scores[0].numpy()[0] == 0
+    assert ds.scores[99].numpy()[0] == 99
+    assert ds.categories[5].numpy()[0] == 5
+
+
+def test_batch_enable_single_worker(storage):
+    """Test batch_enable mode with single worker (serial mode)."""
+    ds = muller.dataset(path=official_path(storage, SMALL_TEST_PATH),
+                       creds=official_creds(storage), overwrite=True)
+    with ds:
+        ds.create_tensor("texts", htype="text")
+
+    text_data = [f"item_{i}" for i in range(50)]
+
+    @muller.compute(batch_enable=True)
+    def batch_add_text(texts, sample_out):
+        sample_out.texts.append(texts)
+        return sample_out
+
+    with ds:
+        batch_add_text().eval(text_data, ds, num_workers=1, scheduler="serial")
+
+    assert len(ds) == 50
+    assert ds.texts[0].numpy()[0] == "item_0"
+    assert ds.texts[49].numpy()[0] == "item_49"
+
+
+def test_batch_enable_processed_scheduler(storage):
+    """Test batch_enable mode with processed (multiprocessing) scheduler."""
+    ds = muller.dataset(path=official_path(storage, SMALL_TEST_PATH),
+                       creds=official_creds(storage), overwrite=True)
+    with ds:
+        ds.create_tensor("numbers", htype="generic", dtype="float32")
+
+    numbers_data = [np.float32(i * 0.1) for i in range(200)]
+
+    @muller.compute(batch_enable=True)
+    def batch_add_numbers(nums, sample_out):
+        sample_out.numbers.append(nums)
+        return sample_out
+
+    with ds:
+        batch_add_numbers().eval(numbers_data, ds, num_workers=4, scheduler="processed")
+
+    assert len(ds) == 200
+    assert abs(ds.numbers[10].numpy()[0] - 1.0) < 0.01
+
+
 def test_create_cifar10_dataset_parallel(storage):
     num_workers = 2
     ds_multi_thread = create_cifar10_dataset_parallel(storage=storage, num_workers=num_workers, scheduler="threaded")

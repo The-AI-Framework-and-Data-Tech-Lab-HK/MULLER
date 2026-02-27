@@ -554,16 +554,24 @@ def _batch_extend_data_slice(
         pipeline.args,
         pipeline.kwargs,
     )
-    if pg_callback is not None:
-        pg_callback = _normalize_pg(pg_callback, len(transform_dataset.tensors))
-    transform_dataset.set_pg_callback(pg_callback)
+    # In batch mode, progress is updated after all samples are written
+    # Store the callback for later use
+    batch_pg_callback = pg_callback
+    transform_dataset.set_pg_callback(None)  # Disable per-sample progress updates
     try:
         extend_fn(*data_slice, transform_dataset, *args, **kwargs)
         append_uuid(transform_dataset)
+        # Update progress after batch processing completes
+        if batch_pg_callback is not None:
+            num_samples = len(transform_dataset)
+            batch_pg_callback(num_samples)
     except Exception as e:
         raise TransformError(
             offset, suggest=isinstance(e, SampleAppendError), is_batch=True
         ) from e
+    finally:
+        # Flush to ensure all data is written to storage
+        transform_dataset.flush()
 
 
 def _check_pipeline(out, tensors, skip_ok):

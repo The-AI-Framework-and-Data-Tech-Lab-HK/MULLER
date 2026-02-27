@@ -29,21 +29,8 @@ from muller.core.meta.encode.chunk_id import ChunkIdEncoder
 from muller.core.meta.encode.tile import TileEncoder
 from muller.core.meta.tensor_meta import TensorMeta
 from muller.core.storage import MemoryProvider
-from muller.core.storage.provider import StorageProvider
-from muller.core.version_control import protected_commit
-from muller.core.version_control.commit_chunk_map import CommitChunkMap
-from muller.core.version_control.commit_diff import CommitDiff
-from muller.core.version_control.functions import auto_checkout
-from muller.util.exceptions import AllSamplesSkippedError, TransformError, UnAuthorizationError
-from muller.util.json import HubJsonDecoder, HubJsonEncoder
-from muller.core.storage_keys import (
-    get_tensor_commit_chunk_map_key,
-    get_tensor_commit_diff_key,
-    get_tensor_meta_key,
-    get_chunk_id_encoder_key,
-    get_tensor_tile_encoder_key,
-)
 from muller.core.storage.cache_utils import get_base_storage
+from muller.core.storage.provider import StorageProvider
 from muller.core.transform.pipeline import (
     check_lengths,
     check_transform_data_in,
@@ -64,6 +51,20 @@ from muller.core.transform.pipeline import (
     len_data_in,
     transform_summary,
 )
+from muller.core.version_control import protected_commit
+from muller.core.version_control.commit_chunk_map import CommitChunkMap
+from muller.core.version_control.commit_diff import CommitDiff
+from muller.core.version_control.functions import auto_checkout
+from muller.util.exceptions import AllSamplesSkippedError, TransformError, UnAuthorizationError
+from muller.util.json import HubJsonDecoder, HubJsonEncoder
+from muller.core.storage_keys import (
+    get_tensor_commit_chunk_map_key,
+    get_tensor_commit_diff_key,
+    get_tensor_meta_key,
+    get_chunk_id_encoder_key,
+    get_tensor_tile_encoder_key,
+)
+
 
 
 class ComputeFunction:
@@ -381,7 +382,6 @@ class Pipeline:
                         overwrite=overwrite,
                         skip_ok=skip_ok,
                         read_only=kwargs.get("read_only_ok", False) and overwrite,
-                        cache_size=kwargs.get("cache_size", DEFAULT_TRANSFORM_SAMPLE_CACHE_SIZE),
                         pbar=pbar,
                         pqueue=pqueue,
                         ignore_errors=ignore_errors,
