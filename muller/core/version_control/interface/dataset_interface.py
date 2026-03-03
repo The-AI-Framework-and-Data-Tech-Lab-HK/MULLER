@@ -34,7 +34,7 @@ from muller.core.version_control.interface.diff_interface import (sanitize_commi
                                                                  handle_delete_ranges, \
                                                                  generate_add_values, generate_update_values,
                                                                  generate_delete_values)
-from muller.core.dataset.operations import try_flushing
+from muller.core.dataset.optimization import try_flushing
 from muller.util.exceptions import EmptyCommitError, ReadOnlyModeError, CheckoutError, UnAuthorizationError, \
     DatasetCorruptError, ExportDataFrameLimit, VersionControlError
 from muller.core.storage_keys import get_tensor_meta_key, get_dataset_meta_key, get_sample_id_tensor_key, \

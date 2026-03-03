@@ -31,7 +31,7 @@ from muller.core.index import Index
 from muller.core.meta.tensor_meta import TensorMeta
 from muller.core.storage import MemoryProvider, StorageProvider, LRUCache
 from muller.core.transform.transform_dataset import TransformDataset
-from muller.core.dataset.operations import try_flushing
+from muller.core.dataset.optimization import try_flushing
 from muller.util.exceptions import InvalidInputDataError, TransformFailure
 from muller.util.exceptions import (InvalidOutputDatasetError, AllSamplesSkippedError,
                                    TensorDoesNotExistError, InvalidTransformDataset, TensorMismatchError,

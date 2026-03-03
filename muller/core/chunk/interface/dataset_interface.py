@@ -65,7 +65,7 @@ def dataset_rechunk_if_necessary(
     Returns:
         None.
     """
-    from muller.core.dataset.operations import rechunk_one_tensor
+    from muller.core.dataset.optimization import rechunk_one_tensor
 
     if tensor_spec is None:
         tensors = [t for t in ds.tensors if not t.startswith("_")]
