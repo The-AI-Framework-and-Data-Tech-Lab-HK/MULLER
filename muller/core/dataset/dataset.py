@@ -101,11 +101,28 @@ from muller.util.path import (
 )
 from muller.util.spinner import spinner
 
+# Import mixins
+from muller.core.dataset.mixins import (
+    DatasetOpsMixin,
+    ExportMixin,
+    QueryMixin,
+    StatisticsMixin,
+    TensorOpsMixin,
+    VersionControlMixin,
+)
+
 
 _LOCKABLE_STORAGES = {LocalProvider}
 
 
-class Dataset:
+class Dataset(
+    VersionControlMixin,
+    QueryMixin,
+    TensorOpsMixin,
+    ExportMixin,
+    StatisticsMixin,
+    DatasetOpsMixin,
+):
     def __init__(
             self,
             storage: LRUCache,
