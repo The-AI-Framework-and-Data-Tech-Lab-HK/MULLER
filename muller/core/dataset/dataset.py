@@ -1262,19 +1262,8 @@ class Dataset(
 
     def query(self, tensor_name, query):
         """Query the target tensor column based on inverted index."""
-        inverted_index = self.get_inverted_index(tensor_name)
-        ids = inverted_index.search(query)
-        if inverted_index.use_uuid:
-            # map uuids to global idx
-            commit_node = self.version_state.get("commit_node")
-            commit_id = commit_node.parent.commit_id
-            uuids = self.get_tensor_uuids(tensor_name, commit_id)
-            index = set()
-            for idx, tmp_uuid in enumerate(uuids):
-                if str(tmp_uuid) in ids:
-                    index.add(idx)
-            ids = index
-        return ids
+        from muller.core.query.filter import query_with_inverted_index
+        return query_with_inverted_index(self, tensor_name, query)
 
     def filter(
             self,
@@ -1286,71 +1275,8 @@ class Dataset(
             **kwargs
     ):
         """Filter the dataset with specified function."""
-        compute_future = kwargs.get("compute_future", True)
-
-        def function_contents(func):
-            try:
-                func.__closure__
-            except Exception as e:
-                func = func.func
-                raise Exception from e
-            finally:
-                closure = tuple(cell.cell_contents for cell in func.__closure__) if func.__closure__ else ()
-                tmp_list = [func.__name__, func.__defaults__, func.__kwdefaults__, closure, func.__code__.co_code,
-                        func.__code__.co_consts]
-                return tmp_list
-
-        function_key = hash(function) if function is None or isinstance(function, str) else hash(
-            tuple(function_contents(function)))
-        key = str(index_query).strip() + str(function_key) + connector
-
-        if "filter" not in self.storage.upper_cache:
-            self.storage.upper_cache["filter"] = {}
-        cache_key = key + str(offset)
-        if compute_future and cache_key in self.storage.upper_cache["filter"]:
-            result = self.storage.upper_cache["filter"].pop(cache_key).result(timeout=None)  # index
-            if (len(result.filtered_index) > 0 and
-                    result.filtered_index[-1] != len(self) - 1):  # not last index, have next
-                self.filter_next(cache_key, function, index_query, connector, offset=result.filtered_index[-1] + 1,
-                                 limit=limit)
-            return result
-        if bool(self.storage.upper_cache["filter"]) and cache_key not in self.storage.upper_cache[
-            "filter"]:  # key doesn't match
-            self.storage.upper_cache["filter"] = {}  # clear cache
-
-        ids = []
-        if index_query is not None:
-            def dynamic_function():
-                return eval(index_query, {'__builtins__': None}, {'query': self.query_string})
-            ids_fuzzy_matching = dynamic_function()
-            ids = list(ids_fuzzy_matching)
-            ids.sort()
-        if offset > 0:
-            ids = [i for i in ids if i >= offset]
-        if function is None:  # fuzzy matching only
-            ids = ids[:limit]
-            ret = self[ids]
-            ret.filtered_index = ids
-            return ret
-
-        ds, ids = self._get_filter_res_from_conditions(function, connector, offset, limit, ids, index_query)
-
-        kwargs["index_query"] = index_query
-        kwargs["connector"] = connector
-        kwargs["ids"] = ids
-        kwargs["key"] = key
-        from muller.core.query import filter_dataset, query_dataset
-        fn = query_dataset if isinstance(function, str) else filter_dataset
-        ret = self._process_filter(fn, ds, function, offset, limit, kwargs)
-        return ret
-
-
-    def filter_next(self, key, function, index_query, connector, offset, limit):
-        """Filter the dataset with specified function (in advance and save the results to upper cache)"""
-        with ThreadPoolExecutor() as executor:
-            future = executor.submit(self.filter, function=function, index_query=index_query, connector=connector,
-                                     offset=offset, limit=limit)
-            self.storage.upper_cache["filter"].update({key: future})
+        from muller.core.query.filter import filter_dataset_with_cache
+        return filter_dataset_with_cache(self, function, index_query, connector, offset, limit, **kwargs)
 
     def aggregate(
             self,
@@ -1430,24 +1356,13 @@ class Dataset(
 
     def create_uuid_index(self):
         """Create uuid and index pair and stored in the disk. """
-        try:
-            current_id = self.version_state['commit_id']
-        except KeyError as e:
-            raise KeyError from e
-        if current_id != FIRST_COMMIT_ID:
-            raise ValueError
-        uuids = self.get_tensor_uuids(DATASET_UUID_NAME, current_id)
-        divide_to_shard(path=os.path.join(self.path, DATASET_UUID_NAME), uuids=uuids)
+        from muller.core.dataset.uuid.uuid_index import create_uuid_index
+        return create_uuid_index(self)
 
     def load_uuid_index(self):
         """Load all uuid indexes from shards. """
-        try:
-            current_id = self.version_state['commit_id']
-        except KeyError as e:
-            raise KeyError from e
-        if current_id != FIRST_COMMIT_ID:
-            raise ValueError
-        return load_all_shards(path=os.path.join(self.path, DATASET_UUID_NAME))
+        from muller.core.dataset.uuid.uuid_index import load_uuid_index
+        return load_uuid_index(self)
 
     @invalid_view_op
     @user_permission_check
@@ -1485,14 +1400,7 @@ class Dataset(
     def summary(self, force: bool = False):
         """Print out a summarization of the schema and statistic information of the dataset."""
         from muller.core.dataset.statistics.summary import summary_dataset
-        if (
-                not self.index.is_trivial()
-                and self.max_len > VIEW_SUMMARY_SAFE_LIMIT
-                and not force
-        ):
-            raise SummaryLimit(self.max_len, VIEW_SUMMARY_SAFE_LIMIT)
-        pretty_print = summary_dataset(self)
-        print(pretty_print)
+        summary_dataset(self, force)
 
     def to_dataframe(self, tensor_list: Optional[List[str]] = None,
                      index_list: Optional[List] = None,
@@ -1517,19 +1425,8 @@ class Dataset(
             InvalidTensorList: If ``tensor_list`` contains tensors that are not in the current columns.
             ToDataFrameLimit: If the length of ``index_list`` exceeds the TO_DATAFRAME_SAFE_LIMIT.
         """
-        # Verify that the target column is correctly specified.
-        if tensor_list and (len(tensor_list) > len(self.tensors) or
-                            not all(isinstance(x, str) and x in self.tensors for x in tensor_list)):
-            raise InvalidTensorList(tensor_list)
-        max_num = -1
-        if index_list and len(index_list) > TO_DATAFRAME_SAFE_LIMIT and not force:
-            max_num = len(index_list)
-        elif self.max_len > TO_DATAFRAME_SAFE_LIMIT and not force:
-            max_num = self.max_len
-        if max_num != -1:
-            raise ToDataFrameLimit(max_num, TO_DATAFRAME_SAFE_LIMIT)
-
-        return muller.core.dataset.to_dataframe(self, tensor_list, index_list)
+        from muller.core.dataset.export_data.to_dataframe import to_dataframe
+        return to_dataframe(self, tensor_list, index_list, force)
 
     def to_arrow(self):
         """Returns an arrow object of the dataset."""
@@ -2014,56 +1911,3 @@ class Dataset(
             return True
         return False
 
-    def _get_filter_res_from_conditions(self, function, connector, offset, limit, ids, index_query):
-
-        if connector == "AND":
-            ids = [i - offset for i in ids]
-            ds = self[offset:]
-            ds = ds[ids] if index_query is not None else ds
-        elif connector == "OR":
-            ids = ids[:limit]
-            ds = self[offset:]
-        else:
-            raise Exception(f"Unsupported connector {connector}")
-        return ds, ids
-
-    def _process_filter(self, fn, ds, function, offset, limit, kwargs):
-
-        index_query = kwargs.get("index_query", None)
-        connector = kwargs.get("connector", None)
-        ids = kwargs.get("ids", None)
-        key = kwargs.get("key", None)
-
-        ret = fn(
-            ds,
-            function,
-            num_workers=kwargs.get("num_workers", 0),
-            scheduler=kwargs.get("scheduler", "threaded"),
-            progressbar=kwargs.get("progressbar", False),
-            save_result=kwargs.get("save_result", False),
-            result_path=kwargs.get("result_path", None),
-            result_ds_args=kwargs.get("result_ds_args", None),
-            offset=offset,
-            limit=limit,
-        )
-
-        if index_query is None and offset > 0:
-            ret.filtered_index = [i + offset for i in ret.filtered_index]
-        if connector == "AND" and index_query is not None:
-            index_map = [ids[local_index] for local_index in ret.filtered_index][:limit]
-            ret.filtered_index = index_map
-            if offset > 0:
-                ret.filtered_index = [i + offset for i in ret.filtered_index]
-        if connector == "OR":
-            if offset > 0:
-                ret.filtered_index = [i + offset for i in ret.filtered_index]
-            merged_ids = list(heapq.merge(ret.filtered_index, ids))[:limit]
-            ret = self[merged_ids]
-            ret.filtered_index = merged_ids
-
-        if limit and len(ret.filtered_index) > 0 and ret.filtered_index[-1] != len(self) - 1:
-            if kwargs.get("compute_future", True):
-                key = key + str(ret.filtered_index[-1] + 1)  # the start index of next filter computation
-                self.filter_next(key, function, index_query, connector, offset=ret.filtered_index[-1] + 1, limit=limit)
-        return ret
-    

@@ -15,18 +15,18 @@ import threading
 from collections import defaultdict
 from queue import Queue
 from time import time
-from typing import Callable, List, Optional, Dict, Sequence
+from typing import Callable, Dict, List, Optional, Sequence
 from uuid import uuid4
 
 import numpy as np
 
 import muller
+from muller.compute import get_compute_provider
 from muller.constants import (
     QUERY_PROGRESS_UPDATE_FREQUENCY,
     TRANSFORM_PROGRESSBAR_UPDATE_INTERVAL,
 )
 from muller.core.query.query import DatasetQuery
-from muller.core.compute import get_compute_provider
 from muller.util.exceptions import FilterError
 from muller.util.hash import hash_inputs
 
@@ -462,3 +462,169 @@ def _get_new_index_map(result, subdatasets):
         for k in x
     ]
     return index_map
+
+
+def query_with_inverted_index(dataset, tensor_name, query):
+    """Query the target tensor column based on inverted index.
+
+    Args:
+        dataset: The dataset to query.
+        tensor_name: The name of the tensor to query.
+        query: The query string.
+
+    Returns:
+        A set of indices matching the query.
+    """
+    inverted_index = dataset.get_inverted_index(tensor_name)
+    ids = inverted_index.search(query)
+    if inverted_index.use_uuid:
+        # map uuids to global idx
+        commit_node = dataset.version_state.get("commit_node")
+        commit_id = commit_node.parent.commit_id
+        uuids = dataset.get_tensor_uuids(tensor_name, commit_id)
+        index = set()
+        for idx, tmp_uuid in enumerate(uuids):
+            if str(tmp_uuid) in ids:
+                index.add(idx)
+        ids = index
+    return ids
+
+
+def filter_dataset_with_cache(
+        dataset,
+        function=None,
+        index_query=None,
+        connector="AND",
+        offset=0,
+        limit=None,
+        **kwargs
+):
+    """Filter the dataset with specified function, with caching support.
+
+    This is the main entry point for dataset filtering that includes caching logic.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    import heapq
+
+    compute_future = kwargs.get("compute_future", True)
+
+    def function_contents(func):
+        try:
+            func.__closure__
+        except Exception as e:
+            func = func.func
+            raise Exception from e
+        finally:
+            closure = tuple(cell.cell_contents for cell in func.__closure__) if func.__closure__ else ()
+            tmp_list = [func.__name__, func.__defaults__, func.__kwdefaults__, closure, func.__code__.co_code,
+                        func.__code__.co_consts]
+            return tmp_list
+
+    function_key = hash(function) if function is None or isinstance(function, str) else hash(
+        tuple(function_contents(function)))
+    key = str(index_query).strip() + str(function_key) + connector
+
+    if "filter" not in dataset.storage.upper_cache:
+        dataset.storage.upper_cache["filter"] = {}
+    cache_key = key + str(offset)
+    if compute_future and cache_key in dataset.storage.upper_cache["filter"]:
+        result = dataset.storage.upper_cache["filter"].pop(cache_key).result(timeout=None)  # index
+        if (len(result.filtered_index) > 0 and
+                result.filtered_index[-1] != len(dataset) - 1):  # not last index, have next
+            _filter_next(dataset, cache_key, function, index_query, connector, offset=result.filtered_index[-1] + 1,
+                         limit=limit)
+        return result
+    if bool(dataset.storage.upper_cache["filter"]) and cache_key not in dataset.storage.upper_cache[
+        "filter"]:  # key doesn't match
+        dataset.storage.upper_cache["filter"] = {}  # clear cache
+
+    ids = []
+    if index_query is not None:
+        def dynamic_function():
+            return eval(index_query, {'__builtins__': None}, {'query': dataset.query_string})
+        ids_fuzzy_matching = dynamic_function()
+        ids = list(ids_fuzzy_matching)
+        ids.sort()
+    if offset > 0:
+        ids = [i for i in ids if i >= offset]
+    if function is None:  # fuzzy matching only
+        ids = ids[:limit]
+        ret = dataset[ids]
+        ret.filtered_index = ids
+        return ret
+
+    ds, ids = _get_filter_res_from_conditions(dataset, function, connector, offset, limit, ids, index_query)
+
+    kwargs["index_query"] = index_query
+    kwargs["connector"] = connector
+    kwargs["ids"] = ids
+    kwargs["key"] = key
+    fn = query_dataset if isinstance(function, str) else filter_dataset
+    ret = _process_filter(dataset, fn, ds, function, offset, limit, kwargs)
+    return ret
+
+
+def _filter_next(dataset, key, function, index_query, connector, offset, limit):
+    """Filter the dataset with specified function (in advance and save the results to upper cache)"""
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor() as executor:
+        future = executor.submit(filter_dataset_with_cache, dataset, function=function, index_query=index_query,
+                                 connector=connector, offset=offset, limit=limit)
+        dataset.storage.upper_cache["filter"].update({key: future})
+
+
+def _get_filter_res_from_conditions(dataset, function, connector, offset, limit, ids, index_query):
+    """Get filter results from conditions."""
+    if connector == "AND":
+        ids = [i - offset for i in ids]
+        ds = dataset[offset:]
+        ds = ds[ids] if index_query is not None else ds
+    elif connector == "OR":
+        ids = ids[:limit]
+        ds = dataset[offset:]
+    else:
+        raise Exception(f"Unsupported connector {connector}")
+    return ds, ids
+
+
+def _process_filter(dataset, fn, ds, function, offset, limit, kwargs):
+    """Process filter results and handle index mapping."""
+    import heapq
+
+    index_query = kwargs.get("index_query", None)
+    connector = kwargs.get("connector", None)
+    ids = kwargs.get("ids", None)
+    key = kwargs.get("key", None)
+
+    ret = fn(
+        ds,
+        function,
+        num_workers=kwargs.get("num_workers", 0),
+        scheduler=kwargs.get("scheduler", "threaded"),
+        progressbar=kwargs.get("progressbar", False),
+        save_result=kwargs.get("save_result", False),
+        result_path=kwargs.get("result_path", None),
+        result_ds_args=kwargs.get("result_ds_args", None),
+        offset=offset,
+        limit=limit,
+    )
+
+    if index_query is None and offset > 0:
+        ret.filtered_index = [i + offset for i in ret.filtered_index]
+    if connector == "AND" and index_query is not None:
+        index_map = [ids[local_index] for local_index in ret.filtered_index][:limit]
+        ret.filtered_index = index_map
+        if offset > 0:
+            ret.filtered_index = [i + offset for i in ret.filtered_index]
+    if connector == "OR":
+        if offset > 0:
+            ret.filtered_index = [i + offset for i in ret.filtered_index]
+        merged_ids = list(heapq.merge(ret.filtered_index, ids))[:limit]
+        ret = dataset[merged_ids]
+        ret.filtered_index = merged_ids
+
+    if limit and len(ret.filtered_index) > 0 and ret.filtered_index[-1] != len(dataset) - 1:
+        if kwargs.get("compute_future", True):
+            key = key + str(ret.filtered_index[-1] + 1)  # the start index of next filter computation
+            _filter_next(dataset, key, function, index_query, connector, offset=ret.filtered_index[-1] + 1, limit=limit)
+    return ret

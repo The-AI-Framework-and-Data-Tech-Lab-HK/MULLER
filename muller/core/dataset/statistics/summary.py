@@ -30,8 +30,26 @@ def _get_string(table_array, max_arr):
     return temp_str
 
 
-def summary_dataset(dataset):
-    """Produce the summary of the dataset."""
+def summary_dataset(dataset, force=False):
+    """Print out a summarization of the schema and statistic information of the dataset.
+
+    Args:
+        dataset: The dataset to summarize.
+        force (bool): If True, bypass the VIEW_SUMMARY_SAFE_LIMIT check.
+
+    Raises:
+        SummaryLimit: If the dataset exceeds VIEW_SUMMARY_SAFE_LIMIT and force is False.
+    """
+    from muller.constants import VIEW_SUMMARY_SAFE_LIMIT
+    from muller.util.exceptions import SummaryLimit
+
+    if (
+            not dataset.index.is_trivial()
+            and dataset.max_len > VIEW_SUMMARY_SAFE_LIMIT
+            and not force
+    ):
+        raise SummaryLimit(dataset.max_len, VIEW_SUMMARY_SAFE_LIMIT)
+
     head = ["tensor", "htype", "shape", "dtype", "compression"]
     divider = ["-------"] * 5
     tensor_dict = dataset.tensors
@@ -63,4 +81,5 @@ def summary_dataset(dataset):
         count += 1
     max_column_length = [elem + 2 for elem in max_column_length]
 
-    return _get_string(table_array, max_column_length)
+    pretty_print = _get_string(table_array, max_column_length)
+    print(pretty_print)
