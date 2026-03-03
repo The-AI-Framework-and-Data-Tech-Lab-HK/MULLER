@@ -18,37 +18,52 @@ __all__ = [
     "__version__",
     "delete",
     "compute",
-    "get_col_info"
-    ]
+    "get_col_info",
+    "empty",
+    "like",
+    "tiled",
+    "Sample",
+    "from_file",
+    "from_dataframes",
+]
 
 
 import sys
 
 import muller.constants
 from muller._version import __version__
-from muller.api.read import read
-from muller.api.tiled import tiled
 from muller.compression import SUPPORTED_COMPRESSIONS
 from muller.core.dataset import Dataset
 from muller.core.tensor import Tensor
-from muller.core.transform import compute
 from muller.core.types.htype import HTYPE_CONFIGURATIONS
+
+# Import from new API structure
+from muller.api.dataset import (
+    dataset,
+    load,
+    empty,
+    like,
+    delete,
+    get_col_info,
+    from_file,
+    from_dataframes,
+)
+from muller.api.io import read, tiled, Sample
+from muller.api.transform import compute
 
 compressions = list(SUPPORTED_COMPRESSIONS)
 
 if sys.version_info < (3, 11):
     raise RuntimeError("Python version 3.11 or higher is required for this project.")
 
-# The api of muller dataset
-load = muller.api.DatasetAPI.load
-empty = muller.api.DatasetAPI.empty
-dataset = muller.api.DatasetAPI.dataset
-like = muller.api.DatasetAPI.like
-delete = muller.api.DatasetAPI.delete
-get_col_info = muller.api.DatasetAPI.get_col_info
-create_dataset_from_file = muller.api.DatasetAPI.create_dataset_from_file
-create_dataset_from_dataframes = muller.api.DatasetAPI.create_dataset_from_dataframes
-
-
 # The api of muller tensor
 tensor = Tensor
+
+# Backward compatibility - keep old import paths working
+# Users can still use: from muller.api import DatasetAPI
+import muller.api
+
+# Deprecated: create_dataset_from_file and create_dataset_from_dataframes
+# These are now available as from_file and from_dataframes
+create_dataset_from_file = from_file
+create_dataset_from_dataframes = from_dataframes

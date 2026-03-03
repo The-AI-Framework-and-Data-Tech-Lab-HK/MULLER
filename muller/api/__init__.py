@@ -6,4 +6,47 @@
 #
 # Copyright (c) 2026 Xueling Lin
 
-from .dataset_api import DatasetAPI
+"""MULLER API - organized by functionality."""
+
+# Dataset operations
+from muller.api.dataset import (
+    dataset,
+    load,
+    empty,
+    delete,
+    get_col_info,
+    like,
+    from_file,
+    from_dataframes,
+)
+
+# I/O operations
+from muller.api.io import read, tiled, Sample
+
+# Transform operations
+from muller.api.transform import compute, ComputeFunction, Pipeline
+
+# Legacy compatibility - keep DatasetAPI for backward compatibility
+from muller.api.dataset_api import DatasetAPI
+
+__all__ = [
+    # Dataset operations
+    'dataset',
+    'load',
+    'empty',
+    'delete',
+    'get_col_info',
+    'like',
+    'from_file',
+    'from_dataframes',
+    # I/O operations
+    'read',
+    'tiled',
+    'Sample',
+    # Transform operations
+    'compute',
+    'ComputeFunction',
+    'Pipeline',
+    # Legacy
+    'DatasetAPI',
+]
