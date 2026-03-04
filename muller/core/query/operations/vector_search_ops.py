@@ -11,8 +11,8 @@ from typing import Union
 
 from numpy.typing import NDArray
 
-from muller.core.tensor import Tensor
 from muller.client.log import logger
+from muller.core.tensor import Tensor
 
 
 def create_vector_index(ds, tensor_name: str, index_name: str, index_type: str = 'FLAT', metric: str = 'l2',
