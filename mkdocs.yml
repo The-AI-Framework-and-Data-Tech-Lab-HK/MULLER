@@ -65,5 +65,6 @@ nav:
     - Dataset Version Control: api/dataset-version-control.md
     - Dataset Export: api/dataset-export.md
     - Advanced: api/advanced.md
+    - Htypes Reference: api/htypes.md
     
   - FAQ: faq.md
