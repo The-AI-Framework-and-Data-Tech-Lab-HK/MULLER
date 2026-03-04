@@ -10,10 +10,10 @@
 #
 # Modifications Copyright (c) 2026 Bingyu Liu
 
-from typing import Any, Dict, List, Optional, Set, Tuple
-from collections import OrderedDict, defaultdict
-
 import math
+from collections import OrderedDict, defaultdict
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 import numpy as np
 
 from muller.constants import DEFAULT_MAX_CHUNK_SIZE, DEFAULT_TILING_THRESHOLD
@@ -25,11 +25,13 @@ from muller.core.meta.dataset_meta import DatasetMeta
 from muller.core.meta.encode.chunk_id import ChunkIdEncoder
 from muller.core.meta.tensor_meta import TensorMeta
 from muller.core.storage import LRUCache
+from muller.core.storage_keys import (get_chunk_key, get_dataset_diff_key,
+                                      get_dataset_meta_key,
+                                      get_tensor_commit_diff_key,
+                                      get_tensor_meta_key)
 from muller.core.version_control.commit_diff import CommitDiff
 from muller.core.version_control.commit_node import CommitNode
 from muller.core.version_control.dataset_diff import DatasetDiff
-from muller.core.storage_keys import get_tensor_commit_diff_key, get_dataset_meta_key, get_dataset_diff_key, get_chunk_key, \
-    get_tensor_meta_key
 
 
 def _get_chunk(storage, chunk_id, commit_id, tensor):

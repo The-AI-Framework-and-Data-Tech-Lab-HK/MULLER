@@ -10,8 +10,10 @@ import json
 import os
 import warnings
 
-from muller.util.exceptions import (UnsupportedInvertedIndexError,
-                                   TensorDoesNotExistError, UnsupportedMethod, UpdateIndexFailError)
+from muller.util.exceptions import (TensorDoesNotExistError,
+                                   UnsupportedInvertedIndexError,
+                                   UnsupportedMethod,
+                                   UpdateIndexFailError)
 
 
 def create_index_vectorized(ds,

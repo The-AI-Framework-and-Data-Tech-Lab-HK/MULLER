@@ -28,7 +28,7 @@ from muller.core.version_control.commit_chunk_map import CommitChunkMap
 from muller.core.version_control.commit_diff import CommitDiff
 from muller.core.version_control.commit_node import CommitNode
 from muller.core.version_control.functions import auto_checkout, auto_commit, checkout, commit
-from muller.core.version_control.interface.diff_interface import (
+from muller.core.version_control.operations.diff import (
     get_lowest_common_ancestor,
     has_change,
     merge_renamed_deleted,

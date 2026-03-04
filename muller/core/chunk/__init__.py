@@ -6,11 +6,10 @@
 #
 # Copyright (c) 2026 Xueling Lin
 
-from .interface.dataset_interface import dataset_rechunk, dataset_rechunk_if_necessary
-from .interface.chunk_engine_update_interface import update
-from .interface.chunk_engine_extend_interface import extend, pad_and_append
-from .interface.chunk_engine_pop_interface import pop
-from .interface.chunk_engine_merge_regions_interface import merge_regions
-from .interface.chunk_engine_shape_interface import shape, shapes, read_shape_for_sample
-from .interface.chunk_engine_rechunk_interface import check_rechunk, get_sample_object
-from .interface.chunk_engine_to_numpy_interface import numpy, arrow, protected_numpy, get_samples_full
+from .operations.update import update
+from .operations.extend import extend, pad_and_append
+from .operations.pop import pop
+from .operations.merge_regions import merge_regions
+from .operations.shape import shape, shapes, read_shape_for_sample
+from .operations.rechunk import check_rechunk, get_sample_object
+from .operations.to_numpy import numpy, arrow, protected_numpy, get_samples_full

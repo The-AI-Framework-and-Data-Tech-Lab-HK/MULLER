@@ -171,7 +171,7 @@ class VersionControlMixin:
 
     def tensor_diff(self, id_1, id_2, tensors: List[str] = None):
         """Displays the differences between commits (in the same branch) for certain tensor."""
-        from muller.core.version_control.interface.diff_interface import get_changes_and_messages
+        from muller.core.version_control.operations.diff import get_changes_and_messages
 
         version_state, storage = self.version_state, self.storage
         res = get_changes_and_messages(version_state, storage, id_1, id_2)

@@ -23,7 +23,7 @@ from muller.constants import (
 )
 from muller.core.meta.encode.chunk_id import ChunkIdEncoder
 from muller.core.storage_keys import get_chunk_key
-from .chunk_engine_to_numpy_interface import get_samples_full
+from .to_numpy import get_samples_full
 
 
 def merge_regions(chunk_engine, rows_groups: List[List[int]], ids_groups: List[List[int]]):

@@ -25,3 +25,4 @@ from .crud_operations import (append,
                               rename,
                               rename_tensor,
                               update)
+from .rechunk_operations import dataset_rechunk, dataset_rechunk_if_necessary

@@ -11,8 +11,9 @@ import os
 import warnings
 
 from muller.constants import INVERTED_INDEX_BATCH_SIZE
-from muller.util.exceptions import TensorDoesNotExistError, UnsupportedInvertedIndexError, \
-    MultiProcessUnsupportedError
+from muller.util.exceptions import (MultiProcessUnsupportedError,
+                                   TensorDoesNotExistError,
+                                   UnsupportedInvertedIndexError)
 
 
 def create_index(ds, columns, use_uuid: bool = False, batch_size: int = INVERTED_INDEX_BATCH_SIZE):

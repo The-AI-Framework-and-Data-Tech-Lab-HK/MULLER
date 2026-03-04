@@ -16,33 +16,46 @@ import numpy as np
 import pandas as pd
 
 import muller
-from muller.constants import TO_DATAFRAME_SAFE_LIMIT, FIRST_COMMIT_ID, DATASET_UUID_NAME
+from muller.constants import DATASET_UUID_NAME, FIRST_COMMIT_ID, TO_DATAFRAME_SAFE_LIMIT
+from muller.core.chunk.serialize import deserialize_chunk, deserialize_chunkids
 from muller.core.chunk.uncompressed_chunk import UncompressedChunk
+from muller.core.dataset.optimization import try_flushing
 from muller.core.lock import lock_dataset, unlock_dataset
 from muller.core.meta.dataset_meta import DatasetMeta
 from muller.core.meta.encode.chunk_id import ChunkIdEncoder
 from muller.core.meta.tensor_meta import TensorMeta
-from muller.core.chunk.serialize import deserialize_chunkids, deserialize_chunk
-from muller.core.storage.local import LocalProvider
-from muller.core.version_control.commit_node import CommitNode
-from muller.core.version_control.interface.diff_interface import (sanitize_commit, get_lowest_common_ancestor,
-                                                                 get_changes_and_messages, \
-                                                                 get_all_changes_string, get_tensor_changes_for_id,
-                                                                 get_dataset_changes_for_id, get_commits_and_messages, \
-                                                                 get_all_commits_string, calcul_range,
-                                                                 handle_append_ranges, handle_update_ranges,
-                                                                 handle_delete_ranges, \
-                                                                 generate_add_values, generate_update_values,
-                                                                 generate_delete_values)
-from muller.core.dataset.optimization import try_flushing
-from muller.util.exceptions import EmptyCommitError, ReadOnlyModeError, CheckoutError, UnAuthorizationError, \
-    DatasetCorruptError, ExportDataFrameLimit, VersionControlError
-from muller.core.storage_keys import get_tensor_meta_key, get_dataset_meta_key, get_sample_id_tensor_key, \
-    get_chunk_id_encoder_key, get_chunk_key
-from muller.core.version_control.interface.merge_interface import merge_detect, get_node_tensors, direct_detect
 from muller.core.storage.cache_utils import create_read_copy_dataset
-from ..functions import integrity_check, reset_and_checkout, current_commit_has_change, \
-    warn_node_checkout, load_meta, replace_head
+from muller.core.storage.local import LocalProvider
+from muller.core.storage_keys import (get_chunk_id_encoder_key, get_chunk_key,
+                                      get_dataset_meta_key, get_sample_id_tensor_key,
+                                      get_tensor_meta_key)
+from muller.core.version_control.commit_node import CommitNode
+from muller.core.version_control.operations.diff import (calcul_range,
+                                                          generate_add_values,
+                                                          generate_delete_values,
+                                                          generate_update_values,
+                                                          get_all_changes_string,
+                                                          get_all_commits_string,
+                                                          get_changes_and_messages,
+                                                          get_commits_and_messages,
+                                                          get_dataset_changes_for_id,
+                                                          get_lowest_common_ancestor,
+                                                          get_tensor_changes_for_id,
+                                                          handle_append_ranges,
+                                                          handle_delete_ranges,
+                                                          handle_update_ranges,
+                                                          sanitize_commit)
+from muller.core.version_control.operations.merge import (direct_detect,
+                                                           get_node_tensors,
+                                                           merge_detect)
+from muller.util.exceptions import (CheckoutError, DatasetCorruptError,
+                                    EmptyCommitError, ExportDataFrameLimit,
+                                    ReadOnlyModeError, UnAuthorizationError,
+                                    VersionControlError)
+
+from ..functions import (current_commit_has_change, integrity_check,
+                         load_meta, replace_head, reset_and_checkout,
+                         warn_node_checkout)
 
 _LOCKABLE_STORAGES = {LocalProvider}
 
@@ -378,7 +391,7 @@ def merge(
     ds.initial_autoflush.append(ds.storage.autoflush)
     ds.storage.autoflush = False
     try:
-        muller.core.version_control.interface.merge_interface.merge(ds, target_id, conflict_resolution,
+        muller.core.version_control.operations.merge.merge(ds, target_id, conflict_resolution,
                                                                    delete_removed_tensors, force)
     finally:
         if locked:
