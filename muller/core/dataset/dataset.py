@@ -943,7 +943,7 @@ class Dataset(
             progressbar: bool = True,
     ):
         """Rechunk the dataset."""
-        return muller.core.chunk.dataset_rechunk(self, tensors, num_workers, scheduler, progressbar)
+        return muller.core.dataset.dataset_rechunk(self, tensors, num_workers, scheduler, progressbar)
 
     def rechunk_if_necessary(
             self,
@@ -951,7 +951,7 @@ class Dataset(
             num_workers: int = 1
     ) -> None:
         """ Rechunk the data chunks on several tensors. """
-        return muller.core.chunk.dataset_rechunk_if_necessary(self, tensor_spec, num_workers)
+        return muller.core.dataset.dataset_rechunk_if_necessary(self, tensor_spec, num_workers)
 
     def check_uuid(self):
         """Check uuids"""
