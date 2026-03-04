@@ -25,7 +25,7 @@ from muller.core.meta.tensor_meta import TensorMeta
 from muller.core.chunk.serialize import deserialize_chunkids, deserialize_chunk
 from muller.core.storage.local import LocalProvider
 from muller.core.version_control.commit_node import CommitNode
-from muller.core.version_control.interface.diff_interface import (sanitize_commit, get_lowest_common_ancestor,
+from muller.core.version_control.operations.diff import (sanitize_commit, get_lowest_common_ancestor,
                                                                  get_changes_and_messages, \
                                                                  get_all_changes_string, get_tensor_changes_for_id,
                                                                  get_dataset_changes_for_id, get_commits_and_messages, \
@@ -39,7 +39,7 @@ from muller.util.exceptions import EmptyCommitError, ReadOnlyModeError, Checkout
     DatasetCorruptError, ExportDataFrameLimit, VersionControlError
 from muller.core.storage_keys import get_tensor_meta_key, get_dataset_meta_key, get_sample_id_tensor_key, \
     get_chunk_id_encoder_key, get_chunk_key
-from muller.core.version_control.interface.merge_interface import merge_detect, get_node_tensors, direct_detect
+from muller.core.version_control.operations.merge import merge_detect, get_node_tensors, direct_detect
 from muller.core.storage.cache_utils import create_read_copy_dataset
 from ..functions import integrity_check, reset_and_checkout, current_commit_has_change, \
     warn_node_checkout, load_meta, replace_head
@@ -378,7 +378,7 @@ def merge(
     ds.initial_autoflush.append(ds.storage.autoflush)
     ds.storage.autoflush = False
     try:
-        muller.core.version_control.interface.merge_interface.merge(ds, target_id, conflict_resolution,
+        muller.core.version_control.operations.merge.merge(ds, target_id, conflict_resolution,
                                                                    delete_removed_tensors, force)
     finally:
         if locked:
