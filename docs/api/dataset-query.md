@@ -5,34 +5,34 @@ This page documents methods for querying, filtering, searching, and managing ind
 ## Table of Contents
 
 ### Query and Filter
-- [filter()](#filter)
-- [filter_vectorized()](#filter_vectorized)
-- [query()](#query)
-- [vector_search()](#vector_search)
+- [ds.filter()](#dsfilter)
+- [ds.filter_vectorized()](#dsfilter_vectorized)
+- [ds.query()](#dsquery)
+- [ds.vector_search()](#dsvector_search)
 
 ### Indexing
-- [create_index()](#create_index)
-- [create_index_vectorized()](#create_index_vectorized)
-- [optimize_index()](#optimize_index)
-- [create_vector_index()](#create_vector_index)
-- [drop_vector_index()](#drop_vector_index)
-- [update_vector_index()](#update_vector_index)
-- [load_vector_index()](#load_vector_index)
-- [unload_vector_index()](#unload_vector_index)
-- [create_hot_shard_index()](#create_hot_shard_index)
-- [reshard_index()](#reshard_index)
+- [ds.create_index()](#dscreate_index)
+- [ds.create_index_vectorized()](#dscreate_index_vectorized)
+- [ds.optimize_index()](#dsoptimize_index)
+- [ds.create_vector_index()](#dscreate_vector_index)
+- [ds.drop_vector_index()](#dsdrop_vector_index)
+- [ds.update_vector_index()](#dsupdate_vector_index)
+- [ds.load_vector_index()](#dsload_vector_index)
+- [ds.unload_vector_index()](#dsunload_vector_index)
+- [ds.create_hot_shard_index()](#dscreate_hot_shard_index)
+- [ds.reshard_index()](#dsreshard_index)
 
 ### Views
-- [load_view()](#load_view)
-- [save_view()](#save_view)
-- [delete_view()](#delete_view)
-- [get_views()](#get_views)
+- [ds.load_view()](#dsload_view)
+- [ds.save_view()](#dssave_view)
+- [ds.delete_view()](#dsdelete_view)
+- [ds.get_views()](#dsget_views)
 
 ---
 
 ## Query and Filter
 
-### filter()
+### ds.filter()
 
 #### Overview
 
@@ -85,7 +85,7 @@ for sample in filtered_ds:
 
 ---
 
-### filter_vectorized()
+### ds.filter_vectorized()
 
 #### Overview
 
@@ -124,7 +124,7 @@ filtered_ds = ds.filter_vectorized("labels == 3")
 
 ---
 
-### query()
+### ds.query()
 
 #### Overview
 
@@ -162,7 +162,7 @@ for sample in result:
 
 ---
 
-### vector_search()
+### ds.vector_search()
 
 #### Overview
 
@@ -219,7 +219,7 @@ results = ds.vector_search(
 
 ## Indexing
 
-### create_index()
+### ds.create_index()
 
 #### Overview
 
@@ -258,7 +258,7 @@ filtered = ds.filter_vectorized("labels == 5")  # Much faster with index
 
 ---
 
-### create_index_vectorized()
+### ds.create_index_vectorized()
 
 #### Overview
 
@@ -294,7 +294,7 @@ for tensor_name in ["labels", "user_id", "timestamp"]:
 
 ---
 
-### optimize_index()
+### ds.optimize_index()
 
 #### Overview
 
@@ -325,7 +325,7 @@ for tensor_name in ds.indexed_tensors:
 
 ---
 
-### create_vector_index()
+### ds.create_vector_index()
 
 #### Overview
 
@@ -373,7 +373,7 @@ ds.create_vector_index(
 
 ---
 
-### drop_vector_index()
+### ds.drop_vector_index()
 
 #### Overview
 
@@ -405,7 +405,7 @@ ds.create_vector_index("embeddings", index_name="new_idx", metric="euclidean")
 
 ---
 
-### update_vector_index()
+### ds.update_vector_index()
 
 #### Overview
 
@@ -442,7 +442,7 @@ ds.update_vector_index("embeddings", index_name="emb_idx")
 
 ---
 
-### load_vector_index()
+### ds.load_vector_index()
 
 #### Overview
 
@@ -474,7 +474,7 @@ results = ds.vector_search(query_vec, "embeddings", "emb_idx", k=10)
 
 ---
 
-### unload_vector_index()
+### ds.unload_vector_index()
 
 #### Overview
 
@@ -505,7 +505,7 @@ ds.load_vector_index("embeddings", index_name="emb_idx")
 
 ---
 
-### create_hot_shard_index()
+### ds.create_hot_shard_index()
 
 #### Overview
 
@@ -536,7 +536,7 @@ ds.create_hot_shard_index("embeddings", shard_size=1000)
 
 ---
 
-### reshard_index()
+### ds.reshard_index()
 
 #### Overview
 
@@ -569,7 +569,7 @@ ds.reshard_index("categories", num_shards=10)
 
 ## Views
 
-### load_view()
+### ds.load_view()
 
 #### Overview
 
@@ -605,7 +605,7 @@ filtered_view = view.filter("score > 80")
 
 ---
 
-### save_view()
+### ds.save_view()
 
 #### Overview
 
@@ -642,7 +642,7 @@ new_view.save_view("label_3_samples", overwrite=True)
 
 ---
 
-### delete_view()
+### ds.delete_view()
 
 #### Overview
 
@@ -673,7 +673,7 @@ for view_name in ["temp_view1", "temp_view2", "test_view"]:
 
 ---
 
-### get_views()
+### ds.get_views()
 
 #### Overview
 

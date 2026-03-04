@@ -4,19 +4,19 @@ This page documents functions that are accessed directly through the `muller` mo
 
 ## Table of Contents
 
-- [read()](#read)
-- [tiled()](#tiled)
-- [Sample](#sample)
+- [muller.read()](#mullerread)
+- [muller.tiled()](#mullertiled)
+- [muller.Sample](#mullersample)
 
 ---
 
-## read()
+### muller.read()
 
-### Overview
+#### Overview
 
 Utility that reads raw data from supported files into MULLER format. It can recompress data into the format required by the tensor if permitted by the tensor htype, or copy data directly if the file format matches the sample_compression of the tensor to maximize upload speeds.
 
-### Parameters
+#### Parameters
 
 - **path** (`str` or `pathlib.Path`): Path to a supported file.
 - **verify** (`bool`, optional): If `True`, contents of the file are verified. Defaults to `False`.
@@ -24,11 +24,11 @@ Utility that reads raw data from supported files into MULLER format. It can reco
 - **compression** (`str`, optional): Format of the file. Only required if path does not have an extension. Defaults to `None`.
 - **storage** (`StorageProvider`, optional): Storage provider to use to retrieve remote files. Useful if multiple files are being read from same storage to minimize overhead of creating a new provider. Defaults to `None`.
 
-### Returns
+#### Returns
 
 - **Sample**: Sample object. Call `sample.array` to get the `np.ndarray`.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -50,23 +50,23 @@ sample = muller.read("path/to/file", compression="png")
 
 ---
 
-## tiled()
+### muller.tiled()
 
-### Overview
+#### Overview
 
 Allocates an empty sample of shape `sample_shape`, broken into tiles of shape `tile_shape` (except for edge tiles). This is useful for efficiently storing and accessing large samples by dividing them into smaller tiles.
 
-### Parameters
+#### Parameters
 
 - **sample_shape** (`Tuple[int, ...]`): Full shape of the sample.
 - **tile_shape** (`Tuple[int, ...]`, optional): The sample will be stored as tiles where each tile will have this shape (except edge tiles). If not specified, it will be computed such that each tile is close to half of the tensor's `max_chunk_size` (after compression). Defaults to `None`.
 - **dtype** (`str` or `np.dtype`, optional): Dtype for the sample array. Defaults to `np.uint8`.
 
-### Returns
+#### Returns
 
 - **PartialSample**: A PartialSample instance which can be appended to a Tensor.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -95,19 +95,19 @@ tiled_sample = muller.tiled(
 
 ---
 
-## Sample
+### muller.Sample
 
-### Overview
+#### Overview
 
 The `Sample` class represents a single data sample in MULLER format. It is typically created by the `read()` function and provides access to the underlying data as a numpy array.
 
-### Attributes
+#### Attributes
 
 - **array** (`np.ndarray`): The numpy array representation of the sample data.
 - **path** (`str`): The path to the source file (if applicable).
 - **compression** (`str`): The compression format of the sample.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -128,7 +128,7 @@ with ds:
     ds.images.append(sample)
 ```
 
-### Notes
+#### Notes
 
 - `Sample` objects are typically created automatically by `muller.read()` rather than instantiated directly.
 - The `array` property provides lazy loading - the data is only loaded when accessed.

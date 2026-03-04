@@ -5,25 +5,25 @@ This page documents advanced features including data transformation pipelines, r
 ## Table of Contents
 
 ### Data Transformation
-- [compute()](#compute)
-- [ComputeFunction](#computefunction)
-- [Pipeline](#pipeline)
+- [muller.compute()](#mullercompute)
+- [muller.ComputeFunction](#mullercomputefunction)
+- [muller.Pipeline](#mullerpipeline)
 
 ### Rechunking
-- [rechunk()](#rechunk)
-- [rechunk_if_necessary()](#rechunk_if_necessary)
+- [ds.rechunk()](#dsrechunk)
+- [ds.rechunk_if_necessary()](#dsrechunk_if_necessary)
 
 ### Administrative
-- [enable_admin_mode()](#enable_admin_mode)
-- [disable_admin_mode()](#disable_admin_mode)
-- [lock()](#lock)
-- [unlock()](#unlock)
+- [ds.enable_admin_mode()](#dsenable_admin_mode)
+- [ds.disable_admin_mode()](#dsdisable_admin_mode)
+- [ds.lock()](#dslock)
+- [ds.unlock()](#dsunlock)
 
 ---
 
 ## Data Transformation
 
-### compute()
+### muller.compute()
 
 #### Overview
 
@@ -98,7 +98,7 @@ def filter_high_quality(sample_in, sample_out):
 
 ---
 
-### ComputeFunction
+### muller.ComputeFunction
 
 #### Overview
 
@@ -165,7 +165,7 @@ with target_ds:
 
 ---
 
-### Pipeline
+### muller.Pipeline
 
 #### Overview
 
@@ -238,7 +238,7 @@ with target_ds:
 
 ## Rechunking
 
-### rechunk()
+### ds.rechunk()
 
 #### Overview
 
@@ -290,7 +290,7 @@ ds.commit("Rechunked for optimization")
 
 ---
 
-### rechunk_if_necessary()
+### ds.rechunk_if_necessary()
 
 #### Overview
 
@@ -336,7 +336,7 @@ optimize_dataset(ds)
 
 ## Administrative
 
-### enable_admin_mode()
+### ds.enable_admin_mode()
 
 #### Overview
 
@@ -376,7 +376,7 @@ Admin mode bypasses certain safety checks. Use with caution and disable when not
 
 ---
 
-### disable_admin_mode()
+### ds.disable_admin_mode()
 
 #### Overview
 
@@ -414,7 +414,7 @@ if ds.is_admin_mode:
 
 ---
 
-### lock()
+### ds.lock()
 
 #### Overview
 
@@ -459,7 +459,7 @@ finally:
 
 ---
 
-### unlock()
+### ds.unlock()
 
 #### Overview
 

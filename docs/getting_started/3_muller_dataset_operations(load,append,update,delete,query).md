@@ -23,7 +23,7 @@ To load a specific commit (if available), append `@{commit_id}` to the path:
 * The usage of `path` is the same as described in [Creating an Empty Dataset]. Please add the appropriate prefix based on the storage backend.
 * In addition to `muller.load()`, you may also use `muller.dataset()` to load an existing dataset (do not set overwrite=True).
 * For details on branches and commit versions, see [Section 5: Version Management].
-* Additional parameters and advanced usage are documented in the API reference: [muller.load()].
+* Additional parameters and advanced usage are documented in the API reference: [`muller.load()`](../api/dataset-creation/#mullerload).
 
 ## 2. Inspecting Dataset Metadata
 To view schema-level information for all columns in a dataset:
@@ -39,29 +39,29 @@ my_photos   image   (4, 400, 300:500, 3)   uint8    jpeg
  my_text    text           (4, 1)           str     None
 ```
 
-- Usage reference: [`muller.summary()`]
+- Usage reference: [`dataset.summary()`](../api/dataset-methods/#summary)
 
 Additional APIs for inspecting dataset properties include:
 
-- List all columns: [`dataset.tensors()`]
-- Get the number of samples (rows): [`dataset.num_samples()`]
-- Get the maximum and minimum lengths across columns:  
-  [`dataset.max_len()`], [`dataset.min_len()`]
-- Dataset-level statistics (e.g., per-column min / max / median / variance):  
-  [`dataset.statistics()`]
+- List all columns: [`dataset.tensors`](../api/dataset-methods/#tensors)
+- Get the number of samples (rows): [`dataset.num_samples`](../api/dataset-methods/#num_samples)
+- Get the maximum and minimum lengths across columns:
+  [`dataset.max_len`](../api/dataset-methods/#max_len), [`dataset.min_len`](../api/dataset-methods/#min_len)
+- Dataset-level statistics (e.g., per-column min / max / median / variance):
+  [`dataset.statistics()`](../api/dataset-methods/#statistics)
 
 APIs for inspecting detailed tensor (column) metadata include:
 
-- Column type: [`tensor.htype`]
-- Column data type: [`tensor.dtype`]
-- Tensor shape (column-level or per-sample):  
-  [`tensor.shape_interval`], [`tensor.shape`]
-- Tensor dimensionality: [`tensor.ndim`]
-- Number of samples (rows) in a column:  
-  [`tensor.num_samples`], [`tensor.__len__()`]
-- Source file metadata for a specific sample:  
-  [`tensor.sample_info`]  
-  *(Effective for recovering image/video/audio metadata; requires  
+- Column type: [`tensor.htype`](../api/dataset-methods/#htype)
+- Column data type: [`tensor.dtype`](../api/dataset-methods/#dtype)
+- Tensor shape (column-level or per-sample):
+  [`tensor.shape_interval`](../api/dataset-methods/#shape_interval), [`tensor.shape`](../api/dataset-methods/#shape)
+- Tensor dimensionality: [`tensor.ndim`](../api/dataset-methods/#ndim)
+- Number of samples (rows) in a column:
+  [`tensor.num_samples`](../api/dataset-methods/#num_samples), [`tensor.__len__()`](../api/dataset-methods/#__len__)
+- Source file metadata for a specific sample:
+  [`tensor.sample_info`](../api/dataset-methods/#sample_info)
+  *(Effective for recovering image/video/audio metadata; requires
   `create_sample_info_tensor=True` when calling `create_tensor()`.)*
 
 ## 3. Adding Data
@@ -91,7 +91,7 @@ described in Section 3.1 (Step 3: Adding Data to Tensor Columns).
 # number of samples, set `large_ok=True` to explicitly confirm the operation
 # and prevent accidental data loss.
 ```
-- For detailed usage, see [`pop()`] and [`delete_tensor()`].
+- For detailed usage, see [`pop()`](../api/dataset-methods/#pop) and [`delete_tensor()`](../api/dataset-methods/#delete_tensor).
 - **Note:** To ensure dataset integrity, data can only be deleted **by entire rows or entire columns**.
 
 #### Deleting a dataset (Method 1):
@@ -103,9 +103,9 @@ For an already loaded dataset, invoke the delete operation directly on the datas
 #### Deleting a dataset (Method 2):
 For a dataset that is not currently loaded, you can delete it using the `muller` library directly.
 ```python
->>> gtn_f.delete(path="/your/data/path/", creds={'optional'})
+>>> muller.delete(path="/your/data/path/", creds={'optional'})
 ```
-- For detailed usage, see [`muller.core.dataset.delete()`] and [`muller.delete()`].
+- For detailed usage, see [`dataset.delete()`](../api/dataset-methods/#delete) and [`muller.delete()`](../api/dataset-creation/#mullerdelete).
 
 ## 5. Inspecting Data by random access (via row id and column name) and full scan
 
@@ -150,8 +150,9 @@ array([[2],
        [3],
        [4]], dtype=int32)
 ```
-Lazy loading for rows and columns involves several `Tensor`-related APIs, each with additional optional parameters. Refer to the API documentation for more details
-- [[tensor.numpy()]]. Note that there are three important parameters:
+Lazy loading for rows and columns involves several `Tensor`-related APIs, each with additional optional parameters. Refer to the API documentation for more details:
+
+- [`tensor.numpy()`](../api/dataset-methods/#numpy). Note that there are three important parameters:
 > * `aslist` (`bool`):  
 >   If `True`, returns data as a list of `np.ndarray`s. Recommended for dynamic-shape tensors.  
 >   If `False`, returns a single `np.ndarray`. May raise an error if samples have dynamic shapes.  
@@ -167,28 +168,28 @@ Lazy loading for rows and columns involves several `Tensor`-related APIs, each w
 
 > * `asrow` (`bool`):  
 >   If `True`, returns samples in **row-oriented** format as a list of dictionaries, one dict per row.  
->   If samples have inconsistent lengths, an error will be raised (use `False` to avoid this).  
+>   If samples have inconsistent lengths, an error will be raised (use `False` to avoid this).
 >   If `False`, returns data in **column-oriented** format as a dictionary, where each key maps to a list containing the column data.
 
-- [[tensor.data()]()]
-- [[tensor.tobytes()]()]
-- [[tensor.text()]()]
-- [[tensor.dict()]()]
-- [[tensor.list()]()]
+- [`tensor.data()`](../api/dataset-methods/#data)
+- [`tensor.tobytes()`](../api/dataset-methods/#tobytes)
+- [`tensor.text()`](../api/dataset-methods/#text)
+- [`tensor.dict()`](../api/dataset-methods/#dict)
+- [`tensor.list()`](../api/dataset-methods/#list)
 
 ## 6. Update Data
 #### Method 1: Directly update the i-th row in a given column
 ```python
-ds.my_tensor[i] = gtn_f.read("image.jpg")
+ds.my_tensor[i] = muller.read("image.jpg")
 ```
 
 #### Method 2: Update data by specifying the column name and update values via the `update` API
 ```python
-ds[i].update({"my_tensor": gtn_f.read("image.jpg")})
+ds[i].update({"my_tensor": muller.read("image.jpg")})
 ```
 
-* Method 1 API: [[tensor.\__setitem\__()]()]
-* Method 2 API: [[dataset.update()]()]
+* Method 1 API: [`tensor.__setitem__()`](../api/dataset-methods/#__setitem__)
+* Method 2 API: [`dataset.update()`](../api/dataset-methods/#update)
 
 ## 7. Query Data
 MULLER provides a comprehensive suite of query functionalities tailored for AI data lakes:
@@ -205,7 +206,7 @@ MULLER provides a comprehensive suite of query functionalities tailored for AI d
 
 Retrieve all values in the `test1` column (of type `generic`) that are greater than 2.
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test1", htype="generic")   
 >>> ds.test1.extend(np.random.randint(5, size=10000))
 >>> ds_1 = ds.filter_vectorized([("test1", ">", 2)]) #Note: If the fourth parameter is not specified, it defaults to `False`, which is equivalent to the usage in the next line.
@@ -229,7 +230,7 @@ array([[4],
 
 Retrieve all values in the `test1` column (of type `generic`) that **do NOT satisfy** the condition `> 2`.
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test1", htype="generic")   
 >>> ds.test1.extend(np.random.randint(5, size=10000))
 >>> ds_1 = ds.filter_vectorized([("test1", ">", 2, False, "NOT")])
@@ -247,10 +248,10 @@ array([[2],
 
 Retrieve all values in the `test1` column (of type `generic`) that are equal to 2.
 
-> **Note:** Index creation only applies to data that has been recorded in a commit.  
+> **Note:** Index creation only applies to data that has been recorded in a commit.
 > Before creating an index, **ensure that `ds.commit()` is executed** to consolidate all pending changes into a commit version.
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test1", htype="generic")   
 >>> ds.test1.extend(np.random.randint(5, size=10000))
 >>> ds.commit()
@@ -270,7 +271,7 @@ array([[2],
 
 Retrieve all values in the `test2` column (of type `text`) that are equal to `"hi"`.
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test2",htype="text")
 >>> with ds:
          ds.test2.extend(["hi", "bye", "oops", "hello", "world"]*2000)
@@ -289,7 +290,7 @@ array([['hi'],
 
 Retrieve all values in the `test2` column (of type `text`) that are equal to `"hi"`.
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test2",htype="text")
 >>> with ds:
          ds.test2.extend(["hi", "bye", "oops", "hello", "world"]*2000)
@@ -308,11 +309,11 @@ array([['hi'],
 
 #### Example 6: Exact Match Query with Logical Connectors (AND, OR, NOT)
 
-Perform an exact-match query combining multiple conditions using logical connectors.  
+Perform an exact-match query combining multiple conditions using logical connectors.
 
 > **Note:** The number of elements in `connector_list` must be **one less** than the number of elements in `condition_list`.
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test3", htype="generic")
 >>> ds.test3.extend(np.random.randint(5, size=10000))
 >>> ds.create_tensor(name="test4", htype="generic")
@@ -326,7 +327,7 @@ Perform an exact-match query combining multiple conditions using logical connect
 
 Perform an exact-match query while applying **`offset`** and **`limit`** to control the subset of returned results.
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test5", htype="generic")
 >>> ds.test5.extend(np.arange(0, 100))
 >>> ds_5 = ds.filter_vectorized([("test5", "<", 50), ("test5", ">=", 20)], ["AND"], offset=30, limit=10)  # Start the query from row 60 and return only 10 results.
@@ -341,7 +342,7 @@ Perform a keyword-based search on text columns.
 (1) English keyword query
 
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test6", htype="text")
 >>> with ds:
          ds.test6.extend(["A majestic long-haired Maine Coon cat perched on a wooden bookshelf, staring intently at a tree outside with its bright amber eyes.",
@@ -358,10 +359,10 @@ Perform a keyword-based search on text columns.
 >>> ds_7 = ds.filter_vectorized([("test5", "<", 50), ("test5", ">=", 20), ("test6", "CONTAINS", "中山大学")], ["AND", "OR"], limit=10)
 ```
 
-(2) Chinese keywrod query - The tokenization is implemented using the Chinese word segmentation tool **jieba**.
+(2) Chinese keyword query - The tokenization is implemented using the Chinese word segmentation tool **jieba**.
 
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test6", htype="text")
 >>> with ds:
          ds.test6.extend(["我毕业于香港科技大学。", "我毕业于中山大学。"]*5000)
@@ -379,7 +380,7 @@ Perform a keyword-based search on text columns.
 
 Perform text matching using regular expressions, with `LIKE` specified as the query operator.
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> ds.create_tensor(name="test7", htype="text")
 >>> ds.test7.extend(['A0', 'A1', 'A2', 'A3', 'A4', 'B0', 'B1', 'C0'])
 >>> ds_8 = ds.filter_vectorized([("test7", "LIKE", "A[0-2]")])
@@ -400,7 +401,7 @@ group by ori_query, ori_response
 order by ori_query;
 ```
 ```python
->>> ds = gtn_f.dataset("temp_test", overwrite=True)
+>>> ds = muller.dataset("temp_test", overwrite=True)
 >>> tensors = ["ori_query", "ori_response", "query_analysis", "result", "score", "type"]
 >>> ds.create_tensor("ori_query", htype="text", exist_ok=True)
 >>> ds.create_tensor("ori_response", htype="text", exist_ok=True)
@@ -475,9 +476,9 @@ array([["Write a Python program that uses regular expressions to match mobile ph
 ```
 * For detailed usage, please refer to the following API documentation:
 
-> * filter_vectorized(): vectorized query interface for conditional filtering
-> * aggregate_vectorized(): vectorized aggregation interface (e.g., group by + count(*))
-> * create_index(): interface for creating inverted indexes
+> * [`filter_vectorized()`](../api/dataset-query/#filter_vectorized): vectorized query interface for conditional filtering
+> * [`aggregate_vectorized()`](../api/dataset-query/#aggregate_vectorized): vectorized aggregation interface (e.g., group by + count(*))
+> * [`create_index()`](../api/dataset-query/#create_index): interface for creating inverted indexes
 
 #### Example 12: Vector Search
 
@@ -519,13 +520,13 @@ Materialized view–related APIs support additional parameters to optimize read 
 
 ## 9. Other Dataset-Related APIs
 
-For the complete API reference, see [[Datasets]()] and its subpages. Key APIs include:
+For the complete API reference, see [Dataset Methods](../api/dataset-methods/) and related pages. Key APIs include:
 
 * Dataset copying:
-> * Full copy including all branches: [dataset.deepcopy()]
-> * Copy only the latest commit on the main branch: [dataset.copy()]
-* Dataset rechunking (optimize chunk sizes for each tensor): [dataset.rechunk()]
-* Export dataset to MindRecord: [dataset.to_mindrecord()]
-* Export dataset to JSON: [dataset.to_json()]
-* Export dataset to Arrow: [dataset.to_arrow()]
-* Convert dataset to a pandas DataFrame (for inspection and visualization): [dataset.to_dataframe()]
+> * Full copy including all branches: [`dataset.deepcopy()`](../api/dataset-methods/#deepcopy)
+> * Copy only the latest commit on the main branch: [`dataset.copy()`](../api/dataset-methods/#copy)
+* Dataset rechunking (optimize chunk sizes for each tensor): [`dataset.rechunk()`](../api/advanced/#rechunk)
+* Export dataset to MindRecord: [`dataset.to_mindrecord()`](../api/dataset-export/#to_mindrecord)
+* Export dataset to JSON: [`dataset.to_json()`](../api/dataset-export/#to_json)
+* Export dataset to Arrow: [`dataset.to_arrow()`](../api/dataset-export/#to_arrow)
+* Convert dataset to a pandas DataFrame (for inspection and visualization): [`dataset.to_dataframe()`](../api/dataset-export/#to_dataframe)

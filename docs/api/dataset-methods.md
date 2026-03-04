@@ -5,34 +5,34 @@ This page documents core instance methods for Dataset objects, including data op
 ## Table of Contents
 
 ### Data Operations
-- [append()](#append)
-- [extend()](#extend)
-- [update()](#update)
-- [pop()](#pop)
+- [ds.append()](#dsappend)
+- [ds.extend()](#dsextend)
+- [ds.update()](#dsupdate)
+- [ds.pop()](#dspop)
 
 ### Tensor Management
-- [create_tensor()](#create_tensor)
-- [create_tensor_like()](#create_tensor_like)
-- [delete_tensor()](#delete_tensor)
-- [rename_tensor()](#rename_tensor)
+- [ds.create_tensor()](#dscreate_tensor)
+- [ds.create_tensor_like()](#dscreate_tensor_like)
+- [ds.delete_tensor()](#dsdelete_tensor)
+- [ds.rename_tensor()](#dsrename_tensor)
 
 ### Cache and Flush
-- [flush()](#flush)
-- [maybe_flush()](#maybe_flush)
+- [ds.flush()](#dsflush)
+- [ds.maybe_flush()](#dsmaybe_flush)
 
 ### Basic Information
-- [summary()](#summary)
-- [info](#info)
-- [statistics()](#statistics)
-- [size_approx()](#size_approx)
-- [num_samples](#num_samples)
-- [tensors](#tensors)
+- [ds.summary()](#dssummary)
+- [ds.info](#dsinfo)
+- [ds.statistics()](#dsstatistics)
+- [ds.size_approx()](#dssize_approx)
+- [ds.num_samples](#dsnum_samples)
+- [ds.tensors](#dstensors)
 
 ---
 
 ## Data Operations
 
-### append()
+### ds.append()
 
 #### Overview
 
@@ -80,7 +80,7 @@ with ds:
 
 ---
 
-### extend()
+### ds.extend()
 
 #### Overview
 
@@ -135,7 +135,7 @@ with ds:
 
 ---
 
-### update()
+### ds.update()
 
 #### Overview
 
@@ -172,7 +172,7 @@ with ds:
 
 ---
 
-### pop()
+### ds.pop()
 
 #### Overview
 
@@ -215,7 +215,7 @@ with ds:
 
 ## Tensor Management
 
-### create_tensor()
+### ds.create_tensor()
 
 #### Overview
 
@@ -263,7 +263,7 @@ ds.create_tensor("embeddings", htype="embedding", chunk_compression="lz4")
 
 ---
 
-### create_tensor_like()
+### ds.create_tensor_like()
 
 #### Overview
 
@@ -301,7 +301,7 @@ with new_ds:
 
 ---
 
-### delete_tensor()
+### ds.delete_tensor()
 
 #### Overview
 
@@ -343,7 +343,7 @@ This operation is irreversible. All data in the tensor will be permanently delet
 
 ---
 
-### rename_tensor()
+### ds.rename_tensor()
 
 #### Overview
 
@@ -379,7 +379,7 @@ with ds:
 
 ## Cache and Flush
 
-### flush()
+### ds.flush()
 
 #### Overview
 
@@ -415,7 +415,7 @@ with ds:
 
 ---
 
-### maybe_flush()
+### ds.maybe_flush()
 
 #### Overview
 
@@ -447,7 +447,7 @@ with ds:
 
 ## Basic Information
 
-### summary()
+### ds.summary()
 
 #### Overview
 
@@ -490,7 +490,7 @@ Dataset(path='./my_dataset', tensors=['images', 'labels'])
 
 ---
 
-### info
+### ds.info
 
 #### Overview
 
@@ -521,7 +521,7 @@ ds.info.custom_field = "custom value"
 
 ---
 
-### statistics()
+### ds.statistics()
 
 #### Overview
 
@@ -553,7 +553,7 @@ print(f"Number of chunks: {stats['num_chunks']}")
 
 ---
 
-### size_approx()
+### ds.size_approx()
 
 #### Overview
 
@@ -588,7 +588,7 @@ for path in datasets:
 
 ---
 
-### num_samples
+### ds.num_samples
 
 #### Overview
 
@@ -620,7 +620,7 @@ if ds.num_samples == 0:
 
 ---
 
-### tensors
+### ds.tensors
 
 #### Overview
 

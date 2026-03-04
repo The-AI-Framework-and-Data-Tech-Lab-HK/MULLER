@@ -53,4 +53,4 @@ array([[[183, 160, 118],
 
 - `muller.read()` currently supports multiple multimodal file types, including images, audio, and video, covering more than 20 file formats.
 - The optional `creds` argument can be used to access remote or cloud storage backends (e.g., HTTP/HTTPS, ROMA, OBS), and may include authentication or connection information such as `proxies`, `bucket_name`, `access_key`, `secret_key`, and `token`.
-- For the complete list of input parameters, supported file types, and usage details of `muller.read()`, please refer to the API documentation.
+- For the complete list of input parameters, supported file types, and usage details of `muller.read()`, please refer to the [API documentation](../api/top-level-functions/#mullerread).

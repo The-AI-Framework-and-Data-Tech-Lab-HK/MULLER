@@ -4,24 +4,24 @@ This page documents functions for creating, loading, and managing datasets.
 
 ## Table of Contents
 
-- [dataset()](#dataset)
-- [load()](#load)
-- [empty()](#empty)
-- [like()](#like)
-- [delete()](#delete)
-- [get_col_info()](#get_col_info)
-- [from_file()](#from_file)
-- [from_dataframes()](#from_dataframes)
+- [muller.dataset()](#mullerdataset)
+- [muller.load()](#mullerload)
+- [muller.empty()](#mullerempty)
+- [muller.like()](#mullerlike)
+- [muller.delete()](#mullerdelete)
+- [muller.get_col_info()](#mullerget_col_info)
+- [muller.from_file()](#mullerfrom_file)
+- [muller.from_dataframes()](#mullerfrom_dataframes)
 
 ---
 
-## dataset()
+### muller.dataset()
 
-### Overview
+#### Overview
 
 Returns a `Dataset` object referencing either a new or existing dataset. This is the primary function for creating or opening datasets.
 
-### Parameters
+#### Parameters
 
 - **path** (`str` or `pathlib.Path`): The full path to the dataset. Can be:
   - An s3 path of the form `s3://bucketname/path/to/dataset`
@@ -38,11 +38,11 @@ Returns a `Dataset` object referencing either a new or existing dataset. This is
 - **lock_enabled** (`bool`, optional): If `True`, the dataset manages a write lock. Defaults to `True`.
 - **split_tensor_meta** (`bool`, optional): Each tensor has a tensor_meta.json if `True`. Defaults to `True`.
 
-### Returns
+#### Returns
 
 - **Dataset**: The dataset object.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -65,13 +65,13 @@ ds = muller.dataset("./datasets/my_dataset", memory_cache_size=512, local_cache_
 
 ---
 
-## load()
+### muller.load()
 
-### Overview
+#### Overview
 
 Load an existing dataset from the given path. Unlike `dataset()`, this function will raise an error if the dataset does not exist.
 
-### Parameters
+#### Parameters
 
 - **path** (`str` or `pathlib.Path`): The full path to the dataset.
 - **read_only** (`bool`, optional): Opens dataset in read only mode if `True`. Defaults to `False`.
@@ -84,11 +84,11 @@ Load an existing dataset from the given path. Unlike `dataset()`, this function 
 - **lock_timeout** (`int`, optional): Number of seconds to wait before throwing a LockException. Defaults to `0`.
 - **split_tensor_meta** (`bool`, optional): Each tensor has a tensor_meta.json if `True`. Defaults to `True`.
 
-### Returns
+#### Returns
 
 - **Dataset**: The loaded dataset.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -108,13 +108,13 @@ ds = muller.load("./datasets/large_dataset", check_integrity=False)
 
 ---
 
-## empty()
+### muller.empty()
 
-### Overview
+#### Overview
 
 Creates an empty dataset at the specified path. This is useful when you want to create a dataset structure before adding any data.
 
-### Parameters
+#### Parameters
 
 - **path** (`str` or `pathlib.Path`): The full path to the dataset.
 - **overwrite** (`bool`, optional): If `True`, overwrites the dataset if it already exists. Defaults to `False`.
@@ -126,11 +126,11 @@ Creates an empty dataset at the specified path. This is useful when you want to 
 - **lock_enabled** (`bool`, optional): If `True`, the dataset manages a write lock. Defaults to `True`.
 - **split_tensor_meta** (`bool`, optional): Each tensor has a tensor_meta.json if `True`. Defaults to `True`.
 
-### Returns
+#### Returns
 
 - **Dataset**: The created empty dataset.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -150,19 +150,19 @@ with ds:
     ds.create_tensor("labels")
 ```
 
-### Warning
+#### Warning
 
 Setting `overwrite=True` will delete all of your data if it exists!
 
 ---
 
-## like()
+### muller.like()
 
-### Overview
+#### Overview
 
 Copies the source dataset's structure to a new location. No samples are copied, only the meta/info for the dataset and its tensors. This is useful for creating a new dataset with the same schema as an existing one.
 
-### Parameters
+#### Parameters
 
 - **dest** (`str` or `Dataset`): Empty Dataset or Path where the new dataset will be created.
 - **src** (`str` or `Dataset`): Path or dataset object that will be used as the template for the new dataset.
@@ -170,11 +170,11 @@ Copies the source dataset's structure to a new location. No samples are copied, 
 - **overwrite** (`bool`, optional): If `True` and a dataset exists at `dest`, it will be overwritten. Defaults to `False`.
 - **verbose** (`bool`, optional): If `True`, logs will be printed. Defaults to `True`.
 
-### Returns
+#### Returns
 
 - **Dataset**: New dataset object with the same structure as the source.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -203,23 +203,23 @@ new_ds = muller.like(
 
 ---
 
-## delete()
+### muller.delete()
 
-### Overview
+#### Overview
 
 Delete a dataset at the given path. This permanently removes all data and metadata associated with the dataset.
 
-### Parameters
+#### Parameters
 
 - **path** (`str` or `pathlib.Path`): The full path to the dataset to delete.
 - **large_ok** (`bool`, optional): If `True`, allows deletion of large datasets. Defaults to `False`.
 - **creds** (`dict` or `str`, optional): Credentials for OBS service. Defaults to `None`.
 
-### Returns
+#### Returns
 
 - **None**
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -234,28 +234,28 @@ muller.delete("./datasets/large_dataset", large_ok=True)
 muller.delete("s3://mybucket/old_dataset", creds={"aws_access_key_id": "...", "aws_secret_access_key": "..."})
 ```
 
-### Warning
+#### Warning
 
 This operation is irreversible. All data will be permanently deleted.
 
 ---
 
-## get_col_info()
+### muller.get_col_info()
 
-### Overview
+#### Overview
 
 Get column (tensor) information from a dataset without loading the entire dataset. This is useful for quickly inspecting dataset metadata.
 
-### Parameters
+#### Parameters
 
 - **path** (`str` or `pathlib.Path`): The full path to the dataset.
 - **col_name** (`str`, optional): Name of the column (tensor) to get info for. If `None` or empty string, returns dataset-level info. Defaults to `None`.
 
-### Returns
+#### Returns
 
 - **bytes**: The raw metadata content in bytes.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -274,13 +274,13 @@ print(parsed_info)
 
 ---
 
-## from_file()
+### muller.from_file()
 
-### Overview
+#### Overview
 
 Create a dataset from a file (JSON lines format). This function reads data from a file and creates a MULLER dataset with the appropriate schema.
 
-### Parameters
+#### Parameters
 
 - **ori_path** (`str`): Path to the source file (JSON lines format).
 - **muller_path** (`str`): Path where the muller dataset will be created.
@@ -292,11 +292,11 @@ Create a dataset from a file (JSON lines format). This function reads data from 
 - **ignore_errors** (`bool`, optional): Whether to ignore errors during processing. Defaults to `True`.
 - **split_tensor_meta** (`bool`, optional): Each tensor has a tensor_meta.json if `True`. Defaults to `True`.
 
-### Returns
+#### Returns
 
 - **Dataset**: The created dataset.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -342,7 +342,7 @@ ds = muller.from_file(
 )
 ```
 
-### Notes
+#### Notes
 
 - The input file should be in JSON lines format (one JSON object per line).
 - Schema format: `{column_name: (htype, dtype, sample_compression)}` or nested dictionaries.
@@ -350,13 +350,13 @@ ds = muller.from_file(
 
 ---
 
-## from_dataframes()
+### muller.from_dataframes()
 
-### Overview
+#### Overview
 
 Create a dataset from a list of dataframes (dictionaries). This is useful for creating datasets from in-memory data structures.
 
-### Parameters
+#### Parameters
 
 - **dataframes** (`list`): List of dataframes (dicts) to import.
 - **muller_path** (`str`): Path where the muller dataset will be created.
@@ -368,11 +368,11 @@ Create a dataset from a list of dataframes (dictionaries). This is useful for cr
 - **ignore_errors** (`bool`, optional): Whether to ignore errors during processing. Defaults to `True`.
 - **split_tensor_meta** (`bool`, optional): Each tensor has a tensor_meta.json if `True`. Defaults to `True`.
 
-### Returns
+#### Returns
 
 - **Dataset**: The created dataset.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -434,7 +434,7 @@ ds = muller.from_dataframes(
 )
 ```
 
-### Notes
+#### Notes
 
 - Each item in the `dataframes` list should be a dictionary representing one record.
 - Schema format: `{column_name: (htype, dtype, sample_compression)}` or nested dictionaries.

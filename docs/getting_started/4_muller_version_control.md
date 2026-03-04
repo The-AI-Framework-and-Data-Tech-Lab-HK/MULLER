@@ -1,6 +1,6 @@
 ## Version Control
 
-MULLER provides Git-like commands to manage dataset changes. It works with datasets of any size and records key information about dataset evolution. For the full API reference, see [Dataset Version Control]().
+MULLER provides Git-like commands to manage dataset changes. It works with datasets of any size and records key information about dataset evolution. For the full API reference, see [Dataset Version Control](../api/dataset-version-control/).
 
 Below are several key commands.
 
@@ -27,7 +27,7 @@ You can then continue to modify the dataset and commit again.
 '637adeb5232f0152b866c9a2a49e8da19f00c1da'
 ```
 
-- For details, see [`dataset.commit()`]().
+- For details, see [`dataset.commit()`](../api/dataset-version-control/#datasetcommit).
 
 ### 2. Checkout
 
@@ -59,8 +59,8 @@ tensor    htype    shape    dtype  compression
 labels   generic  (5, 1)    int64    None
 ```
 
-- For details, see [`dataset.checkout()`]().
-- For details, see [`dataset.branch`]().
+- For details, see [`dataset.checkout()`](../api/dataset-version-control/#datasetcheckout).
+- For details, see [`dataset.branch`](../api/dataset-version-control/#datasetbranch).
 
 ### 3. Load a Specific Branch/Version and View History
 
@@ -110,16 +110,16 @@ Time   : 2025-02-28 03:32:53
 Message: first commit.
 ```
 
-- For details, see [`dataset.log()`]().
+- For details, see [`dataset.log()`](../api/dataset-version-control/#datasetlog).
 - If needed, we may extend `log()` to also return the history of commits merged into the current branch.
 - Other related APIs:
-  - Get commit details: [`dataset.get_commit_details(commit_id)`]()
-  - Get current commit ID: [`dataset.commit_id`]()
-  - Get the next (pending) commit ID: [`dataset.pending_commit_id`]()
-  - Check whether the current branch has uncommitted changes: [`dataset.has_head_changes`]()
-  - List all commits (without printing): [`dataset.commits`]()
-  - List all branches: [`dataset.branches`]()
-  - Get commits between a version and a branch: [`dataset_commits_between()`]()
+  - Get commit details: [`dataset.get_commit_details(commit_id)`](../api/dataset-version-control/#datasetget_commit_details)
+  - Get current commit ID: [`dataset.commit_id`](../api/dataset-version-control/#datasetcommit_id)
+  - Get the next (pending) commit ID: [`dataset.pending_commit_id`](../api/dataset-version-control/#datasetpending_commit_id)
+  - Check whether the current branch has uncommitted changes: [`dataset.has_head_changes`](../api/dataset-version-control/#datasethas_head_changes)
+  - List all commits (without printing): [`dataset.commits`](../api/dataset-version-control/#datasetcommits)
+  - List all branches: [`dataset.branches`](../api/dataset-version-control/#datasetbranches)
+  - Get commits between a version and a branch: [`dataset.commits_between()`](../api/dataset-version-control/#datasetcommits_between)
 
 ### 4. Direct Diff (available in v0.6.10+)
 
@@ -356,7 +356,7 @@ Example: return values as a dict.
   [])}
 ```
 
-- For details, see [`dataset.diff()`](). For deeper background, see [Detailed MR](https://codehub-y.huawei.com/GTN/MULLER/merge_requests/157).
+- For details, see [`dataset.diff()`](../api/dataset-version-control/#datasetdiff).
 
 ### 6. What Are HEAD Changes? How to Use `reset()` to Revert Uncommitted Changes
 
@@ -406,7 +406,7 @@ False
 Dataset in main branch has 5 samples in the labels tensor
 ```
 
-- For details, see [`dataset.reset()`]().
+- For details, see [`dataset.reset()`](../api/dataset-version-control/#datasetreset).
 
 ### 7. Merge (available in v0.6.7+)
 
@@ -557,8 +557,8 @@ Example:
  [800]]
 ```
 
-- For details, see [`dataset.detect_merge_conflict()`]().
-- For details, see [`dataset.merge()`]().
+- For details, see [`dataset.detect_merge_conflict()`](../api/dataset-version-control/#datasetdetect_merge_conflict).
+- For details, see [`dataset.merge()`](../api/dataset-version-control/#datasetmerge).
 
 ### 8. Branch Permission Control for the Huashan Platform (available in v0.6.6+)
 

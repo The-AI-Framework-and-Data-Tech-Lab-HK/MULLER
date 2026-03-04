@@ -4,35 +4,35 @@ This page documents version control methods for managing dataset history, branch
 
 ## Table of Contents
 
-- [commit()](#commit)
-- [checkout()](#checkout)
-- [commits()](#commits)
-- [merge()](#merge)
-- [diff()](#diff)
-- [reset()](#reset)
-- [log()](#log)
-- [delete_branch()](#delete_branch)
-- [branches](#branches)
-- [commit_id](#commit_id)
+- [ds.commit()](#dscommit)
+- [ds.checkout()](#dscheckout)
+- [ds.commits()](#dscommits)
+- [ds.merge()](#dsmerge)
+- [ds.diff()](#dsdiff)
+- [ds.reset()](#dsreset)
+- [ds.log()](#dslog)
+- [ds.delete_branch()](#dsdelete_branch)
+- [ds.branches](#dsbranches)
+- [ds.commit_id](#dscommit_id)
 
 ---
 
-## commit()
+### ds.commit()
 
-### Overview
+#### Overview
 
 Create a commit to save the current state of the dataset. This creates a snapshot of all changes made since the last commit.
 
-### Parameters
+#### Parameters
 
 - **message** (`str`, optional): Commit message describing the changes. If not provided, an automatic message will be generated. Defaults to `None`.
 - **allow_empty** (`bool`, optional): If `True`, allows creating a commit even when there are no changes. Defaults to `False`.
 
-### Returns
+#### Returns
 
 - **str**: The commit ID of the newly created commit.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -63,22 +63,22 @@ with ds:
 
 ---
 
-## checkout()
+### ds.checkout()
 
-### Overview
+#### Overview
 
 Checkout a specific commit, branch, or tag. This changes the dataset state to match the specified version.
 
-### Parameters
+#### Parameters
 
 - **address** (`str`): The commit ID, branch name, or tag to checkout.
 - **create** (`bool`, optional): If `True`, creates a new branch at the specified commit. Defaults to `False`.
 
-### Returns
+#### Returns
 
 - **None**
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -109,21 +109,21 @@ with ds:
 
 ---
 
-## commits()
+### ds.commits()
 
-### Overview
+#### Overview
 
 Get a list of all commits in the dataset history.
 
-### Parameters
+#### Parameters
 
 - **ordered_by_date** (`bool`, optional): If `True`, orders commits by date instead of by commit graph. Defaults to `False`.
 
-### Returns
+#### Returns
 
 - **List[Dict]**: List of commit dictionaries containing commit information.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -157,22 +157,22 @@ print(f"Total commits: {len(commits)}")
 
 ---
 
-## merge()
+### ds.merge()
 
-### Overview
+#### Overview
 
 Merge changes from another branch into the current branch. This combines the history and changes from two branches.
 
-### Parameters
+#### Parameters
 
 - **branch** (`str`): Name of the branch to merge into the current branch.
 - **conflict_resolution** (`str`, optional): Strategy for resolving conflicts ("ours", "theirs", "manual"). Defaults to `"manual"`.
 
-### Returns
+#### Returns
 
 - **str**: The commit ID of the merge commit.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -201,22 +201,22 @@ ds.commit("Merged feature branch")
 
 ---
 
-## diff()
+### ds.diff()
 
-### Overview
+#### Overview
 
 Show the differences between the current state and a specific commit, or between two commits.
 
-### Parameters
+#### Parameters
 
 - **commit_id** (`str`, optional): Commit ID to compare against. If not provided, compares against the last commit. Defaults to `None`.
 - **other_commit_id** (`str`, optional): Second commit ID for comparing two commits. Defaults to `None`.
 
-### Returns
+#### Returns
 
 - **Dict**: Dictionary containing the differences.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -245,22 +245,22 @@ if "samples_added" in diff:
 
 ---
 
-## reset()
+### ds.reset()
 
-### Overview
+#### Overview
 
 Reset the dataset to a specific commit, discarding all changes after that commit.
 
-### Parameters
+#### Parameters
 
 - **commit_id** (`str`): The commit ID to reset to.
 - **hard** (`bool`, optional): If `True`, discards all uncommitted changes. If `False`, keeps uncommitted changes. Defaults to `False`.
 
-### Returns
+#### Returns
 
 - **None**
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -283,28 +283,28 @@ ds.reset("abc123def456", hard=True)
 ds.checkout("recovery", create=True)
 ```
 
-### Warning
+#### Warning
 
 Hard reset permanently discards all changes after the specified commit. Use with caution.
 
 ---
 
-## log()
+### ds.log()
 
-### Overview
+#### Overview
 
 Display the commit history in a readable format, similar to `git log`.
 
-### Parameters
+#### Parameters
 
 - **max_count** (`int`, optional): Maximum number of commits to display. Defaults to `None` (all commits).
 - **oneline** (`bool`, optional): If `True`, displays each commit on a single line. Defaults to `False`.
 
-### Returns
+#### Returns
 
 - **None** (prints to console)
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -342,22 +342,22 @@ Date: 2026-03-03 15:20:00
 
 ---
 
-## delete_branch()
+### ds.delete_branch()
 
-### Overview
+#### Overview
 
 Delete a branch from the dataset. The branch must not be the currently checked out branch.
 
-### Parameters
+#### Parameters
 
 - **branch_name** (`str`): Name of the branch to delete.
 - **force** (`bool`, optional): If `True`, deletes the branch even if it has unmerged changes. Defaults to `False`.
 
-### Returns
+#### Returns
 
 - **None**
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -382,23 +382,23 @@ for branch in branches:
         ds.delete_branch(branch)
 ```
 
-### Warning
+#### Warning
 
 Deleting a branch with unmerged changes will permanently lose those changes unless `force=True` is used intentionally.
 
 ---
 
-## branches
+### ds.branches
 
-### Overview
+#### Overview
 
 Property that returns a list of all branches in the dataset.
 
-### Type
+#### Type
 
 - **List[str]**: List of branch names.
 
-### Examples
+#### Examples
 
 ```python
 import muller
@@ -425,17 +425,17 @@ if branch_name not in ds.branches:
 
 ---
 
-## commit_id
+### ds.commit_id
 
-### Overview
+#### Overview
 
 Property that returns the current commit ID of the dataset.
 
-### Type
+#### Type
 
 - **str**: The current commit ID, or `None` if no commits exist.
 
-### Examples
+#### Examples
 
 ```python
 import muller
