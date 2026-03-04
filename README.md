@@ -19,6 +19,7 @@ To address this gap, we introduce **MULLER**, a novel Multimodal data lake forma
 
 Here is a [video demo](https://www.youtube.com/watch?v=okHzhbp7an0) of MULLER to demonstrate the basic functions.
 
+Please check the tutorial at [MULLER website](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/) with [detailed API documents](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/api/top-level-functions/).
 
 ## Getting Started
 
