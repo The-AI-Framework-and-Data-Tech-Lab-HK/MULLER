@@ -35,7 +35,6 @@ from muller.util.json import validate_json_schema
 
 
 class TensorMeta(Meta):
-    name: Optional[str] = None
     htype: Union[str, None]
     dtype: str
     typestr: str
@@ -78,11 +77,13 @@ class TensorMeta(Meta):
 
         for key in self._required_meta_keys:
             d[key] = getattr(self, key)
-        d["name"] = self.name
 
         return d
 
     def __setstate__(self, state: Dict[str, Any]):
+        # Remove deprecated fields for backward compatibility
+        state.pop("name", None)
+        state.pop("verify", None)
         super().__setstate__(state)
         self._required_meta_keys = tuple(state.keys())
 
@@ -207,18 +208,19 @@ def _validate_htype_overwrites(htype: str, htype_overwrite: dict):
     defaults = HTYPE_CONFIGURATIONS[htype]
 
     for key, value in htype_overwrite.items():
-        if key != "full_flush_dict":
-            if key not in defaults:
-                raise TensorMetaInvalidHtypeOverwriteKey(htype, key, list(defaults.keys()))
-
-            if isinstance(value, str) and value == "unspecified":
-                if defaults[key] == "require_user_specification":
-                    raise TensorMetaMissingRequiredValue(htype, key)
-        else:
+        # Skip deprecated fields for backward compatibility
+        if key in ("full_flush_dict", "verify", "name"):
             continue
 
-    sc = htype_overwrite["sample_compression"]
-    cc = htype_overwrite["chunk_compression"]
+        if key not in defaults:
+            raise TensorMetaInvalidHtypeOverwriteKey(htype, key, list(defaults.keys()))
+
+        if isinstance(value, str) and value == "unspecified":
+            if defaults[key] == "require_user_specification":
+                raise TensorMetaMissingRequiredValue(htype, key)
+
+    sc = htype_overwrite.get("sample_compression")
+    cc = htype_overwrite.get("chunk_compression")
     compr = sc if cc in (None, "unspecified") else cc
     actual_htype = htype
     if htype.startswith("image") and sc == "unspecified" and cc == "unspecified":

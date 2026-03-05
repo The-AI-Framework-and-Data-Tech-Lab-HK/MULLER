@@ -637,7 +637,6 @@ def _process_copy(ds, dest_ds, num_workers, scheduler, progressbar, ignore_error
                     delattr(dest_ds, "_allow_view_updates")
     finally:
         if reset_index:
-            dest_ds.meta.default_index = Index([IndexEntry(0)]).to_json()
             dest_ds.meta.is_dirty = True
             dest_ds.flush()
             dest_ds = dest_ds[0]

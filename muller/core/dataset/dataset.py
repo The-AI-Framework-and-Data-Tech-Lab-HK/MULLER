@@ -1583,7 +1583,7 @@ class Dataset(
                 address, verbose
             )
             if self.index.is_trivial():
-                self.index = Index.from_json(self.meta.default_index)
+                self.index = Index()
         elif not self._read_only:
             _ = self.lock(verbose=verbose)  # for ref counting
 

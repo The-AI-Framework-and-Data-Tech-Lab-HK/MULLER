@@ -66,7 +66,7 @@ def get_sample_object(
 
 def _is_tensor_hidden(chunk_engine) -> bool:
     """function to check is the tensors that chunk_engine belongs to is hidden"""
-    tensor_name = chunk_engine.tensor_meta.name or chunk_engine.key
+    tensor_name = chunk_engine.key
     if tensor_name.startswith("_"):
         return (
                 tensor_name.endswith("_shape")

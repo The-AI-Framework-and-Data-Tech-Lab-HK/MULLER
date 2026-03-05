@@ -135,7 +135,7 @@ class ChunkEngine:
         self._chunk_compression = None
 
         tensor_meta = self.tensor_meta
-        self.name = tensor_meta.name or self.key
+        self.name = self.key
         numpy_extend_optimization_enabled = False
 
         if tensor_meta.sample_compression:
@@ -1488,7 +1488,7 @@ class ChunkEngine:
     def convert_class_labels(self, samples):
         """Convert the class-labels type chunk."""
         tensor_info = self.tensor_meta.info
-        tensor_name = self.tensor_meta.name or self.key
+        tensor_name = self.key
         class_names = tensor_info["class_names"]
         labels, additions = convert_to_idx(samples, class_names)
         if additions:

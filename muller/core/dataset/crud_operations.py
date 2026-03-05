@@ -116,7 +116,8 @@ def create_tensor_like(
     del meta["max_shape"]
     del meta["length"]
     del meta["version"]
-    del meta["name"]
+    meta.pop("name", None)  # Remove if exists (backward compatibility)
+    meta.pop("verify", None)  # Remove if exists (backward compatibility)
     meta["dtype"] = np.dtype(meta["typestr"]) if meta["typestr"] else meta["dtype"]
 
     destination_tensor = _create_tensor(
@@ -346,7 +347,6 @@ def rename(ds, path: Union[str, pathlib.Path]):
 def handle_rename_tensor(ds, name, new_name):
     """Function to handle rename tensor"""
     tensor = ds[name]
-    tensor.meta.name = new_name
     tensor.meta.is_dirty = True
     tensor_names = ds.version_state.get("tensor_names", "")
     if not tensor_names:
@@ -450,7 +450,6 @@ def _create_tensor(
         raise InvalidTensorNameError(name)
 
     kwargs["split_tensor_meta"] = ds.split_tensor_meta
-    kwargs["verify"] = kwargs.pop("verify", True)
 
     info_kwargs, meta_kwargs = _get_kwargs(kwargs, htype)
 
@@ -537,15 +536,10 @@ def _manage_creation_of_hidden_tensor(ds,
                                       hidden_kwargs
                                       ):
 
-    if not meta_kwargs["verify"]:
-        hidden_kwargs["create_shape_tensor"] = False
-        hidden_kwargs["create_sample_info_tensor"] = False
-
     meta: DatasetMeta = ds.meta
     ffw_dataset_meta(meta)
     meta.add_tensor(name, key, hidden=hidden_kwargs.get("hidden", False))
     tensor = Tensor(key, ds)
-    tensor.meta.name = name
     ds.version_state["full_tensors"][key] = tensor
     ds.version_state["tensor_names"][name] = key
     if info_kwargs:

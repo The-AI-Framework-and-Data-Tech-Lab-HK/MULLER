@@ -154,7 +154,7 @@ def map_tensor_keys(dataset, tensor_keys: Optional[Sequence[str]] = None) -> Lis
         tensor_keys = list(tensor_keys)
 
     # Get full path in case of groups
-    return [tensors[k].meta.name or tensors[k].key for k in tensor_keys]
+    return [tensors[k].key for k in tensor_keys]
 
 
 _invalid_chars = {"[", "]", "@", ".", ",", "?", "!", "/", "\\", "#", "'", '"'}

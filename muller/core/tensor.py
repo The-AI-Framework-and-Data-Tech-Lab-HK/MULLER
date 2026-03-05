@@ -325,7 +325,7 @@ class Tensor:
         index_str = f", index={self.index}"
         if self.index.is_trivial():
             index_str = ""
-        return f"Tensor(key={repr(self.meta.name or self.key)}{index_str})"
+        return f"Tensor(key={repr(self.key)}{index_str})"
 
     __repr__ = __str__
 
@@ -462,7 +462,7 @@ class Tensor:
     def _sample_id_tensor(self):
         if not CREATE_TENSOR_HIDDEN_UUID:
             return self.dataset[DATASET_UUID_NAME]
-        tensor_name = self.meta.name or self.key
+        tensor_name = self.key
         return self.dataset.get_tensors().get(get_sample_id_tensor_key(tensor_name))
 
     @property
@@ -621,7 +621,7 @@ class Tensor:
     def get_sample_info_tensor(self):
         """Get sample info tensor. """
         ds = self.dataset
-        tensor_name = self.meta.name or self.key
+        tensor_name = self.key
         return ds.version_state["full_tensors"].get(
             ds.version_state["tensor_names"].get(
                 get_sample_info_tensor_key(tensor_name)
@@ -631,7 +631,7 @@ class Tensor:
     def get_sample_shape_tensor(self):
         """Get sample shape tensor. """
         ds = self.dataset
-        tensor_name = self.meta.name or self.key
+        tensor_name = self.key
         return ds.version_state["full_tensors"].get(
             ds.version_state["tensor_names"].get(
                 get_sample_shape_tensor_key(tensor_name)

@@ -20,26 +20,25 @@ class DatasetMeta(Meta):
 
     def __init__(self):
         super().__init__()
-        self.statistics = {}
         self.tensors = []
         self.tensor_names = {}
         self.hidden_tensors = []
-        self.default_index = Index().to_json()
         self.info = {}
         self.dataset_creator = "public"
 
     def __getstate__(self) -> Dict[str, Any]:
         d = super().__getstate__()
-        d["statistics"] = self.statistics.copy()
         d["tensors"] = self.tensors.copy()
         d["tensor_names"] = self.tensor_names.copy()
         d["hidden_tensors"] = self.hidden_tensors.copy()
-        d["default_index"] = self.default_index.copy()
         d["info"] = self.info.copy()
         d["dataset_creator"] = self.dataset_creator
         return d
 
     def __setstate__(self, d):
+        # Remove deprecated fields for backward compatibility
+        d.pop("statistics", None)
+        d.pop("default_index", None)
         self.__dict__.update(d)
 
     @property

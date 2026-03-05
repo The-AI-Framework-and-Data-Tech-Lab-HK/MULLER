@@ -233,7 +233,6 @@ COMMON_CONFIGS = {
     "max_chunk_size": None,
     "tiling_threshold": None,
     "hidden": False,
-    "verify": False,
 }
 
 for config in HTYPE_CONFIGURATIONS.values():
