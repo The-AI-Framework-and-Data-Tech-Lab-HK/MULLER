@@ -1,0 +1,2122 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER/api/dataset-export/">
+      
+      
+        <link rel="prev" href="../dataset-version-control/">
+      
+      
+        <link rel="next" href="../advanced/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+    
+    
+      
+        <title>Dataset Export - MULLER</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dataset-export-methods" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MULLER" class="md-header__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MULLER
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dataset Export
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the bright mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Change to the bright mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Change to the dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting_started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../top-level-functions/" class="md-tabs__link">
+          
+  
+  
+  API Documents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq.md" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MULLER" class="md-nav__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MULLER
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/1_read_muller_object/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read as MULLER object
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/2_create_muller_dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construct a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/3_muller_dataset_operations%28load%2Cappend%2Cupdate%2Cdelete%2Cquery%29/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/4_muller_version_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/5_advanced_operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Documents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Documents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../top-level-functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Top-Level Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-creation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-query/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Query
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-version-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Export
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsto_dataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.to_dataframe()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.to_dataframe()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsto_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.to_json()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.to_json()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsto_arrow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.to_arrow()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.to_arrow()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsto_mindrecord" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.to_mindrecord()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.to_mindrecord()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dswrite_to_parquet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.write_to_parquet()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.write_to_parquet()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-of-export-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison of Export Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comparison of Export Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#choosing-the-right-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing the Right Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../htypes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Htypes Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsto_dataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.to_dataframe()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.to_dataframe()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsto_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.to_json()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.to_json()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsto_arrow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.to_arrow()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.to_arrow()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsto_mindrecord" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.to_mindrecord()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.to_mindrecord()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dswrite_to_parquet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.write_to_parquet()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.write_to_parquet()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-of-export-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison of Export Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comparison of Export Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#choosing-the-right-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing the Right Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="dataset-export-methods">Dataset Export Methods</h1>
+<p>This page documents methods for exporting dataset data to various formats.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#dsto_dataframe">ds.to_dataframe()</a></li>
+<li><a href="#dsto_json">ds.to_json()</a></li>
+<li><a href="#dsto_arrow">ds.to_arrow()</a></li>
+<li><a href="#dsto_mindrecord">ds.to_mindrecord()</a></li>
+<li><a href="#dswrite_to_parquet">ds.write_to_parquet()</a></li>
+</ul>
+<hr />
+<h3 id="dsto_dataframe">ds.to_dataframe()</h3>
+<h4 id="overview">Overview</h4>
+<p>Convert the dataset to a pandas DataFrame. This is useful for data analysis and integration with pandas-based workflows.</p>
+<h4 id="parameters">Parameters</h4>
+<ul>
+<li><strong>tensor_list</strong> (<code>List[str]</code>, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to <code>None</code>.</li>
+<li><strong>index_list</strong> (<code>List[int]</code>, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to <code>None</code>.</li>
+<li><strong>force</strong> (<code>bool</code>, optional): If <code>True</code>, exports the dataset regardless of size. Datasets with more than <code>TO_DATAFRAME_SAFE_LIMIT</code> samples might take a long time to export. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="returns">Returns</h4>
+<ul>
+<li><strong>pandas.DataFrame</strong>: The dataset as a pandas DataFrame.</li>
+</ul>
+<h4 id="examples">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Export entire dataset to DataFrame</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># Export specific tensors</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">(</span><span class="n">tensor_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+
+<span class="c1"># Export specific rows</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">(</span><span class="n">index_list</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>
+
+<span class="c1"># Export specific tensors and rows</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">(</span>
+    <span class="n">tensor_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="s2">&quot;categories&quot;</span><span class="p">],</span>
+    <span class="n">index_list</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Export last few samples</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">(</span><span class="n">index_list</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="c1"># Force export of large dataset</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Use DataFrame for analysis</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+</code></pre></div>
+<h4 id="notes">Notes</h4>
+<ul>
+<li>For large datasets, consider using <code>index_list</code> to export in batches.</li>
+<li>Image and large binary data will be represented as arrays in the DataFrame.</li>
+<li>Use <code>force=True</code> carefully with large datasets as it may consume significant memory.</li>
+</ul>
+<hr />
+<h3 id="dsto_json">ds.to_json()</h3>
+<h4 id="overview_1">Overview</h4>
+<p>Export the dataset to JSON format. This creates a JSON file or returns JSON data for the dataset.</p>
+<h4 id="parameters_1">Parameters</h4>
+<ul>
+<li><strong>path</strong> (<code>str</code>, optional): Path where the JSON file will be saved. If not provided, returns JSON string. Defaults to <code>None</code>.</li>
+<li><strong>tensor_list</strong> (<code>List[str]</code>, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to <code>None</code>.</li>
+<li><strong>index_list</strong> (<code>List[int]</code>, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to <code>None</code>.</li>
+<li><strong>indent</strong> (<code>int</code>, optional): Number of spaces for JSON indentation. Defaults to <code>2</code>.</li>
+</ul>
+<h4 id="returns_1">Returns</h4>
+<ul>
+<li><strong>str</strong> or <strong>None</strong>: JSON string if <code>path</code> is not provided, otherwise <code>None</code> (writes to file).</li>
+</ul>
+<h4 id="examples_1">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Export to JSON file</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;./output/dataset.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># Export specific tensors</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;./output/labels_only.json&quot;</span><span class="p">,</span> <span class="n">tensor_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+
+<span class="c1"># Export specific samples</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;./output/sample_subset.json&quot;</span><span class="p">,</span> <span class="n">index_list</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+
+<span class="c1"># Get JSON string without saving</span>
+<span class="n">json_str</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+
+<span class="c1"># Export with custom indentation</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;./output/dataset.json&quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># Export filtered view</span>
+<span class="n">filtered</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;labels == 5&quot;</span><span class="p">)</span>
+<span class="n">filtered</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;./output/label_5_samples.json&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsto_arrow">ds.to_arrow()</h3>
+<h4 id="overview_2">Overview</h4>
+<p>Convert the dataset to Apache Arrow format. This is useful for interoperability with Arrow-based tools and efficient data transfer.</p>
+<h4 id="parameters_2">Parameters</h4>
+<ul>
+<li><strong>tensor_list</strong> (<code>List[str]</code>, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to <code>None</code>.</li>
+<li><strong>index_list</strong> (<code>List[int]</code>, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to <code>None</code>.</li>
+</ul>
+<h4 id="returns_2">Returns</h4>
+<ul>
+<li><strong>pyarrow.Table</strong>: The dataset as an Arrow Table.</li>
+</ul>
+<h4 id="examples_2">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Convert to Arrow Table</span>
+<span class="n">arrow_table</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_arrow</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">arrow_table</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
+
+<span class="c1"># Export specific tensors</span>
+<span class="n">arrow_table</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_arrow</span><span class="p">(</span><span class="n">tensor_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="s2">&quot;features&quot;</span><span class="p">])</span>
+
+<span class="c1"># Export specific samples</span>
+<span class="n">arrow_table</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_arrow</span><span class="p">(</span><span class="n">index_list</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
+
+<span class="c1"># Write to Parquet using Arrow</span>
+<span class="n">arrow_table</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_arrow</span><span class="p">()</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.parquet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pq</span>
+<span class="n">pq</span><span class="o">.</span><span class="n">write_table</span><span class="p">(</span><span class="n">arrow_table</span><span class="p">,</span> <span class="s2">&quot;./output/dataset.parquet&quot;</span><span class="p">)</span>
+
+<span class="c1"># Convert to pandas via Arrow</span>
+<span class="n">arrow_table</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_arrow</span><span class="p">()</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">arrow_table</span><span class="o">.</span><span class="n">to_pandas</span><span class="p">()</span>
+
+<span class="c1"># Use with Arrow datasets</span>
+<span class="n">arrow_table</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">to_arrow</span><span class="p">()</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.dataset</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ds_arrow</span>
+<span class="n">ds_arrow</span><span class="o">.</span><span class="n">write_dataset</span><span class="p">(</span><span class="n">arrow_table</span><span class="p">,</span> <span class="s2">&quot;./output/arrow_dataset&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;parquet&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsto_mindrecord">ds.to_mindrecord()</h3>
+<h4 id="overview_3">Overview</h4>
+<p>Export the dataset to MindRecord format, which is used by MindSpore framework. This is useful for training models with MindSpore.</p>
+<h4 id="parameters_3">Parameters</h4>
+<ul>
+<li><strong>path</strong> (<code>str</code>): Path where the MindRecord files will be saved.</li>
+<li><strong>tensor_list</strong> (<code>List[str]</code>, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to <code>None</code>.</li>
+<li><strong>index_list</strong> (<code>List[int]</code>, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to <code>None</code>.</li>
+<li><strong>num_shards</strong> (<code>int</code>, optional): Number of MindRecord shards to create. Defaults to <code>1</code>.</li>
+<li><strong>overwrite</strong> (<code>bool</code>, optional): If <code>True</code>, overwrites existing files. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="returns_3">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_3">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Export to MindRecord</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">to_mindrecord</span><span class="p">(</span><span class="s2">&quot;./output/dataset.mindrecord&quot;</span><span class="p">)</span>
+
+<span class="c1"># Export with multiple shards</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">to_mindrecord</span><span class="p">(</span><span class="s2">&quot;./output/dataset.mindrecord&quot;</span><span class="p">,</span> <span class="n">num_shards</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+<span class="c1"># Export specific tensors</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">to_mindrecord</span><span class="p">(</span>
+    <span class="s2">&quot;./output/images_labels.mindrecord&quot;</span><span class="p">,</span>
+    <span class="n">tensor_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Export subset of data</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">to_mindrecord</span><span class="p">(</span>
+    <span class="s2">&quot;./output/train_subset.mindrecord&quot;</span><span class="p">,</span>
+    <span class="n">index_list</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Overwrite existing files</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">to_mindrecord</span><span class="p">(</span>
+    <span class="s2">&quot;./output/dataset.mindrecord&quot;</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># Export filtered view</span>
+<span class="n">train_ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;split == &#39;train&#39;&quot;</span><span class="p">)</span>
+<span class="n">train_ds</span><span class="o">.</span><span class="n">to_mindrecord</span><span class="p">(</span><span class="s2">&quot;./output/train.mindrecord&quot;</span><span class="p">,</span> <span class="n">num_shards</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="notes_1">Notes</h4>
+<ul>
+<li>MindRecord format is optimized for MindSpore training workflows.</li>
+<li>Multiple shards can improve parallel data loading performance.</li>
+<li>Requires MindSpore to be installed.</li>
+</ul>
+<hr />
+<h3 id="dswrite_to_parquet">ds.write_to_parquet()</h3>
+<h4 id="overview_4">Overview</h4>
+<p>Write the dataset to Parquet format. Parquet is a columnar storage format that is efficient for analytics and widely supported.</p>
+<h4 id="parameters_4">Parameters</h4>
+<ul>
+<li><strong>path</strong> (<code>str</code>): Path where the Parquet file(s) will be saved.</li>
+<li><strong>tensor_list</strong> (<code>List[str]</code>, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to <code>None</code>.</li>
+<li><strong>index_list</strong> (<code>List[int]</code>, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to <code>None</code>.</li>
+<li><strong>compression</strong> (<code>str</code>, optional): Compression codec to use (e.g., "snappy", "gzip", "brotli"). Defaults to <code>"snappy"</code>.</li>
+<li><strong>row_group_size</strong> (<code>int</code>, optional): Number of rows per row group. Defaults to <code>None</code> (automatic).</li>
+</ul>
+<h4 id="returns_4">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_4">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Write to Parquet</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">write_to_parquet</span><span class="p">(</span><span class="s2">&quot;./output/dataset.parquet&quot;</span><span class="p">)</span>
+
+<span class="c1"># Write with specific compression</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">write_to_parquet</span><span class="p">(</span><span class="s2">&quot;./output/dataset.parquet&quot;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s2">&quot;gzip&quot;</span><span class="p">)</span>
+
+<span class="c1"># Write specific tensors</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">write_to_parquet</span><span class="p">(</span>
+    <span class="s2">&quot;./output/labels_only.parquet&quot;</span><span class="p">,</span>
+    <span class="n">tensor_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="s2">&quot;categories&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Write subset of data</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">write_to_parquet</span><span class="p">(</span>
+    <span class="s2">&quot;./output/sample_subset.parquet&quot;</span><span class="p">,</span>
+    <span class="n">index_list</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Write with custom row group size</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">write_to_parquet</span><span class="p">(</span>
+    <span class="s2">&quot;./output/dataset.parquet&quot;</span><span class="p">,</span>
+    <span class="n">row_group_size</span><span class="o">=</span><span class="mi">10000</span>
+<span class="p">)</span>
+
+<span class="c1"># Write filtered view</span>
+<span class="n">filtered</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;score &gt; 80&quot;</span><span class="p">)</span>
+<span class="n">filtered</span><span class="o">.</span><span class="n">write_to_parquet</span><span class="p">(</span><span class="s2">&quot;./output/high_scores.parquet&quot;</span><span class="p">)</span>
+
+<span class="c1"># Write multiple partitions</span>
+<span class="n">train_ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;split == &#39;train&#39;&quot;</span><span class="p">)</span>
+<span class="n">test_ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;split == &#39;test&#39;&quot;</span><span class="p">)</span>
+<span class="n">train_ds</span><span class="o">.</span><span class="n">write_to_parquet</span><span class="p">(</span><span class="s2">&quot;./output/train.parquet&quot;</span><span class="p">)</span>
+<span class="n">test_ds</span><span class="o">.</span><span class="n">write_to_parquet</span><span class="p">(</span><span class="s2">&quot;./output/test.parquet&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="notes_2">Notes</h4>
+<ul>
+<li>Parquet format is highly efficient for columnar data access.</li>
+<li>Compression reduces file size but may increase read/write time.</li>
+<li>Parquet files can be read by many tools including pandas, Spark, and DuckDB.</li>
+</ul>
+<hr />
+<h2 id="comparison-of-export-formats">Comparison of Export Formats</h2>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Use Case</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DataFrame</strong></td>
+<td>Data analysis, pandas workflows</td>
+<td>Easy to use, familiar API</td>
+<td>Memory intensive for large datasets</td>
+</tr>
+<tr>
+<td><strong>JSON</strong></td>
+<td>Data interchange, human-readable</td>
+<td>Universal format, readable</td>
+<td>Large file size, slower parsing</td>
+</tr>
+<tr>
+<td><strong>Arrow</strong></td>
+<td>Interoperability, efficient transfer</td>
+<td>Fast, zero-copy, language-agnostic</td>
+<td>Requires Arrow ecosystem</td>
+</tr>
+<tr>
+<td><strong>MindRecord</strong></td>
+<td>MindSpore training</td>
+<td>Optimized for MindSpore</td>
+<td>MindSpore-specific</td>
+</tr>
+<tr>
+<td><strong>Parquet</strong></td>
+<td>Analytics, data warehousing</td>
+<td>Efficient, columnar, widely supported</td>
+<td>Not human-readable</td>
+</tr>
+</tbody>
+</table>
+<h3 id="choosing-the-right-format">Choosing the Right Format</h3>
+<ul>
+<li>Use <strong>to_dataframe()</strong> for quick analysis and pandas integration</li>
+<li>Use <strong>to_json()</strong> for data interchange and human readability</li>
+<li>Use <strong>to_arrow()</strong> for efficient data transfer and Arrow ecosystem integration</li>
+<li>Use <strong>to_mindrecord()</strong> for MindSpore model training</li>
+<li>Use <strong>write_to_parquet()</strong> for efficient storage and analytics workflows</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.tracking", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

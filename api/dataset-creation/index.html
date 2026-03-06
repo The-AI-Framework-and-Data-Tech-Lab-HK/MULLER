@@ -1,0 +1,2522 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER/api/dataset-creation/">
+      
+      
+        <link rel="prev" href="../top-level-functions/">
+      
+      
+        <link rel="next" href="../dataset-methods/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+    
+    
+      
+        <title>Dataset Creation - MULLER</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dataset-creation-and-management" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MULLER" class="md-header__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MULLER
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dataset Creation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the bright mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Change to the bright mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Change to the dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting_started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../top-level-functions/" class="md-tabs__link">
+          
+  
+  
+  API Documents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq.md" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MULLER" class="md-nav__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MULLER
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/1_read_muller_object/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read as MULLER object
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/2_create_muller_dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construct a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/3_muller_dataset_operations%28load%2Cappend%2Cupdate%2Cdelete%2Cquery%29/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/4_muller_version_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/5_advanced_operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Documents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Documents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../top-level-functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Top-Level Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Creation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mullerdataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.dataset()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.dataset()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.load()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.load()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerempty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.empty()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.empty()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerlike" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.like()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.like()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerdelete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.delete()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.delete()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerget_col_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.get_col_info()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.get_col_info()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerfrom_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.from_file()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.from_file()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerfrom_dataframes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.from_dataframes()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.from_dataframes()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-query/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Query
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-version-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../htypes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Htypes Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mullerdataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.dataset()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.dataset()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.load()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.load()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerempty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.empty()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.empty()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerlike" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.like()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.like()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerdelete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.delete()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.delete()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerget_col_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.get_col_info()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.get_col_info()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerfrom_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.from_file()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.from_file()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerfrom_dataframes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.from_dataframes()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.from_dataframes()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="dataset-creation-and-management">Dataset Creation and Management</h1>
+<p>This page documents functions for creating, loading, and managing datasets.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#mullerdataset">muller.dataset()</a></li>
+<li><a href="#mullerload">muller.load()</a></li>
+<li><a href="#mullerempty">muller.empty()</a></li>
+<li><a href="#mullerlike">muller.like()</a></li>
+<li><a href="#mullerdelete">muller.delete()</a></li>
+<li><a href="#mullerget_col_info">muller.get_col_info()</a></li>
+<li><a href="#mullerfrom_file">muller.from_file()</a></li>
+<li><a href="#mullerfrom_dataframes">muller.from_dataframes()</a></li>
+</ul>
+<hr />
+<h3 id="mullerdataset">muller.dataset()</h3>
+<h4 id="overview">Overview</h4>
+<p>Returns a <code>Dataset</code> object referencing either a new or existing dataset. This is the primary function for creating or opening datasets.</p>
+<h4 id="parameters">Parameters</h4>
+<ul>
+<li><strong>path</strong> (<code>str</code> or <code>pathlib.Path</code>): The full path to the dataset. Can be:</li>
+<li>An s3 path of the form <code>s3://bucketname/path/to/dataset</code></li>
+<li>A local file system path of the form <code>./path/to/dataset</code>, <code>~/path/to/dataset</code> or <code>path/to/dataset</code></li>
+<li><strong>read_only</strong> (<code>bool</code>, optional): Opens dataset in read only mode if <code>True</code>. Defaults to <code>False</code>.</li>
+<li><strong>overwrite</strong> (<code>bool</code>, optional): If <code>True</code>, overwrites the dataset if it already exists. Defaults to <code>False</code>.</li>
+<li><strong>memory_cache_size</strong> (<code>int</code>, optional): The size of the memory cache to be used in MB. Defaults to <code>DEFAULT_MEMORY_CACHE_SIZE</code>.</li>
+<li><strong>local_cache_size</strong> (<code>int</code>, optional): The size of the local filesystem cache to be used in MB. Defaults to <code>DEFAULT_LOCAL_CACHE_SIZE</code>.</li>
+<li><strong>creds</strong> (<code>dict</code> or <code>str</code>, optional): Credentials for OBS service. Defaults to <code>None</code>.</li>
+<li><strong>verbose</strong> (<code>bool</code>, optional): If <code>True</code>, logs will be printed. Defaults to <code>True</code>.</li>
+<li><strong>reset</strong> (<code>bool</code>, optional): If the specified dataset cannot be loaded due to a corrupted HEAD state, setting <code>reset=True</code> will reset HEAD changes and load the previous version. Defaults to <code>False</code>.</li>
+<li><strong>check_integrity</strong> (<code>bool</code>, optional): Performs an integrity check by default if the dataset has 20 or fewer tensors. Defaults to <code>True</code>.</li>
+<li><strong>lock_timeout</strong> (<code>int</code>, optional): Number of seconds to wait before throwing a LockException. Defaults to <code>0</code>.</li>
+<li><strong>lock_enabled</strong> (<code>bool</code>, optional): If <code>True</code>, the dataset manages a write lock. Defaults to <code>True</code>.</li>
+<li><strong>split_tensor_meta</strong> (<code>bool</code>, optional): Each tensor has a tensor_meta.json if <code>True</code>. Defaults to <code>True</code>.</li>
+</ul>
+<h4 id="returns">Returns</h4>
+<ul>
+<li><strong>Dataset</strong>: The dataset object.</li>
+</ul>
+<h4 id="examples">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># Create a new local dataset</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Open an existing dataset</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create a dataset on remote storage</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;s3://mybucket/my_dataset&quot;</span><span class="p">,</span> <span class="n">creds</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;aws_access_key_id&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="s2">&quot;aws_secret_access_key&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">})</span>
+
+<span class="c1"># Open in read-only mode</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Create with custom cache sizes</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">,</span> <span class="n">memory_cache_size</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">local_cache_size</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="mullerload">muller.load()</h3>
+<h4 id="overview_1">Overview</h4>
+<p>Load an existing dataset from the given path. Unlike <code>dataset()</code>, this function will raise an error if the dataset does not exist.</p>
+<h4 id="parameters_1">Parameters</h4>
+<ul>
+<li><strong>path</strong> (<code>str</code> or <code>pathlib.Path</code>): The full path to the dataset.</li>
+<li><strong>read_only</strong> (<code>bool</code>, optional): Opens dataset in read only mode if <code>True</code>. Defaults to <code>False</code>.</li>
+<li><strong>memory_cache_size</strong> (<code>int</code>, optional): The size of the memory cache to be used in MB. Defaults to <code>DEFAULT_MEMORY_CACHE_SIZE</code>.</li>
+<li><strong>local_cache_size</strong> (<code>int</code>, optional): The size of the local filesystem cache to be used in MB. Defaults to <code>DEFAULT_LOCAL_CACHE_SIZE</code>.</li>
+<li><strong>creds</strong> (<code>dict</code> or <code>str</code>, optional): Credentials for OBS service. Defaults to <code>None</code>.</li>
+<li><strong>verbose</strong> (<code>bool</code>, optional): If <code>True</code>, logs will be printed. Defaults to <code>True</code>.</li>
+<li><strong>check_integrity</strong> (<code>bool</code>, optional): Performs an integrity check by default if the dataset has 20 or fewer tensors. Defaults to <code>True</code>.</li>
+<li><strong>lock_enabled</strong> (<code>bool</code>, optional): If <code>True</code>, the dataset manages a write lock. Defaults to <code>True</code>.</li>
+<li><strong>lock_timeout</strong> (<code>int</code>, optional): Number of seconds to wait before throwing a LockException. Defaults to <code>0</code>.</li>
+<li><strong>split_tensor_meta</strong> (<code>bool</code>, optional): Each tensor has a tensor_meta.json if <code>True</code>. Defaults to <code>True</code>.</li>
+</ul>
+<h4 id="returns_1">Returns</h4>
+<ul>
+<li><strong>Dataset</strong>: The loaded dataset.</li>
+</ul>
+<h4 id="examples_1">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># Load an existing dataset</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load in read-only mode</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Load from remote storage</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;s3://mybucket/my_dataset&quot;</span><span class="p">,</span> <span class="n">creds</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;aws_access_key_id&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="s2">&quot;aws_secret_access_key&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">})</span>
+
+<span class="c1"># Load without integrity check for faster loading</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./datasets/large_dataset&quot;</span><span class="p">,</span> <span class="n">check_integrity</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="mullerempty">muller.empty()</h3>
+<h4 id="overview_2">Overview</h4>
+<p>Creates an empty dataset at the specified path. This is useful when you want to create a dataset structure before adding any data.</p>
+<h4 id="parameters_2">Parameters</h4>
+<ul>
+<li><strong>path</strong> (<code>str</code> or <code>pathlib.Path</code>): The full path to the dataset.</li>
+<li><strong>overwrite</strong> (<code>bool</code>, optional): If <code>True</code>, overwrites the dataset if it already exists. Defaults to <code>False</code>.</li>
+<li><strong>memory_cache_size</strong> (<code>int</code>, optional): The size of the memory cache to be used in MB. Defaults to <code>DEFAULT_MEMORY_CACHE_SIZE</code>.</li>
+<li><strong>local_cache_size</strong> (<code>int</code>, optional): The size of the local filesystem cache to be used in MB. Defaults to <code>DEFAULT_LOCAL_CACHE_SIZE</code>.</li>
+<li><strong>creds</strong> (<code>dict</code> or <code>str</code>, optional): Credentials used to access the dataset. Defaults to <code>None</code>.</li>
+<li><strong>verbose</strong> (<code>bool</code>, optional): If <code>True</code>, logs will be printed. Defaults to <code>True</code>.</li>
+<li><strong>lock_timeout</strong> (<code>int</code>, optional): Number of seconds to wait before throwing a LockException. Defaults to <code>0</code>.</li>
+<li><strong>lock_enabled</strong> (<code>bool</code>, optional): If <code>True</code>, the dataset manages a write lock. Defaults to <code>True</code>.</li>
+<li><strong>split_tensor_meta</strong> (<code>bool</code>, optional): Each tensor has a tensor_meta.json if <code>True</code>. Defaults to <code>True</code>.</li>
+</ul>
+<h4 id="returns_2">Returns</h4>
+<ul>
+<li><strong>Dataset</strong>: The created empty dataset.</li>
+</ul>
+<h4 id="examples_2">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># Create an empty dataset</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="s2">&quot;./datasets/new_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create and overwrite if exists</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="s2">&quot;./datasets/new_dataset&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Create empty dataset on remote storage</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="s2">&quot;s3://mybucket/new_dataset&quot;</span><span class="p">,</span> <span class="n">creds</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;aws_access_key_id&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="s2">&quot;aws_secret_access_key&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">})</span>
+
+<span class="c1"># Add tensors to the empty dataset</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;images&quot;</span><span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;labels&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="warning">Warning</h4>
+<p>Setting <code>overwrite=True</code> will delete all of your data if it exists!</p>
+<hr />
+<h3 id="mullerlike">muller.like()</h3>
+<h4 id="overview_3">Overview</h4>
+<p>Copies the source dataset's structure to a new location. No samples are copied, only the meta/info for the dataset and its tensors. This is useful for creating a new dataset with the same schema as an existing one.</p>
+<h4 id="parameters_3">Parameters</h4>
+<ul>
+<li><strong>dest</strong> (<code>str</code> or <code>Dataset</code>): Empty Dataset or Path where the new dataset will be created.</li>
+<li><strong>src</strong> (<code>str</code> or <code>Dataset</code>): Path or dataset object that will be used as the template for the new dataset.</li>
+<li><strong>tensors</strong> (<code>List[str]</code>, optional): Names of tensors (and groups) to be replicated. If not specified, all tensors in source dataset are considered. Defaults to <code>None</code>.</li>
+<li><strong>overwrite</strong> (<code>bool</code>, optional): If <code>True</code> and a dataset exists at <code>dest</code>, it will be overwritten. Defaults to <code>False</code>.</li>
+<li><strong>verbose</strong> (<code>bool</code>, optional): If <code>True</code>, logs will be printed. Defaults to <code>True</code>.</li>
+</ul>
+<h4 id="returns_3">Returns</h4>
+<ul>
+<li><strong>Dataset</strong>: New dataset object with the same structure as the source.</li>
+</ul>
+<h4 id="examples_3">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># Create a new dataset with the same structure as an existing one</span>
+<span class="n">source_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./datasets/source_dataset&quot;</span><span class="p">)</span>
+<span class="n">new_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="s2">&quot;./datasets/new_dataset&quot;</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="n">source_ds</span><span class="p">)</span>
+
+<span class="c1"># Copy structure from path</span>
+<span class="n">new_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="s2">&quot;./datasets/new_dataset&quot;</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="s2">&quot;./datasets/source_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Copy only specific tensors</span>
+<span class="n">new_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">like</span><span class="p">(</span>
+    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;./datasets/new_dataset&quot;</span><span class="p">,</span>
+    <span class="n">src</span><span class="o">=</span><span class="s2">&quot;./datasets/source_dataset&quot;</span><span class="p">,</span>
+    <span class="n">tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Overwrite if destination exists</span>
+<span class="n">new_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">like</span><span class="p">(</span>
+    <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;./datasets/new_dataset&quot;</span><span class="p">,</span>
+    <span class="n">src</span><span class="o">=</span><span class="s2">&quot;./datasets/source_dataset&quot;</span><span class="p">,</span>
+    <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="mullerdelete">muller.delete()</h3>
+<h4 id="overview_4">Overview</h4>
+<p>Delete a dataset at the given path. This permanently removes all data and metadata associated with the dataset.</p>
+<h4 id="parameters_4">Parameters</h4>
+<ul>
+<li><strong>path</strong> (<code>str</code> or <code>pathlib.Path</code>): The full path to the dataset to delete.</li>
+<li><strong>large_ok</strong> (<code>bool</code>, optional): If <code>True</code>, allows deletion of large datasets. Defaults to <code>False</code>.</li>
+<li><strong>creds</strong> (<code>dict</code> or <code>str</code>, optional): Credentials for OBS service. Defaults to <code>None</code>.</li>
+</ul>
+<h4 id="returns_4">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_4">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># Delete a dataset</span>
+<span class="n">muller</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;./datasets/old_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Delete a large dataset</span>
+<span class="n">muller</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;./datasets/large_dataset&quot;</span><span class="p">,</span> <span class="n">large_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Delete a remote dataset</span>
+<span class="n">muller</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;s3://mybucket/old_dataset&quot;</span><span class="p">,</span> <span class="n">creds</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;aws_access_key_id&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="s2">&quot;aws_secret_access_key&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">})</span>
+</code></pre></div>
+<h4 id="warning_1">Warning</h4>
+<p>This operation is irreversible. All data will be permanently deleted.</p>
+<hr />
+<h3 id="mullerget_col_info">muller.get_col_info()</h3>
+<h4 id="overview_5">Overview</h4>
+<p>Get column (tensor) information from a dataset without loading the entire dataset. This is useful for quickly inspecting dataset metadata.</p>
+<h4 id="parameters_5">Parameters</h4>
+<ul>
+<li><strong>path</strong> (<code>str</code> or <code>pathlib.Path</code>): The full path to the dataset.</li>
+<li><strong>col_name</strong> (<code>str</code>, optional): Name of the column (tensor) to get info for. If <code>None</code> or empty string, returns dataset-level info. Defaults to <code>None</code>.</li>
+</ul>
+<h4 id="returns_5">Returns</h4>
+<ul>
+<li><strong>bytes</strong>: The raw metadata content in bytes.</li>
+</ul>
+<h4 id="examples_5">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># Get dataset-level info</span>
+<span class="n">info</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">get_col_info</span><span class="p">(</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get specific tensor info</span>
+<span class="n">tensor_info</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">get_col_info</span><span class="p">(</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">,</span> <span class="n">col_name</span><span class="o">=</span><span class="s2">&quot;images&quot;</span><span class="p">)</span>
+
+<span class="c1"># Parse the info (it&#39;s in JSON format)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="n">parsed_info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed_info</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="mullerfrom_file">muller.from_file()</h3>
+<h4 id="overview_6">Overview</h4>
+<p>Create a dataset from a file (JSON lines format). This function reads data from a file and creates a MULLER dataset with the appropriate schema.</p>
+<h4 id="parameters_6">Parameters</h4>
+<ul>
+<li><strong>ori_path</strong> (<code>str</code>): Path to the source file (JSON lines format).</li>
+<li><strong>muller_path</strong> (<code>str</code>): Path where the muller dataset will be created.</li>
+<li><strong>schema</strong> (<code>dict</code>, optional): Schema definition for the dataset. If not provided, schema will be inferred from the first record. Defaults to <code>None</code>.</li>
+<li><strong>workers</strong> (<code>int</code>, optional): Number of workers for parallel processing. Defaults to <code>0</code>.</li>
+<li><strong>scheduler</strong> (<code>str</code>, optional): Scheduler type for compute operations. Defaults to <code>"processed"</code>.</li>
+<li><strong>disable_rechunk</strong> (<code>bool</code>, optional): Whether to disable rechunking. Defaults to <code>True</code>.</li>
+<li><strong>progressbar</strong> (<code>bool</code>, optional): Whether to show progress bar. Defaults to <code>True</code>.</li>
+<li><strong>ignore_errors</strong> (<code>bool</code>, optional): Whether to ignore errors during processing. Defaults to <code>True</code>.</li>
+<li><strong>split_tensor_meta</strong> (<code>bool</code>, optional): Each tensor has a tensor_meta.json if <code>True</code>. Defaults to <code>True</code>.</li>
+</ul>
+<h4 id="returns_6">Returns</h4>
+<ul>
+<li><strong>Dataset</strong>: The created dataset.</li>
+</ul>
+<h4 id="examples_6">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># Create dataset from JSON lines file with inferred schema</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span>
+    <span class="n">ori_path</span><span class="o">=</span><span class="s2">&quot;./data/records.jsonl&quot;</span><span class="p">,</span>
+    <span class="n">muller_path</span><span class="o">=</span><span class="s2">&quot;./datasets/my_dataset&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Create with explicit schema</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;uint8&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;class_label&quot;</span><span class="p">,</span> <span class="s2">&quot;int32&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span>
+    <span class="n">ori_path</span><span class="o">=</span><span class="s2">&quot;./data/records.jsonl&quot;</span><span class="p">,</span>
+    <span class="n">muller_path</span><span class="o">=</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">,</span>
+    <span class="n">schema</span><span class="o">=</span><span class="n">schema</span>
+<span class="p">)</span>
+
+<span class="c1"># Use multiple workers for faster processing</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span>
+    <span class="n">ori_path</span><span class="o">=</span><span class="s2">&quot;./data/large_records.jsonl&quot;</span><span class="p">,</span>
+    <span class="n">muller_path</span><span class="o">=</span><span class="s2">&quot;./datasets/large_dataset&quot;</span><span class="p">,</span>
+    <span class="n">workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">progressbar</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># Nested schema example</span>
+<span class="n">nested_schema</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span>
+    <span class="n">ori_path</span><span class="o">=</span><span class="s2">&quot;./data/nested_records.jsonl&quot;</span><span class="p">,</span>
+    <span class="n">muller_path</span><span class="o">=</span><span class="s2">&quot;./datasets/nested_dataset&quot;</span><span class="p">,</span>
+    <span class="n">schema</span><span class="o">=</span><span class="n">nested_schema</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="notes">Notes</h4>
+<ul>
+<li>The input file should be in JSON lines format (one JSON object per line).</li>
+<li>Schema format: <code>{column_name: (htype, dtype, sample_compression)}</code> or nested dictionaries.</li>
+<li>If schema is not provided, it will be inferred from the first record in the file.</li>
+</ul>
+<hr />
+<h3 id="mullerfrom_dataframes">muller.from_dataframes()</h3>
+<h4 id="overview_7">Overview</h4>
+<p>Create a dataset from a list of dataframes (dictionaries). This is useful for creating datasets from in-memory data structures.</p>
+<h4 id="parameters_7">Parameters</h4>
+<ul>
+<li><strong>dataframes</strong> (<code>list</code>): List of dataframes (dicts) to import.</li>
+<li><strong>muller_path</strong> (<code>str</code>): Path where the muller dataset will be created.</li>
+<li><strong>schema</strong> (<code>dict</code>, optional): Schema definition for the dataset. If not provided, schema will be inferred from the first record. Defaults to <code>None</code>.</li>
+<li><strong>workers</strong> (<code>int</code>, optional): Number of workers for parallel processing. Defaults to <code>0</code>.</li>
+<li><strong>scheduler</strong> (<code>str</code>, optional): Scheduler type for compute operations. Defaults to <code>"processed"</code>.</li>
+<li><strong>disable_rechunk</strong> (<code>bool</code>, optional): Whether to disable rechunking. Defaults to <code>True</code>.</li>
+<li><strong>progressbar</strong> (<code>bool</code>, optional): Whether to show progress bar. Defaults to <code>True</code>.</li>
+<li><strong>ignore_errors</strong> (<code>bool</code>, optional): Whether to ignore errors during processing. Defaults to <code>True</code>.</li>
+<li><strong>split_tensor_meta</strong> (<code>bool</code>, optional): Each tensor has a tensor_meta.json if <code>True</code>. Defaults to <code>True</code>.</li>
+</ul>
+<h4 id="returns_7">Returns</h4>
+<ul>
+<li><strong>Dataset</strong>: The created dataset.</li>
+</ul>
+<h4 id="examples_7">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># Create dataset from list of dictionaries</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;001&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;A&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;002&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;B&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;003&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;C&quot;</span><span class="p">}</span>
+<span class="p">]</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">from_dataframes</span><span class="p">(</span>
+    <span class="n">dataframes</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+    <span class="n">muller_path</span><span class="o">=</span><span class="s2">&quot;./datasets/my_dataset&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Create with explicit schema</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="s2">&quot;int32&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;class_label&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">from_dataframes</span><span class="p">(</span>
+    <span class="n">dataframes</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+    <span class="n">muller_path</span><span class="o">=</span><span class="s2">&quot;./datasets/my_dataset&quot;</span><span class="p">,</span>
+    <span class="n">schema</span><span class="o">=</span><span class="n">schema</span>
+<span class="p">)</span>
+
+<span class="c1"># Use multiple workers for large datasets</span>
+<span class="n">large_data</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;col1&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s2">&quot;col2&quot;</span><span class="p">:</span> <span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="p">}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10000</span><span class="p">)]</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">from_dataframes</span><span class="p">(</span>
+    <span class="n">dataframes</span><span class="o">=</span><span class="n">large_data</span><span class="p">,</span>
+    <span class="n">muller_path</span><span class="o">=</span><span class="s2">&quot;./datasets/large_dataset&quot;</span><span class="p">,</span>
+    <span class="n">workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">progressbar</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># Nested data example</span>
+<span class="n">nested_data</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">},</span>
+        <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mi">95</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">},</span>
+        <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mi">87</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+<span class="n">nested_schema</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="s2">&quot;int32&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="s2">&quot;int32&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">from_dataframes</span><span class="p">(</span>
+    <span class="n">dataframes</span><span class="o">=</span><span class="n">nested_data</span><span class="p">,</span>
+    <span class="n">muller_path</span><span class="o">=</span><span class="s2">&quot;./datasets/nested_dataset&quot;</span><span class="p">,</span>
+    <span class="n">schema</span><span class="o">=</span><span class="n">nested_schema</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="notes_1">Notes</h4>
+<ul>
+<li>Each item in the <code>dataframes</code> list should be a dictionary representing one record.</li>
+<li>Schema format: <code>{column_name: (htype, dtype, sample_compression)}</code> or nested dictionaries.</li>
+<li>If schema is not provided, it will be inferred from the first record.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.tracking", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
