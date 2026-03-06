@@ -19,6 +19,21 @@ To address this gap, we introduce **MULLER**, a novel Multimodal data lake forma
 
 Here is a [video demo](https://www.youtube.com/watch?v=okHzhbp7an0) of MULLER to demonstrate the basic functions.
 
+---
+
+### 🤖 Natural Language Interface with Agent Skills
+
+MULLER includes [Agent Skills](https://agentskills.io) that let you manage datasets through natural language when using **Claude Code** or compatible AI coding assistants. Simply describe what you want—no need to remember API calls or command syntax!
+
+**Quick examples:**
+- "Create an image classification dataset with jpg compression"
+- "Commit my changes with message 'Added 100 samples'"
+- "Find the top 10 most similar vectors to my query"
+- "Export my dataset to Parquet format"
+
+👉 See the [Agent Skills section](#agent-skills-natural-language-interface) below for full details.
+
+---
 
 ## Getting Started
 
@@ -64,7 +79,9 @@ print(muller.__version__)
 
 ## Agent Skills (Natural Language Interface)
 
-MULLER includes [Agent Skills](https://agentskills.io) integration that allows you to manage datasets through natural language when using AI coding assistants (Claude Code, Cursor, etc.).
+MULLER includes [Agent Skills](https://agentskills.io) integration that allows you to manage datasets through natural language when using **Claude Code** or compatible AI coding assistants.
+
+**Note:** These skills are located in the `.claude/skills/` directory and follow Claude Code's Agent Skills format. Other IDEs like Cursor or Windsurf may require different integration approaches (e.g., `.cursorrules` for Cursor). The skills are currently optimized for Claude Code.
 
 ### Available Skills
 
