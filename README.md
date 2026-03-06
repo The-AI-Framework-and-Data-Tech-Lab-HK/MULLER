@@ -64,33 +64,21 @@ print(muller.__version__)
 
 ## Agent Skills (Natural Language Interface)
 
-MULLER includes an [Agent Skills](https://agentskills.io) integration that allows AI agents to manage datasets through natural language commands.
+MULLER includes an [Agent Skills](https://agentskills.io) integration that allows you to manage datasets through natural language when using AI coding assistants (Claude Code, Cursor, etc.).
 
-#### Quick Start with Agent Skills
+#### Usage Examples
 
-```bash
-# Create an image classification dataset
-python3 .claude/skills/muller-dataset/scripts/dataset_manager.py create \
-  --path ./my_dataset --tensors "images:image:jpg,labels:class_label:uint32"
+Simply describe what you want in natural language:
 
-# Get dataset info
-python3 .claude/skills/muller-dataset/scripts/dataset_manager.py info --path ./my_dataset
+- **"Create an image classification dataset at ./my_photos with jpg compression and uint32 labels"**
+- **"Add all images from the ./data/ folder to my dataset"**
+- **"Show me all samples where label equals 5"**
+- **"Get statistics and summary for my dataset"**
+- **"Query samples where labels are greater than 10"**
 
-# Query samples
-python3 .claude/skills/muller-dataset/scripts/data_operations.py query \
-  --path ./my_dataset --filter "labels > 5" --limit 10
-```
+The AI agent will automatically execute the appropriate MULLER operations. No need to remember API calls or command syntax!
 
-#### Using with AI Agents
-
-When using MULLER with AI coding assistants (Claude Code, Cursor, etc.), you can use natural language:
-
-- "Create an image dataset at ./photos with jpg compression"
-- "Add all images from ./data/ folder to the dataset"
-- "Show me samples where label equals 5"
-- "Get statistics for my dataset"
-
-The agent will automatically use the skill scripts to execute operations. See [.claude/skills/muller-dataset/](.claude/skills/muller-dataset/) for details.
+For more details, see [.claude/skills/muller-dataset/](.claude/skills/muller-dataset/).
 
 
 ## Examples
