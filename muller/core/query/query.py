@@ -38,10 +38,12 @@ class DatasetQuery:
             query: str,
             progress_callback: Callable[[int, bool], None] = lambda *_: None,
     ):
+        from muller.core.query.safe_evaluator import SafeQueryEvaluator
+
         self._dataset = dataset
         self._query = query
         self._pg_callback = progress_callback
-        self._cquery = compile(query, "", "eval")
+        self._evaluator = SafeQueryEvaluator(query)
         self._tensors_name = [
             tensor
             for tensor in dataset.tensors.keys()
@@ -62,7 +64,7 @@ class DatasetQuery:
                 for tensor in self._tensors_name
             }
             p.update(self._groups)
-            if eval(self._cquery, p):
+            if self._evaluator.evaluate(p):
                 idx_map.append(global_idx)
                 count += 1
                 self._pg_callback(global_idx, True)

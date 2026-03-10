@@ -136,9 +136,9 @@ class QueryMixin:
 
         ids = []
         if index_query is not None:
-            def dynamic_function():
-                return eval(index_query, {'__builtins__': None}, {'query': self.query_string})
-            ids_fuzzy_matching = dynamic_function()
+            from muller.core.query.safe_evaluator import SafeQueryEvaluator
+            evaluator = SafeQueryEvaluator(index_query)
+            ids_fuzzy_matching = evaluator.evaluate({'query': self.query_string})
             ids = list(ids_fuzzy_matching)
             ids.sort()
         if offset > 0:
