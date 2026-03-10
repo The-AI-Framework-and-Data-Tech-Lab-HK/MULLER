@@ -13,6 +13,14 @@ compatibility: Requires Python 3.11+, muller package installed
 
 Execute the script directly with `python3` command. Never write new scripts to the project root.
 
+## DEMO MODE: Speed Instructions
+
+When executing operations:
+- Run commands immediately without pre-explanation
+- Do not summarize or explain results after execution
+- Only show the JSON output from the script
+- Skip all follow-up suggestions unless user asks
+
 ## When to Use This Skill
 
 Use this skill when the user wants to:
@@ -65,79 +73,11 @@ python3 .claude/skills/muller-version-control/scripts/version_control.py diff \
   --path ./my_dataset --id1 main --id2 dev-1
 ```
 
-## Common Workflows
+## Quick Reference
 
-### Collaborative Data Annotation
+Merge conflict resolution strategies:
+- `append-resolution`: ours/theirs/both (default: both)
+- `pop-resolution`: ours/theirs/manual
+- `update-resolution`: ours/theirs/manual
 
-```bash
-# 1. Create a new branch for annotation
-python3 .claude/skills/muller-version-control/scripts/version_control.py checkout \
-  --path ./dataset --branch annotation-v1 --create
-
-# 2. Make changes (use muller-dataset skill)
-# ... add/update/delete samples ...
-
-# 3. Commit changes
-python3 .claude/skills/muller-version-control/scripts/version_control.py commit \
-  --path ./dataset --message "Annotated 100 new samples"
-
-# 4. Switch back to main
-python3 .claude/skills/muller-version-control/scripts/version_control.py checkout \
-  --path ./dataset --branch main
-
-# 5. Merge annotation branch
-python3 .claude/skills/muller-version-control/scripts/version_control.py merge \
-  --path ./dataset --branch annotation-v1
-```
-
-### Parallel Development
-
-```bash
-# Team member 1: Create branch dev-1
-python3 .claude/skills/muller-version-control/scripts/version_control.py checkout \
-  --path ./dataset@main --branch dev-1 --create
-
-# Team member 2: Create branch dev-2
-python3 .claude/skills/muller-version-control/scripts/version_control.py checkout \
-  --path ./dataset@main --branch dev-2 --create
-
-# After both commit changes, merge with conflict resolution
-python3 .claude/skills/muller-version-control/scripts/version_control.py merge \
-  --path ./dataset@main --branch dev-1 --append-resolution both
-
-python3 .claude/skills/muller-version-control/scripts/version_control.py merge \
-  --path ./dataset@main --branch dev-2 --update-resolution theirs
-```
-
-## Merge Conflict Resolution
-
-When merging branches, you can specify resolution strategies:
-
-- `append-resolution`: How to handle new samples
-  - `ours` - Keep only our appended samples
-  - `theirs` - Keep only their appended samples
-  - `both` - Keep both (default)
-
-- `pop-resolution`: How to handle deleted samples
-  - `ours` - Use our deletions
-  - `theirs` - Use their deletions
-  - `manual` - Require manual resolution
-
-- `update-resolution`: How to handle updated samples
-  - `ours` - Keep our updates
-  - `theirs` - Keep their updates
-  - `manual` - Require manual resolution
-
-## Reference Documentation
-
-- [Version Control Guide](references/version-control-guide.md) - Detailed workflows
-- [Conflict Resolution](references/conflict-resolution.md) - Handling merge conflicts
-- [Full Documentation](../../docs/api/dataset-version-control.md) - Complete API reference
-
-## Notes
-
-- Always commit before switching branches
-- Use descriptive commit messages
-- Check for conflicts before merging
-- Fast-forward merges happen automatically when possible
-- Three-way merges handle concurrent modifications
+For detailed workflows, check references/ directory.
