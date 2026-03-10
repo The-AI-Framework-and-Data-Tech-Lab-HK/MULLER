@@ -106,6 +106,33 @@ MULLER includes [Agent Skills](https://agentskills.io) that let you manage datas
 
 For detailed skill documentation, see [.claude/skills/](.claude/skills/).
 
+### Using Skills in Other AI Coding Agents
+
+The MULLER skills are **platform-agnostic** and can be used with other AI coding assistants beyond Claude Code, including Cursor, Windsurf, Codex, OpenClaw, and similar tools.
+
+**How to use with other agents:**
+
+1. Copy the skills directory to your project:
+   ```bash
+   cp -r .claude/skills /path/to/your/project/.claude/skills
+   ```
+
+2. Ensure your AI coding agent can:
+   - Discover and read SKILL.md files in `.claude/skills/*/SKILL.md`
+   - Execute Python scripts via command line
+   - Parse JSON output from the scripts
+
+3. (Optional) Adapt the path if your agent uses a different convention:
+   ```bash
+   # For Cursor
+   cp -r .claude/skills /path/to/your/project/.cursor/skills
+
+   # For a platform-agnostic location
+   cp -r .claude/skills ~/.ai-skills/muller/
+   ```
+
+The skills will work as long as your AI agent can execute the documented Python commands and parse the JSON responses.
+
 ## Python API
 
 ### Create a Dataset
