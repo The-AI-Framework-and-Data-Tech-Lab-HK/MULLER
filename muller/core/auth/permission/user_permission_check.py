@@ -87,7 +87,7 @@ def user_permission_check(func: Callable):
             "commit", "protected_commit", "append", "extend", 
             "update", "_update", "pop", "clear", "__setitem__", 
             "create_tensor", "create_tensor_like", "delete_tensor", "rename_tensor",
-            "rechunk", "add_data_from_file", "add_data_from_dataframes",
+            "rechunk", "add_data_from_file", "add_data_from_dataframes", "add_data_from_csv",
             "create_index", "create_vector_index", "merge", "reset"
         }
         

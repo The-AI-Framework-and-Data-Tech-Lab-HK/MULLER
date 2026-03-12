@@ -929,6 +929,33 @@ class Dataset(
         return muller.core.dataset.add_data(self, org_dicts, schema, workers, scheduler, disable_rechunk, progressbar,
                                            ignore_errors)
 
+    @user_permission_check
+    def add_data_from_csv(self, csv_path="", schema=None, path_columns=None, workers=0,
+                          scheduler="processed", disable_rechunk=True, progressbar=True,
+                          ignore_errors=True):
+        """Add samples from a CSV file to the dataset.
+
+        Args:
+            csv_path: Path to the CSV file.
+            schema: Schema definition (dict or None).
+            path_columns: Dict mapping column names to handling mode for file path columns.
+                - "read": Use muller.read() to load the file (for image/video tensors).
+                - "text": Store the path as a plain text string.
+            workers: Number of workers for parallel processing.
+            scheduler: Scheduler type for compute operations.
+            disable_rechunk: Whether to disable rechunking.
+            progressbar: Whether to show progress bar.
+            ignore_errors: Whether to ignore errors during processing.
+        """
+        if not csv_path:
+            raise ValueError("csv_path cannot be empty.")
+
+        from muller.api.dataset.import_data import get_data_with_dict_from_csv
+        org_dicts = get_data_with_dict_from_csv(csv_path)
+        return muller.core.dataset.add_data_from_csv(
+            self, org_dicts, schema, path_columns, workers, scheduler,
+            disable_rechunk, progressbar, ignore_errors
+        )
 
     def numpy(self, aslist=False, fetch_chunks=False, asrow=False) -> Union[dict, list]:
         """Computes the contents of the dataset slices in numpy format."""

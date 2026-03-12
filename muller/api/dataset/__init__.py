@@ -19,6 +19,7 @@ from muller.api.dataset.copy import like
 from muller.api.dataset.import_data import (
     from_file,
     from_dataframes,
+    from_csv,
 )
 
 __all__ = [
@@ -33,4 +34,5 @@ __all__ = [
     # Import operations
     'from_file',
     'from_dataframes',
+    'from_csv',
 ]

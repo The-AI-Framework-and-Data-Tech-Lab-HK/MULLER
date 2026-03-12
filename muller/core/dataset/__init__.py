@@ -11,7 +11,7 @@ from .export_data.to_arrow import MULLERArrowDataset
 from .export_data.to_dataframe import to_dataframe
 from .export_data.to_json import to_json
 from .export_data.to_numpy import to_numpy
-from .import_data.batch_add_data import add_data
+from .import_data.batch_add_data import add_data, add_data_from_csv
 from .crud_operations import (append,
                               create_tensor,
                               create_tensor_like,

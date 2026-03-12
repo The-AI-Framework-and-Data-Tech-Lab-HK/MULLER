@@ -25,6 +25,7 @@ __all__ = [
     "Sample",
     "from_file",
     "from_dataframes",
+    "from_csv",
 ]
 
 
@@ -47,6 +48,7 @@ from muller.api.dataset import (
     get_col_info,
     from_file,
     from_dataframes,
+    from_csv,
 )
 from muller.api.io import read, tiled, Sample
 from muller.api.transform import compute
