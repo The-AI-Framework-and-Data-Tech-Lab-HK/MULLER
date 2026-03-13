@@ -1,0 +1,3035 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER/api/advanced/">
+      
+      
+        <link rel="prev" href="../dataset-export/">
+      
+      
+        <link rel="next" href="../htypes/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Advanced - MULLER</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#advanced-features" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MULLER" class="md-header__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MULLER
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Advanced
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the bright mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Change to the bright mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Change to the dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting_started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../top-level-functions/" class="md-tabs__link">
+          
+  
+  
+  API Documents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq.md" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MULLER" class="md-nav__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MULLER
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/1_read_muller_object/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read as MULLER object
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/2_create_muller_dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construct a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/3_muller_dataset_operations%28load%2Cappend%2Cupdate%2Cdelete%2Cquery%29/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/4_muller_version_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/5_advanced_operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Documents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Documents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../top-level-functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Top-Level Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-creation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-query/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Query
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-version-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Transformation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rechunking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rechunking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#administrative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Administrative
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-transformation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Transformation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mullercompute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.compute()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.compute()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullercomputefunction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.ComputeFunction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.ComputeFunction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-eval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters for eval()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerpipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.Pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.Pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rechunking_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rechunking
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rechunking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsrechunk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.rechunk()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.rechunk()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to Use
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsrechunk_if_necessary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.rechunk_if_necessary()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.rechunk_if_necessary()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#administrative_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Administrative
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Administrative">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsenable_admin_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.enable_admin_mode()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.enable_admin_mode()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdisable_admin_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.disable_admin_mode()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.disable_admin_mode()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dslock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.lock()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.lock()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsunlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.unlock()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.unlock()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-workflow-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Workflow Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Workflow Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parallel-data-processing-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parallel Data Processing Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dataset-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dataset Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#safe-concurrent-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safe Concurrent Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../htypes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Htypes Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-transformation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Transformation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rechunking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rechunking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#administrative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Administrative
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-transformation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Transformation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Transformation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mullercompute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.compute()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.compute()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullercomputefunction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.ComputeFunction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.ComputeFunction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters-for-eval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters for eval()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mullerpipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        muller.Pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="muller.Pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rechunking_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rechunking
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rechunking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsrechunk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.rechunk()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.rechunk()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to Use
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsrechunk_if_necessary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.rechunk_if_necessary()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.rechunk_if_necessary()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#administrative_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Administrative
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Administrative">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsenable_admin_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.enable_admin_mode()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.enable_admin_mode()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdisable_admin_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.disable_admin_mode()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.disable_admin_mode()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dslock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.lock()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.lock()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsunlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.unlock()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.unlock()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-workflow-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Workflow Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Workflow Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parallel-data-processing-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parallel Data Processing Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dataset-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dataset Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#safe-concurrent-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safe Concurrent Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="advanced-features">Advanced Features</h1>
+<p>This page documents advanced features including data transformation pipelines, rechunking operations, and administrative functions.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<h3 id="data-transformation">Data Transformation</h3>
+<ul>
+<li><a href="#mullercompute">muller.compute()</a></li>
+<li><a href="#mullercomputefunction">muller.ComputeFunction</a></li>
+<li><a href="#mullerpipeline">muller.Pipeline</a></li>
+</ul>
+<h3 id="rechunking">Rechunking</h3>
+<ul>
+<li><a href="#dsrechunk">ds.rechunk()</a></li>
+<li><a href="#dsrechunk_if_necessary">ds.rechunk_if_necessary()</a></li>
+</ul>
+<h3 id="administrative">Administrative</h3>
+<ul>
+<li><a href="#dsenable_admin_mode">ds.enable_admin_mode()</a></li>
+<li><a href="#dsdisable_admin_mode">ds.disable_admin_mode()</a></li>
+<li><a href="#dslock">ds.lock()</a></li>
+<li><a href="#dsunlock">ds.unlock()</a></li>
+</ul>
+<hr />
+<h2 id="data-transformation_1">Data Transformation</h2>
+<h3 id="mullercompute">muller.compute()</h3>
+<h4 id="overview">Overview</h4>
+<p>Decorator for creating data transformation functions that can be applied to datasets. This enables parallel processing and efficient data pipelines.</p>
+<h4 id="parameters">Parameters</h4>
+<ul>
+<li><strong>func</strong> (<code>callable</code>): The function to decorate. Should take input data and output dataset as parameters.</li>
+</ul>
+<h4 id="returns">Returns</h4>
+<ul>
+<li><strong>ComputeFunction</strong>: A wrapped function that can be evaluated on datasets.</li>
+</ul>
+<h4 id="examples">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Define a transformation function</span>
+<span class="nd">@muller</span><span class="o">.</span><span class="n">compute</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">preprocess_images</span><span class="p">(</span><span class="n">sample_in</span><span class="p">,</span> <span class="n">sample_out</span><span class="p">):</span>
+    <span class="c1"># Normalize images</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span>
+    <span class="n">normalized</span> <span class="o">=</span> <span class="p">(</span><span class="n">image</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="n">image</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sample_out</span>
+
+<span class="c1"># Apply transformation</span>
+<span class="n">source_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./raw_dataset&quot;</span><span class="p">)</span>
+<span class="n">target_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;./processed_dataset&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">target_ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;images&quot;</span><span class="p">)</span>
+<span class="n">target_ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;labels&quot;</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">target_ds</span><span class="p">:</span>
+    <span class="n">preprocess_images</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
+        <span class="n">source_ds</span><span class="p">,</span>
+        <span class="n">target_ds</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">progressbar</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+<span class="c1"># Transformation with augmentation</span>
+<span class="nd">@muller</span><span class="o">.</span><span class="n">compute</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">augment_data</span><span class="p">(</span><span class="n">sample_in</span><span class="p">,</span> <span class="n">sample_out</span><span class="p">):</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Original</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="c1"># Flipped</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sample_out</span>
+
+<span class="c1"># Apply augmentation</span>
+<span class="k">with</span> <span class="n">target_ds</span><span class="p">:</span>
+    <span class="n">augment_data</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">source_ds</span><span class="p">,</span> <span class="n">target_ds</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># Filtering transformation</span>
+<span class="nd">@muller</span><span class="o">.</span><span class="n">compute</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_high_quality</span><span class="p">(</span><span class="n">sample_in</span><span class="p">,</span> <span class="n">sample_out</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;quality_score&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.8</span><span class="p">:</span>
+        <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">])</span>
+        <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sample_out</span>
+</code></pre></div>
+<hr />
+<h3 id="mullercomputefunction">muller.ComputeFunction</h3>
+<h4 id="overview_1">Overview</h4>
+<p>A class representing a compute function that can be evaluated on datasets. Created by the <code>@muller.compute</code> decorator.</p>
+<h4 id="methods">Methods</h4>
+<ul>
+<li><strong>eval()</strong>: Evaluate the compute function on input data.</li>
+</ul>
+<h4 id="parameters-for-eval">Parameters for eval()</h4>
+<ul>
+<li><strong>data_in</strong>: Input data (Dataset or iterable).</li>
+<li><strong>ds_out</strong> (<code>Dataset</code>): Output dataset.</li>
+<li><strong>num_workers</strong> (<code>int</code>, optional): Number of parallel workers. Defaults to <code>0</code>.</li>
+<li><strong>scheduler</strong> (<code>str</code>, optional): Scheduler type ("threaded", "processed", "serial"). Defaults to <code>"threaded"</code>.</li>
+<li><strong>progressbar</strong> (<code>bool</code>, optional): Show progress bar. Defaults to <code>True</code>.</li>
+<li><strong>skip_ok</strong> (<code>bool</code>, optional): Skip samples that cause errors. Defaults to <code>False</code>.</li>
+<li><strong>ignore_errors</strong> (<code>bool</code>, optional): Continue processing on errors. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="examples_1">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="nd">@muller</span><span class="o">.</span><span class="n">compute</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">transform_data</span><span class="p">(</span><span class="n">sample_in</span><span class="p">,</span> <span class="n">sample_out</span><span class="p">):</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;processed&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sample_out</span>
+
+<span class="n">source_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./source&quot;</span><span class="p">)</span>
+<span class="n">target_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;./target&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">target_ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;processed&quot;</span><span class="p">)</span>
+
+<span class="c1"># Evaluate with different configurations</span>
+<span class="k">with</span> <span class="n">target_ds</span><span class="p">:</span>
+    <span class="c1"># Serial processing</span>
+    <span class="n">transform_data</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">source_ds</span><span class="p">,</span> <span class="n">target_ds</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Parallel with threads</span>
+    <span class="n">transform_data</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
+        <span class="n">source_ds</span><span class="p">,</span>
+        <span class="n">target_ds</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;threaded&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Parallel with processes</span>
+    <span class="n">transform_data</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
+        <span class="n">source_ds</span><span class="p">,</span>
+        <span class="n">target_ds</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;processed&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># With error handling</span>
+    <span class="n">transform_data</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
+        <span class="n">source_ds</span><span class="p">,</span>
+        <span class="n">target_ds</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">skip_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="mullerpipeline">muller.Pipeline</h3>
+<h4 id="overview_2">Overview</h4>
+<p>Create a pipeline of multiple transformation functions that are applied sequentially.</p>
+<h4 id="parameters_1">Parameters</h4>
+<ul>
+<li><strong>functions</strong> (<code>List[ComputeFunction]</code>): List of compute functions to chain.</li>
+</ul>
+<h4 id="returns_1">Returns</h4>
+<ul>
+<li><strong>Pipeline</strong>: A pipeline object that can be evaluated.</li>
+</ul>
+<h4 id="examples_2">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Define transformation steps</span>
+<span class="nd">@muller</span><span class="o">.</span><span class="n">compute</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize</span><span class="p">(</span><span class="n">sample_in</span><span class="p">,</span> <span class="n">sample_out</span><span class="p">):</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span>
+    <span class="n">normalized</span> <span class="o">=</span> <span class="p">(</span><span class="n">image</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="n">image</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sample_out</span>
+
+<span class="nd">@muller</span><span class="o">.</span><span class="n">compute</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resize</span><span class="p">(</span><span class="n">sample_in</span><span class="p">,</span> <span class="n">sample_out</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span>
+    <span class="n">resized</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">)))</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resized</span><span class="p">)</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sample_out</span>
+
+<span class="nd">@muller</span><span class="o">.</span><span class="n">compute</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">augment</span><span class="p">(</span><span class="n">sample_in</span><span class="p">,</span> <span class="n">sample_out</span><span class="p">):</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span>
+    <span class="c1"># Original</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+    <span class="c1"># Flipped</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sample_out</span>
+
+<span class="c1"># Create pipeline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">muller.core.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pipeline</span>
+
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([</span><span class="n">normalize</span><span class="p">,</span> <span class="n">resize</span><span class="p">,</span> <span class="n">augment</span><span class="p">])</span>
+
+<span class="c1"># Apply pipeline</span>
+<span class="n">source_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./raw_data&quot;</span><span class="p">)</span>
+<span class="n">target_ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;./processed_data&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">target_ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;images&quot;</span><span class="p">)</span>
+<span class="n">target_ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;labels&quot;</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">target_ds</span><span class="p">:</span>
+    <span class="n">pipeline</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
+        <span class="n">source_ds</span><span class="p">,</span>
+        <span class="n">target_ds</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">progressbar</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="rechunking_1">Rechunking</h2>
+<h3 id="dsrechunk">ds.rechunk()</h3>
+<h4 id="overview_3">Overview</h4>
+<p>Reorganize the dataset's chunk structure for better storage efficiency and access patterns. This is useful after many modifications or when optimizing for specific access patterns.</p>
+<h4 id="parameters_2">Parameters</h4>
+<ul>
+<li><strong>tensors</strong> (<code>List[str]</code>, optional): List of tensor names to rechunk. If not provided, rechunks all tensors. Defaults to <code>None</code>.</li>
+<li><strong>num_workers</strong> (<code>int</code>, optional): Number of parallel workers. Defaults to <code>0</code>.</li>
+<li><strong>progressbar</strong> (<code>bool</code>, optional): Show progress bar. Defaults to <code>True</code>.</li>
+</ul>
+<h4 id="returns_2">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_3">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Rechunk all tensors</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">rechunk</span><span class="p">()</span>
+
+<span class="c1"># Rechunk specific tensors</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">rechunk</span><span class="p">(</span><span class="n">tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+
+<span class="c1"># Rechunk with parallel workers</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">rechunk</span><span class="p">(</span><span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">progressbar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Rechunk after many modifications</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">i</span><span class="p">})</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Added 1000 samples&quot;</span><span class="p">)</span>
+
+<span class="c1"># Optimize storage</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">rechunk</span><span class="p">(</span><span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Rechunked for optimization&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="when-to-use">When to Use</h4>
+<ul>
+<li>After many small append operations</li>
+<li>After deleting many samples</li>
+<li>When optimizing for sequential vs random access</li>
+<li>Before sharing or archiving the dataset</li>
+</ul>
+<hr />
+<h3 id="dsrechunk_if_necessary">ds.rechunk_if_necessary()</h3>
+<h4 id="overview_4">Overview</h4>
+<p>Automatically rechunk the dataset if certain conditions are met (e.g., fragmentation exceeds threshold). This is a smart version of <code>rechunk()</code> that only rechunks when beneficial.</p>
+<h4 id="parameters_3">Parameters</h4>
+<ul>
+<li><strong>tensors</strong> (<code>List[str]</code>, optional): List of tensor names to check and rechunk. Defaults to <code>None</code>.</li>
+<li><strong>threshold</strong> (<code>float</code>, optional): Fragmentation threshold (0-1) above which rechunking occurs. Defaults to <code>0.3</code>.</li>
+</ul>
+<h4 id="returns_3">Returns</h4>
+<ul>
+<li><strong>bool</strong>: <code>True</code> if rechunking was performed, <code>False</code> otherwise.</li>
+</ul>
+<h4 id="examples_4">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Automatically rechunk if needed</span>
+<span class="n">was_rechunked</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">rechunk_if_necessary</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">was_rechunked</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dataset was rechunked&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check specific tensors</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">rechunk_if_necessary</span><span class="p">(</span><span class="n">tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">])</span>
+
+<span class="c1"># Use custom threshold</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">rechunk_if_necessary</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># More lenient</span>
+
+<span class="c1"># In a maintenance routine</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimize_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">rechunk_if_necessary</span><span class="p">():</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Auto-rechunked for optimization&quot;</span><span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+<span class="n">optimize_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="administrative_1">Administrative</h2>
+<h3 id="dsenable_admin_mode">ds.enable_admin_mode()</h3>
+<h4 id="overview_5">Overview</h4>
+<p>Enable administrative mode for the dataset. This grants elevated permissions for operations that are normally restricted.</p>
+<h4 id="parameters_4">Parameters</h4>
+<p>None</p>
+<h4 id="returns_4">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_5">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Enable admin mode</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">enable_admin_mode</span><span class="p">()</span>
+
+<span class="c1"># Perform administrative operations</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="c1"># Operations that require admin privileges</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">delete_tensor</span><span class="p">(</span><span class="s2">&quot;sensitive_data&quot;</span><span class="p">,</span> <span class="n">large_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">reshard_index</span><span class="p">(</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="n">num_shards</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="c1"># Disable when done</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">disable_admin_mode</span><span class="p">()</span>
+</code></pre></div>
+<h4 id="warning">Warning</h4>
+<p>Admin mode bypasses certain safety checks. Use with caution and disable when not needed.</p>
+<hr />
+<h3 id="dsdisable_admin_mode">ds.disable_admin_mode()</h3>
+<h4 id="overview_6">Overview</h4>
+<p>Disable administrative mode and return to normal operation mode.</p>
+<h4 id="parameters_5">Parameters</h4>
+<p>None</p>
+<h4 id="returns_5">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_6">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Enable admin mode for specific operations</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">enable_admin_mode</span><span class="p">()</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Perform admin operations</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">delete_tensor</span><span class="p">(</span><span class="s2">&quot;old_tensor&quot;</span><span class="p">,</span> <span class="n">large_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="c1"># Always disable admin mode</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">disable_admin_mode</span><span class="p">()</span>
+
+<span class="c1"># Check admin mode status</span>
+<span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">is_admin_mode</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">disable_admin_mode</span><span class="p">()</span>
+</code></pre></div>
+<hr />
+<h3 id="dslock">ds.lock()</h3>
+<h4 id="overview_7">Overview</h4>
+<p>Acquire a write lock on the dataset to prevent concurrent modifications. This is useful in multi-process or distributed environments.</p>
+<h4 id="parameters_6">Parameters</h4>
+<ul>
+<li><strong>timeout</strong> (<code>int</code>, optional): Maximum time to wait for lock in seconds. Defaults to <code>0</code> (no wait).</li>
+</ul>
+<h4 id="returns_6">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_7">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Acquire lock</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">lock</span><span class="p">()</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Perform operations with exclusive access</span>
+    <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">new_data</span><span class="p">})</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Added data with lock&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="c1"># Always release lock</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">unlock</span><span class="p">()</span>
+
+<span class="c1"># Lock with timeout</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">lock</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>  <span class="c1"># Wait up to 30 seconds</span>
+    <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">extend</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">batch_data</span><span class="p">})</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Batch update&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">unlock</span><span class="p">()</span>
+</code></pre></div>
+<hr />
+<h3 id="dsunlock">ds.unlock()</h3>
+<h4 id="overview_8">Overview</h4>
+<p>Release the write lock on the dataset, allowing other processes to acquire it.</p>
+<h4 id="parameters_7">Parameters</h4>
+<p>None</p>
+<h4 id="returns_7">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_8">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Lock and unlock pattern</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">lock</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">})</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Update&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">unlock</span><span class="p">()</span>
+
+<span class="c1"># Context manager pattern (recommended)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DatasetLock</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ds</span> <span class="o">=</span> <span class="n">dataset</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">lock</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">unlock</span><span class="p">()</span>
+
+<span class="c1"># Usage</span>
+<span class="k">with</span> <span class="n">DatasetLock</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">})</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Safe update&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="advanced-workflow-examples">Advanced Workflow Examples</h2>
+<h3 id="parallel-data-processing-pipeline">Parallel Data Processing Pipeline</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Define transformation pipeline</span>
+<span class="nd">@muller</span><span class="o">.</span><span class="n">compute</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">preprocess</span><span class="p">(</span><span class="n">sample_in</span><span class="p">,</span> <span class="n">sample_out</span><span class="p">):</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;raw_image&quot;</span><span class="p">]</span>
+    <span class="c1"># Normalize</span>
+    <span class="n">normalized</span> <span class="o">=</span> <span class="p">(</span><span class="n">image</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="n">image</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sample_out</span>
+
+<span class="nd">@muller</span><span class="o">.</span><span class="n">compute</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">augment</span><span class="p">(</span><span class="n">sample_in</span><span class="p">,</span> <span class="n">sample_out</span><span class="p">):</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">sample_in</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Original</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="c1"># Augmented versions</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
+    <span class="n">sample_out</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sample_out</span>
+
+<span class="c1"># Process data</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./raw_data&quot;</span><span class="p">)</span>
+<span class="n">processed</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;./processed_data&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">processed</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
+<span class="n">processed</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">processed</span><span class="p">:</span>
+    <span class="c1"># Apply preprocessing</span>
+    <span class="n">preprocess</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">processed</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">progressbar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">processed</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Preprocessed data&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Rechunk for efficiency</span>
+    <span class="n">processed</span><span class="o">.</span><span class="n">rechunk</span><span class="p">(</span><span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">processed</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Rechunked&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create augmented version</span>
+<span class="n">augmented</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">dataset</span><span class="p">(</span><span class="s2">&quot;./augmented_data&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">augmented</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
+<span class="n">augmented</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">augmented</span><span class="p">:</span>
+    <span class="n">augment</span><span class="p">()</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">processed</span><span class="p">,</span> <span class="n">augmented</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">progressbar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">augmented</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Augmented data&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="dataset-maintenance">Dataset Maintenance</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">maintain_dataset</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform routine maintenance on a dataset.&quot;&quot;&quot;</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="c1"># Enable admin mode for maintenance</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">enable_admin_mode</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Rechunk if necessary</span>
+        <span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">rechunk_if_necessary</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dataset was rechunked&quot;</span><span class="p">)</span>
+            <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Maintenance: rechunked&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Optimize indexes</span>
+        <span class="k">for</span> <span class="n">tensor_name</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">indexed_tensors</span><span class="p">:</span>
+            <span class="n">ds</span><span class="o">.</span><span class="n">optimize_index</span><span class="p">(</span><span class="n">tensor_name</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimized index for </span><span class="si">{</span><span class="n">tensor_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Flush all changes</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Maintenance completed successfully&quot;</span><span class="p">)</span>
+
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># Always disable admin mode</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">disable_admin_mode</span><span class="p">()</span>
+
+<span class="c1"># Run maintenance</span>
+<span class="n">maintain_dataset</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="safe-concurrent-access">Safe Concurrent Access</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">locked_dataset</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager for safe concurrent dataset access.&quot;&quot;&quot;</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">lock</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">ds</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">unlock</span><span class="p">()</span>
+
+<span class="c1"># Use in concurrent environment</span>
+<span class="k">with</span> <span class="n">locked_dataset</span><span class="p">(</span><span class="s2">&quot;./shared_dataset&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">new_data</span><span class="p">})</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Concurrent update&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.tracking", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

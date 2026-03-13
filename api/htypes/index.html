@@ -1,0 +1,2617 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER/api/htypes/">
+      
+      
+        <link rel="prev" href="../advanced/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Htypes Reference - MULLER</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#htypes-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MULLER" class="md-header__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MULLER
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Htypes Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the bright mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Change to the bright mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Change to the dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting_started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../top-level-functions/" class="md-tabs__link">
+          
+  
+  
+  API Documents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq.md" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MULLER" class="md-nav__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MULLER
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/1_read_muller_object/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read as MULLER object
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/2_create_muller_dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construct a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/3_muller_dataset_operations%28load%2Cappend%2Cupdate%2Cdelete%2Cquery%29/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/4_muller_version_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/5_advanced_operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Documents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Documents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../top-level-functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Top-Level Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-creation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-query/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Query
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-version-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Htypes Reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Htypes Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generic
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="generic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-generic-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a generic tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-generic-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending generic data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#text" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        text
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="text">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-text-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a text tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-text-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending text data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-an-image-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating an image tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-image-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending image data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        video
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="video">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-video-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a video tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-video-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending video data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#audio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        audio
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="audio">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-an-audio-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating an audio tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-audio-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending audio data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class_label" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class_label
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class_label">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-class_label-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a class_label tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-class_label-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending class_label data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bbox
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="bbox">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-bbox-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a bbox tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-bbox-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending bbox data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bbox3d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bbox.3d
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="bbox.3d">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-bbox3d-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a bbox.3d tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-bbox3d-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending bbox.3d data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        json
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="json">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-json-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a json tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-json-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending json data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-list-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a list tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-list-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending list data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        vector
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="vector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-vector-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a vector tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-vector-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending vector data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#embedding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        embedding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="embedding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-an-embedding-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating an embedding tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-embedding-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending embedding data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generic
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="generic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-generic-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a generic tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-generic-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending generic data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#text" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        text
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="text">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-text-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a text tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-text-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending text data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-an-image-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating an image tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-image-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending image data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        video
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="video">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-video-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a video tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-video-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending video data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#audio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        audio
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="audio">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-an-audio-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating an audio tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-audio-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending audio data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class_label" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        class_label
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="class_label">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-class_label-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a class_label tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-class_label-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending class_label data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bbox
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="bbox">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-bbox-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a bbox tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-bbox-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending bbox data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bbox3d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bbox.3d
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="bbox.3d">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-bbox3d-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a bbox.3d tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-bbox3d-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending bbox.3d data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        json
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="json">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-json-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a json tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-json-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending json data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="list">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-list-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a list tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-list-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending list data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        vector
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="vector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-vector-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a vector tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-vector-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending vector data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#embedding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        embedding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="embedding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#suggested-use-case_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested Use Case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-an-embedding-tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating an embedding tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appending-embedding-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appending embedding data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="htypes-reference">Htypes Reference</h1>
+<p>MULLER supports various high-level data types (htypes) for different kinds of data. Each htype has specific configurations, supported compressions, and data formats.</p>
+<hr />
+<h2 id="overview">Overview</h2>
+<table>
+<thead>
+<tr>
+<th>Htype</th>
+<th>Default dtype</th>
+<th>Supported Compressions</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>generic</code></td>
+<td>None (inferred)</td>
+<td>None, lz4</td>
+<td>General numeric data</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>str</td>
+<td>None, lz4</td>
+<td>String/text data</td>
+</tr>
+<tr>
+<td><code>image</code></td>
+<td>uint8</td>
+<td>bmp, dib, gif, ico, jpg, jpeg, jpeg2000, pcx, png, ppm, sgi, tga, tiff, webp, wmf, xbm, eps, fli, im, msp, mpo</td>
+<td>Image files</td>
+</tr>
+<tr>
+<td><code>video</code></td>
+<td>uint8</td>
+<td>mp4, mkv, avi</td>
+<td>Video files</td>
+</tr>
+<tr>
+<td><code>audio</code></td>
+<td>float64</td>
+<td>mp3, wav, flac</td>
+<td>Audio files</td>
+</tr>
+<tr>
+<td><code>class_label</code></td>
+<td>uint32</td>
+<td>None, lz4</td>
+<td>Classification labels</td>
+</tr>
+<tr>
+<td><code>bbox</code></td>
+<td>float32</td>
+<td>None, lz4</td>
+<td>Bounding boxes (2D)</td>
+</tr>
+<tr>
+<td><code>bbox.3d</code></td>
+<td>float32</td>
+<td>None, lz4</td>
+<td>Bounding boxes (3D)</td>
+</tr>
+<tr>
+<td><code>json</code></td>
+<td>Any</td>
+<td>None, lz4</td>
+<td>JSON objects</td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td>List</td>
+<td>None, lz4</td>
+<td>List data</td>
+</tr>
+<tr>
+<td><code>vector</code></td>
+<td>float32</td>
+<td>None, lz4</td>
+<td>Embedding vectors</td>
+</tr>
+<tr>
+<td><code>embedding</code></td>
+<td>float32</td>
+<td>None, lz4</td>
+<td>Embedding vectors (alias)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="generic">generic</h2>
+<h3 id="suggested-use-case">Suggested Use Case</h3>
+<p><code>htype="generic"</code> is assigned to numeric tensors with unspecified htype. However, it is not recommended for general use because it does not provide an informative description of the data or efficiently store it. Use <code>generic</code> only when you are uncertain about the role of the data in the dataset but still want to record it.</p>
+<h3 id="creating-a-generic-tensor">Creating a generic tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;generic_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;generic&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;lz4&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>None</code>, and a value will be assigned once a sample is appended. Supported dtypes: <code>int8</code>, <code>int16</code>, <code>int32</code>, <code>int64</code>, <code>uint8</code>, <code>uint16</code>, <code>uint32</code>, <code>float32</code>, <code>float64</code>, <code>bool</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "lz4"}</code>.</p>
+<h3 id="appending-generic-data">Appending generic data</h3>
+<p><strong>Example 1:</strong> Appending numpy arrays</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">generic_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]]))</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">generic_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">]))</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">generic_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]))</span>
+</code></pre></div>
+<p><strong>Example 2:</strong> Appending lists</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">generic_data</span><span class="o">.</span><span class="n">append</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">generic_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">])</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">generic_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
+</code></pre></div>
+<hr />
+<h2 id="text">text</h2>
+<h3 id="suggested-use-case_1">Suggested Use Case</h3>
+<p>Use <code>htype="text"</code> when storing string information in the dataset.</p>
+<h3 id="creating-a-text-tensor">Creating a text tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;text_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;lz4&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>str</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "lz4"}</code>.</p>
+<h3 id="appending-text-data">Appending text data</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">text_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Thanks for using MULLER!&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="image">image</h2>
+<h3 id="suggested-use-case_2">Suggested Use Case</h3>
+<p>Use <code>htype="image"</code> for storing image data. For example, in the <a href="https://www.cs.toronto.edu/~kriz/cifar.html">CIFAR-10 dataset</a>, images should be stored with this htype.</p>
+<h3 id="creating-an-image-tensor">Creating an image tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;image_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;jpeg&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>uint8</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "bmp", "dib", "eps", "fli", "gif", "ico", "im", "jpeg", "jpg", "jpeg2000", "msp", "mpo", "pcx", "png", "ppm", "sgi", "tga", "tiff", "webp", "wmf", "xbm"}</code>.</p>
+<h3 id="appending-image-data">Appending image data</h3>
+<p><strong>Example 1:</strong> Appending <code>Sample</code> read by <code>muller.read()</code> (recommended - keep <code>sample_compression</code> consistent with file format)</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;image_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;jpeg&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">image_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">muller</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;/path/to/file.jpg&quot;</span><span class="p">))</span>
+
+<span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;image_data_2&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">image_data_2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">muller</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;/path/to/file.png&quot;</span><span class="p">))</span>
+</code></pre></div>
+<p><strong>Example 2:</strong> Appending raw numpy arrays (compression not supported for raw data)</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;image_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">image_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">400</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">))</span>
+</code></pre></div>
+<p><strong>Example 3:</strong> Appending raw lists (compression not supported for raw data)</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;image_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">image_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">400</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+</code></pre></div>
+<hr />
+<h2 id="video">video</h2>
+<h3 id="suggested-use-case_3">Suggested Use Case</h3>
+<p>Use <code>htype="video"</code> for storing video files. For example, datasets like <a href="https://research.google.com/youtube8m/index.html">YouTube-8M</a> should use this htype.</p>
+<h3 id="creating-a-video-tensor">Creating a video tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;video_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;mp4&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>uint8</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "mp4", "mkv", "avi"}</code>.</p>
+<h3 id="appending-video-data">Appending video data</h3>
+<p><strong>Example 1:</strong> Appending <code>Sample</code> read by <code>muller.read()</code> (recommended)</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;video_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;mp4&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">video_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">muller</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;/path/to/file.mp4&quot;</span><span class="p">))</span>
+
+<span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;video_data_2&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;mkv&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">video_data_2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">muller</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;/path/to/file.mkv&quot;</span><span class="p">))</span>
+</code></pre></div>
+<p><strong>Example 2:</strong> Appending raw numpy arrays (compression not supported)</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;video_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;video&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">video_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">))</span>
+</code></pre></div>
+<hr />
+<h2 id="audio">audio</h2>
+<h3 id="suggested-use-case_4">Suggested Use Case</h3>
+<p>Use <code>htype="audio"</code> for storing audio files. For example, <a href="https://huggingface.co/learn/audio-course/en/chapter5/choosing_dataset#a-summary-of-datasets-on-the-hub">speech datasets</a> should use this htype.</p>
+<h3 id="creating-an-audio-tensor">Creating an audio tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;audio_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;audio&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;mp3&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>float64</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "mp3", "wav", "flac"}</code>.</p>
+<h3 id="appending-audio-data">Appending audio data</h3>
+<p><strong>Example 1:</strong> Appending <code>Sample</code> read by <code>muller.read()</code> (recommended)</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;audio_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;audio&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;mp3&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">audio_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">muller</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;/path/to/file.mp3&quot;</span><span class="p">))</span>
+
+<span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;audio_data_2&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;audio&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;wav&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">audio_data_2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">muller</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;/path/to/file.wav&quot;</span><span class="p">))</span>
+</code></pre></div>
+<p><strong>Example 2:</strong> Appending raw numpy arrays (compression not supported)</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;audio_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;audio&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">audio_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
+</code></pre></div>
+<hr />
+<h2 id="class_label">class_label</h2>
+<h3 id="suggested-use-case_5">Suggested Use Case</h3>
+<p>Use <code>htype="class_label"</code> for storing classification labels. For example, in the <a href="https://www.cs.toronto.edu/~kriz/cifar.html">CIFAR-10 dataset</a>, there are 10 categories: ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"], typically represented as integers 0-9.</p>
+<h3 id="creating-a-class_label-tensor">Creating a class_label tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;class_label&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;lz4&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>uint32</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "lz4"}</code>.
+- <code>class_names</code> (optional): A list of strings mapping integers to category names.</p>
+<p><strong>With class names:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;class_label&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;lz4&quot;</span><span class="p">,</span>
+                 <span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;airplane&quot;</span><span class="p">,</span> <span class="s2">&quot;automobile&quot;</span><span class="p">,</span> <span class="s2">&quot;bird&quot;</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;deer&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;dog&quot;</span><span class="p">,</span> <span class="s2">&quot;frog&quot;</span><span class="p">,</span> <span class="s2">&quot;horse&quot;</span><span class="p">,</span> <span class="s2">&quot;ship&quot;</span><span class="p">,</span> <span class="s2">&quot;truck&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p>Or update after creation:</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;airplane&quot;</span><span class="p">,</span> <span class="s2">&quot;automobile&quot;</span><span class="p">,</span> <span class="s2">&quot;bird&quot;</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;deer&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot;dog&quot;</span><span class="p">,</span> <span class="s2">&quot;frog&quot;</span><span class="p">,</span> <span class="s2">&quot;horse&quot;</span><span class="p">,</span> <span class="s2">&quot;ship&quot;</span><span class="p">,</span> <span class="s2">&quot;truck&quot;</span><span class="p">])</span>
+</code></pre></div>
+<h3 id="appending-class_label-data">Appending class_label data</h3>
+<p><strong>Example 1:</strong> Appending numpy arrays</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;uint32&quot;</span><span class="p">))</span>
+</code></pre></div>
+<p><strong>Example 2:</strong> Appending lists</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Example 3:</strong> Appending strings (automatically mapped to integers)</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;airplane&quot;</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;dog&quot;</span><span class="p">])</span>
+</code></pre></div>
+<hr />
+<h2 id="bbox">bbox</h2>
+<h3 id="suggested-use-case_6">Suggested Use Case</h3>
+<p>Use <code>htype="bbox"</code> for storing 2D bounding box annotations. For example, <a href="https://cocodataset.org/#home">COCO dataset</a> bounding boxes should use this htype.</p>
+<h3 id="creating-a-bbox-tensor">Creating a bbox tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;bbox_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;bbox&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;lz4&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>float32</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "lz4"}</code>.
+- <code>coords</code> (optional): A dictionary specifying coordinate format.</p>
+<p><strong>With coordinate specification:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;bbox_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;bbox&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;lz4&quot;</span><span class="p">,</span>
+                 <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;fractional&quot;</span><span class="p">,</span> <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;CCWH&quot;</span><span class="p">})</span>
+</code></pre></div>
+<p><strong>coords dictionary:</strong>
+- <code>type</code>: <code>"pixel"</code> (coordinates in pixels) or <code>"fractional"</code> (coordinates relative to image dimensions, like YOLO format)
+- <code>mode</code>:
+  - <code>"LTRB"</code>: left_x, top_y, right_x, bottom_y
+  - <code>"LTWH"</code>: left_x, top_y, width, height
+  - <code>"CCWH"</code>: center_x, center_y, width, height</p>
+<p>Or update after creation:</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">bbox_data</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;fractional&quot;</span><span class="p">,</span> <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;CCWH&quot;</span><span class="p">})</span>
+</code></pre></div>
+<h3 id="appending-bbox-data">Appending bbox data</h3>
+<p><strong>Example 1:</strong> Appending numpy arrays</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">bbox_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+</code></pre></div>
+<p><strong>Example 2:</strong> Appending lists</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">bbox_data</span><span class="o">.</span><span class="n">append</span><span class="p">([[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]])</span>
+</code></pre></div>
+<p><strong>Example 3:</strong> Appending list of arrays</p>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">bbox_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)])</span>
+</code></pre></div>
+<hr />
+<h2 id="bbox3d">bbox.3d</h2>
+<h3 id="suggested-use-case_7">Suggested Use Case</h3>
+<p>Use <code>htype="bbox.3d"</code> for storing 3D bounding box annotations in autonomous driving or 3D object detection datasets.</p>
+<h3 id="creating-a-bbox3d-tensor">Creating a bbox.3d tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;bbox_3d_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;bbox.3d&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;lz4&quot;</span><span class="p">,</span>
+                 <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;XYZWHD&quot;</span><span class="p">})</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>float32</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "lz4"}</code>.
+- <code>coords</code> (optional): A dictionary specifying the coordinate mode.</p>
+<h3 id="appending-bbox3d-data">Appending bbox.3d data</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">bbox_3d_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+</code></pre></div>
+<hr />
+<h2 id="json">json</h2>
+<h3 id="suggested-use-case_8">Suggested Use Case</h3>
+<p>Use <code>htype="json"</code> for storing arbitrary JSON objects or dictionaries.</p>
+<h3 id="creating-a-json-tensor">Creating a json tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;json_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;lz4&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>Any</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "lz4"}</code>.</p>
+<h3 id="appending-json-data">Appending json data</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">json_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;nested&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}})</span>
+</code></pre></div>
+<hr />
+<h2 id="list">list</h2>
+<h3 id="suggested-use-case_9">Suggested Use Case</h3>
+<p>Use <code>htype="list"</code> for storing list data structures.</p>
+<h3 id="creating-a-list-tensor">Creating a list tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;list_data&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="n">sample_compression</span><span class="o">=</span><span class="s2">&quot;lz4&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>List</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "lz4"}</code>.</p>
+<h3 id="appending-list-data">Appending list data</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">list_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">list_data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span>
+</code></pre></div>
+<hr />
+<h2 id="vector">vector</h2>
+<h3 id="suggested-use-case_10">Suggested Use Case</h3>
+<p>Use <code>htype="vector"</code> for storing embedding vectors for similarity search and vector indexing.</p>
+<h3 id="creating-a-vector-tensor">Creating a vector tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;vector&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>float32</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "lz4"}</code>.
+- <code>dimension</code> (required): The dimensionality of the vectors.</p>
+<h3 id="appending-vector-data">Appending vector data</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+</code></pre></div>
+<hr />
+<h2 id="embedding">embedding</h2>
+<h3 id="suggested-use-case_11">Suggested Use Case</h3>
+<p><code>htype="embedding"</code> is an alias for <code>vector</code>. Use for storing embedding vectors.</p>
+<h3 id="creating-an-embedding-tensor">Creating an embedding tensor</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">htype</span><span class="o">=</span><span class="s2">&quot;embedding&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>dtype</code>: Default is <code>float32</code>.
+- <code>sample_compression</code>: Supported values: <code>{None, "lz4"}</code>.</p>
+<h3 id="appending-embedding-data">Appending embedding data</h3>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">embeddings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+</code></pre></div>
+<hr />
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="../dataset-methods/#create_tensor">Dataset Methods: create_tensor()</a> - Detailed API for creating tensors</li>
+<li><a href="../../getting_started/2_create_muller_dataset/">Getting Started: Creating a MULLER Dataset</a> - Tutorial on dataset creation</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.tracking", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

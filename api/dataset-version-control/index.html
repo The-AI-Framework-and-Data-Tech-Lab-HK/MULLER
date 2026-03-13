@@ -1,0 +1,2921 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER/api/dataset-version-control/">
+      
+      
+        <link rel="prev" href="../dataset-query/">
+      
+      
+        <link rel="next" href="../dataset-export/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Dataset Version Control - MULLER</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dataset-version-control" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MULLER" class="md-header__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MULLER
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dataset Version Control
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the bright mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Change to the bright mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Change to the dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting_started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../top-level-functions/" class="md-tabs__link">
+          
+  
+  
+  API Documents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq.md" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MULLER" class="md-nav__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MULLER
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/1_read_muller_object/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read as MULLER object
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/2_create_muller_dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construct a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/3_muller_dataset_operations%28load%2Cappend%2Cupdate%2Cdelete%2Cquery%29/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/4_muller_version_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/5_advanced_operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Documents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Documents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../top-level-functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Top-Level Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-creation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-query/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Query
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Version Control
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dscommit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.commit()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.commit()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscheckout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.checkout()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.checkout()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscommits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.commits()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.commits()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsmerge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.merge()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.merge()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdiff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.diff()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.diff()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsreset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.reset()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.reset()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dslog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.log()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.log()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdelete_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.delete_branch()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.delete_branch()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsbranches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.branches
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.branches">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscommit_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.commit_id
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.commit_id">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-control-workflow-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version Control Workflow Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version Control Workflow Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branching-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentation-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experimentation Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collaborative-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collaborative Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../htypes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Htypes Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dscommit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.commit()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.commit()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscheckout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.checkout()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.checkout()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscommits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.commits()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.commits()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsmerge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.merge()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.merge()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdiff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.diff()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.diff()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsreset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.reset()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.reset()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dslog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.log()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.log()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdelete_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.delete_branch()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.delete_branch()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Warning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsbranches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.branches
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.branches">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscommit_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.commit_id
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.commit_id">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-control-workflow-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version Control Workflow Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version Control Workflow Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branching-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branching Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentation-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experimentation Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collaborative-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collaborative Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="dataset-version-control">Dataset Version Control</h1>
+<p>This page documents version control methods for managing dataset history, branches, and commits.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#dscommit">ds.commit()</a></li>
+<li><a href="#dscheckout">ds.checkout()</a></li>
+<li><a href="#dscommits">ds.commits()</a></li>
+<li><a href="#dsmerge">ds.merge()</a></li>
+<li><a href="#dsdiff">ds.diff()</a></li>
+<li><a href="#dsreset">ds.reset()</a></li>
+<li><a href="#dslog">ds.log()</a></li>
+<li><a href="#dsdelete_branch">ds.delete_branch()</a></li>
+<li><a href="#dsbranches">ds.branches</a></li>
+<li><a href="#dscommit_id">ds.commit_id</a></li>
+</ul>
+<hr />
+<h3 id="dscommit">ds.commit()</h3>
+<h4 id="overview">Overview</h4>
+<p>Create a commit to save the current state of the dataset. This creates a snapshot of all changes made since the last commit.</p>
+<h4 id="parameters">Parameters</h4>
+<ul>
+<li><strong>message</strong> (<code>str</code>, optional): Commit message describing the changes. If not provided, an automatic message will be generated. Defaults to <code>None</code>.</li>
+<li><strong>allow_empty</strong> (<code>bool</code>, optional): If <code>True</code>, allows creating a commit even when there are no changes. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="returns">Returns</h4>
+<ul>
+<li><strong>str</strong>: The commit ID of the newly created commit.</li>
+</ul>
+<h4 id="examples">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Make changes and commit</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;images&quot;</span><span class="p">:</span> <span class="n">image_data</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+    <span class="n">commit_id</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Added new training sample&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created commit: </span><span class="si">{</span><span class="n">commit_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Commit with automatic message</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">extend</span><span class="p">({</span><span class="s2">&quot;images&quot;</span><span class="p">:</span> <span class="n">images</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">})</span>
+    <span class="n">commit_id</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="c1"># Allow empty commit</span>
+<span class="n">commit_id</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Empty checkpoint&quot;</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Commit after multiple operations</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;new_feature&quot;</span><span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">extend</span><span class="p">({</span><span class="s2">&quot;new_feature&quot;</span><span class="p">:</span> <span class="n">feature_data</span><span class="p">})</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">delete_tensor</span><span class="p">(</span><span class="s2">&quot;old_feature&quot;</span><span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Refactored dataset schema&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dscheckout">ds.checkout()</h3>
+<h4 id="overview_1">Overview</h4>
+<p>Checkout a specific commit, branch, or tag. This changes the dataset state to match the specified version.</p>
+<h4 id="parameters_1">Parameters</h4>
+<ul>
+<li><strong>address</strong> (<code>str</code>): The commit ID, branch name, or tag to checkout.</li>
+<li><strong>create</strong> (<code>bool</code>, optional): If <code>True</code>, creates a new branch at the specified commit. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="returns_1">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_1">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Checkout a specific commit</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;abc123def456&quot;</span><span class="p">)</span>
+
+<span class="c1"># Checkout a branch</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;feature-branch&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create and checkout a new branch</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;new-feature&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Checkout previous commit</span>
+<span class="n">commits</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commits</span><span class="p">()</span>
+<span class="n">previous_commit</span> <span class="o">=</span> <span class="n">commits</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;commit_id&quot;</span><span class="p">]</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="n">previous_commit</span><span class="p">)</span>
+
+<span class="c1"># Checkout and make changes</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;experiment&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">experimental_data</span><span class="p">})</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Experimental changes&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dscommits">ds.commits()</h3>
+<h4 id="overview_2">Overview</h4>
+<p>Get a list of all commits in the dataset history.</p>
+<h4 id="parameters_2">Parameters</h4>
+<ul>
+<li><strong>ordered_by_date</strong> (<code>bool</code>, optional): If <code>True</code>, orders commits by date instead of by commit graph. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="returns_2">Returns</h4>
+<ul>
+<li><strong>List[Dict]</strong>: List of commit dictionaries containing commit information.</li>
+</ul>
+<h4 id="examples_2">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get all commits</span>
+<span class="n">commits</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commits</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">commit</span> <span class="ow">in</span> <span class="n">commits</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">commit</span><span class="p">[</span><span class="s1">&#39;commit_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">commit</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get commits ordered by date</span>
+<span class="n">commits</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commits</span><span class="p">(</span><span class="n">ordered_by_date</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Access commit details</span>
+<span class="n">latest_commit</span> <span class="o">=</span> <span class="n">commits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Author: </span><span class="si">{</span><span class="n">latest_commit</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;author&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Date: </span><span class="si">{</span><span class="n">latest_commit</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Message: </span><span class="si">{</span><span class="n">latest_commit</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;message&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Find specific commit</span>
+<span class="n">target_message</span> <span class="o">=</span> <span class="s2">&quot;Added validation data&quot;</span>
+<span class="k">for</span> <span class="n">commit</span> <span class="ow">in</span> <span class="n">commits</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">target_message</span> <span class="ow">in</span> <span class="n">commit</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found commit: </span><span class="si">{</span><span class="n">commit</span><span class="p">[</span><span class="s1">&#39;commit_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">break</span>
+
+<span class="c1"># Get commit count</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total commits: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">commits</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsmerge">ds.merge()</h3>
+<h4 id="overview_3">Overview</h4>
+<p>Merge changes from another branch into the current branch. This combines the history and changes from two branches.</p>
+<h4 id="parameters_3">Parameters</h4>
+<ul>
+<li><strong>branch</strong> (<code>str</code>): Name of the branch to merge into the current branch.</li>
+<li><strong>conflict_resolution</strong> (<code>str</code>, optional): Strategy for resolving conflicts ("ours", "theirs", "manual"). Defaults to <code>"manual"</code>.</li>
+</ul>
+<h4 id="returns_3">Returns</h4>
+<ul>
+<li><strong>str</strong>: The commit ID of the merge commit.</li>
+</ul>
+<h4 id="examples_3">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Merge a feature branch into main</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="n">merge_commit</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="s2">&quot;feature-branch&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Merge commit: </span><span class="si">{</span><span class="n">merge_commit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Merge with conflict resolution</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="n">merge_commit</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="s2">&quot;experiment&quot;</span><span class="p">,</span> <span class="n">conflict_resolution</span><span class="o">=</span><span class="s2">&quot;ours&quot;</span><span class="p">)</span>
+
+<span class="c1"># Merge workflow</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;feature&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">new_data</span><span class="p">})</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Added feature data&quot;</span><span class="p">)</span>
+
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="s2">&quot;feature&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Merged feature branch&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsdiff">ds.diff()</h3>
+<h4 id="overview_4">Overview</h4>
+<p>Show the differences between the current state and a specific commit, or between two commits.</p>
+<h4 id="parameters_4">Parameters</h4>
+<ul>
+<li><strong>commit_id</strong> (<code>str</code>, optional): Commit ID to compare against. If not provided, compares against the last commit. Defaults to <code>None</code>.</li>
+<li><strong>other_commit_id</strong> (<code>str</code>, optional): Second commit ID for comparing two commits. Defaults to <code>None</code>.</li>
+</ul>
+<h4 id="returns_4">Returns</h4>
+<ul>
+<li><strong>Dict</strong>: Dictionary containing the differences.</li>
+</ul>
+<h4 id="examples_4">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Show uncommitted changes</span>
+<span class="n">diff</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+
+<span class="c1"># Compare with specific commit</span>
+<span class="n">diff</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="s2">&quot;abc123def456&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compare two commits</span>
+<span class="n">diff</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="s2">&quot;commit1&quot;</span><span class="p">,</span> <span class="s2">&quot;commit2&quot;</span><span class="p">)</span>
+
+<span class="c1"># Analyze differences</span>
+<span class="n">diff</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+<span class="k">if</span> <span class="s2">&quot;tensors_added&quot;</span> <span class="ow">in</span> <span class="n">diff</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added tensors: </span><span class="si">{</span><span class="n">diff</span><span class="p">[</span><span class="s1">&#39;tensors_added&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="s2">&quot;tensors_deleted&quot;</span> <span class="ow">in</span> <span class="n">diff</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Deleted tensors: </span><span class="si">{</span><span class="n">diff</span><span class="p">[</span><span class="s1">&#39;tensors_deleted&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="s2">&quot;samples_added&quot;</span> <span class="ow">in</span> <span class="n">diff</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added samples: </span><span class="si">{</span><span class="n">diff</span><span class="p">[</span><span class="s1">&#39;samples_added&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsreset">ds.reset()</h3>
+<h4 id="overview_5">Overview</h4>
+<p>Reset the dataset to a specific commit, discarding all changes after that commit.</p>
+<h4 id="parameters_5">Parameters</h4>
+<ul>
+<li><strong>commit_id</strong> (<code>str</code>): The commit ID to reset to.</li>
+<li><strong>hard</strong> (<code>bool</code>, optional): If <code>True</code>, discards all uncommitted changes. If <code>False</code>, keeps uncommitted changes. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="returns_5">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_5">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Soft reset (keep uncommitted changes)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="s2">&quot;abc123def456&quot;</span><span class="p">)</span>
+
+<span class="c1"># Hard reset (discard all changes)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="s2">&quot;abc123def456&quot;</span><span class="p">,</span> <span class="n">hard</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Reset to previous commit</span>
+<span class="n">commits</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commits</span><span class="p">()</span>
+<span class="n">previous_commit</span> <span class="o">=</span> <span class="n">commits</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;commit_id&quot;</span><span class="p">]</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">previous_commit</span><span class="p">,</span> <span class="n">hard</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Reset and create new branch</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="s2">&quot;abc123def456&quot;</span><span class="p">,</span> <span class="n">hard</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;recovery&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="warning">Warning</h4>
+<p>Hard reset permanently discards all changes after the specified commit. Use with caution.</p>
+<hr />
+<h3 id="dslog">ds.log()</h3>
+<h4 id="overview_6">Overview</h4>
+<p>Display the commit history in a readable format, similar to <code>git log</code>.</p>
+<h4 id="parameters_6">Parameters</h4>
+<ul>
+<li><strong>max_count</strong> (<code>int</code>, optional): Maximum number of commits to display. Defaults to <code>None</code> (all commits).</li>
+<li><strong>oneline</strong> (<code>bool</code>, optional): If <code>True</code>, displays each commit on a single line. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="returns_6">Returns</h4>
+<ul>
+<li><strong>None</strong> (prints to console)</li>
+</ul>
+<h4 id="examples_6">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Show full commit log</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">log</span><span class="p">()</span>
+
+<span class="c1"># Show last 10 commits</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">max_count</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Show one-line format</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">oneline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Show recent commits in one-line format</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">max_count</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">oneline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="example-output">Example Output</h3>
+<div class="highlight"><pre><span></span><code>commit abc123def456
+Author: John Doe
+Date: 2026-03-04 10:30:00
+
+    Added validation dataset
+
+commit 789ghi012jkl
+Author: Jane Smith
+Date: 2026-03-03 15:20:00
+
+    Initial dataset creation
+</code></pre></div>
+<hr />
+<h3 id="dsdelete_branch">ds.delete_branch()</h3>
+<h4 id="overview_7">Overview</h4>
+<p>Delete a branch from the dataset. The branch must not be the currently checked out branch.</p>
+<h4 id="parameters_7">Parameters</h4>
+<ul>
+<li><strong>branch_name</strong> (<code>str</code>): Name of the branch to delete.</li>
+<li><strong>force</strong> (<code>bool</code>, optional): If <code>True</code>, deletes the branch even if it has unmerged changes. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="returns_7">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_7">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Delete a merged branch</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">delete_branch</span><span class="p">(</span><span class="s2">&quot;old-feature&quot;</span><span class="p">)</span>
+
+<span class="c1"># Force delete an unmerged branch</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">delete_branch</span><span class="p">(</span><span class="s2">&quot;experimental&quot;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Delete multiple branches</span>
+<span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;temp1&quot;</span><span class="p">,</span> <span class="s2">&quot;temp2&quot;</span><span class="p">,</span> <span class="s2">&quot;test-branch&quot;</span><span class="p">]:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">delete_branch</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span>
+
+<span class="c1"># Safe branch cleanup</span>
+<span class="n">branches</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">branches</span>
+<span class="n">current_branch</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">branch</span>
+<span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">branches</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">branch</span> <span class="o">!=</span> <span class="n">current_branch</span> <span class="ow">and</span> <span class="n">branch</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;temp-&quot;</span><span class="p">):</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">delete_branch</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="warning_1">Warning</h4>
+<p>Deleting a branch with unmerged changes will permanently lose those changes unless <code>force=True</code> is used intentionally.</p>
+<hr />
+<h3 id="dsbranches">ds.branches</h3>
+<h4 id="overview_8">Overview</h4>
+<p>Property that returns a list of all branches in the dataset.</p>
+<h4 id="type">Type</h4>
+<ul>
+<li><strong>List[str]</strong>: List of branch names.</li>
+</ul>
+<h4 id="examples_8">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get all branches</span>
+<span class="n">branches</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">branches</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available branches: </span><span class="si">{</span><span class="n">branches</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check if branch exists</span>
+<span class="k">if</span> <span class="s2">&quot;feature-branch&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;feature-branch&quot;</span><span class="p">)</span>
+
+<span class="c1"># List all branches</span>
+<span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">branch</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create branch if it doesn&#39;t exist</span>
+<span class="n">branch_name</span> <span class="o">=</span> <span class="s2">&quot;new-feature&quot;</span>
+<span class="k">if</span> <span class="n">branch_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="n">branch_name</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dscommit_id">ds.commit_id</h3>
+<h4 id="overview_9">Overview</h4>
+<p>Property that returns the current commit ID of the dataset.</p>
+<h4 id="type_1">Type</h4>
+<ul>
+<li><strong>str</strong>: The current commit ID, or <code>None</code> if no commits exist.</li>
+</ul>
+<h4 id="examples_9">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get current commit ID</span>
+<span class="n">current_commit</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit_id</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current commit: </span><span class="si">{</span><span class="n">current_commit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check if dataset has commits</span>
+<span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No commits yet&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;On commit: </span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">commit_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save commit ID before making changes</span>
+<span class="n">original_commit</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit_id</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">new_data</span><span class="p">})</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Added data&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compare commits</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Changed from </span><span class="si">{</span><span class="n">original_commit</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">commit_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use in version tracking</span>
+<span class="n">version_info</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;commit&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit_id</span><span class="p">,</span>
+    <span class="s2">&quot;branch&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">branch</span><span class="p">,</span>
+    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="version-control-workflow-examples">Version Control Workflow Examples</h2>
+<h3 id="basic-workflow">Basic Workflow</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># Load dataset</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Make changes</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;images&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">label</span><span class="p">})</span>
+
+<span class="c1"># Commit changes</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Added new sample&quot;</span><span class="p">)</span>
+
+<span class="c1"># View history</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">max_count</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="branching-workflow">Branching Workflow</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create feature branch</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;feature-augmentation&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Make changes on feature branch</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="s2">&quot;augmented_images&quot;</span><span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">extend</span><span class="p">({</span><span class="s2">&quot;augmented_images&quot;</span><span class="p">:</span> <span class="n">augmented_data</span><span class="p">})</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Added augmented images&quot;</span><span class="p">)</span>
+
+<span class="c1"># Switch back to main and merge</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="s2">&quot;feature-augmentation&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Merged augmentation feature&quot;</span><span class="p">)</span>
+
+<span class="c1"># Clean up</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">delete_branch</span><span class="p">(</span><span class="s2">&quot;feature-augmentation&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="experimentation-workflow">Experimentation Workflow</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save current state</span>
+<span class="n">original_commit</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">commit_id</span>
+
+<span class="c1"># Create experiment branch</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;experiment-1&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Try experimental changes</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">experimental_data</span><span class="p">})</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Experimental changes&quot;</span><span class="p">)</span>
+
+<span class="c1"># If experiment fails, go back</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">delete_branch</span><span class="p">(</span><span class="s2">&quot;experiment-1&quot;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># If experiment succeeds, merge</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="s2">&quot;experiment-1&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="collaborative-workflow">Collaborative Workflow</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="c1"># User A: Create feature</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./shared_dataset&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;user-a-feature&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data_a</span><span class="p">})</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;User A: Added feature data&quot;</span><span class="p">)</span>
+
+<span class="c1"># User B: Create different feature</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./shared_dataset&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;user-b-feature&quot;</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data_b</span><span class="p">})</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;User B: Added feature data&quot;</span><span class="p">)</span>
+
+<span class="c1"># Merge both features</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="s2">&quot;user-a-feature&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="s2">&quot;user-b-feature&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Merged features from User A and B&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.tracking", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
