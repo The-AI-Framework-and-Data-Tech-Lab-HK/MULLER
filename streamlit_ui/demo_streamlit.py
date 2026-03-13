@@ -30,7 +30,9 @@ from utils import (
     create_dataset, create_tensors, add_samples, update_sample, delete_sample,
     run_query, dataset_to_dataframe, branch_ops, benchmark_parquet_vs_muller,
     load_dataset, commit_dataset, get_dataset_info,
+    build_commit_graph_data, render_commit_graph_html,
 )
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 
@@ -99,7 +101,7 @@ else:
 if page == "📊 Dataset Management":
     st.title("📊 Dataset Management")
 
-    tab_create, tab_add, tab_view = st.tabs(["Create / Load", "Add Samples", "View & Edit"])
+    tab_create, tab_view = st.tabs(["Create / Load", "View & Edit"])
 
     # --- Tab 1: Create / Load ---
     with tab_create:
@@ -227,23 +229,41 @@ if page == "📊 Dataset Management":
                         st.success(f"Dataset loaded from: {load_path}")
                         st.rerun()
 
-    # --- Tab 2: Add Samples ---
-    with tab_add:
-        st.subheader("Add Samples")
+    # --- Tab 2: View & Edit ---
+    with tab_view:
+        st.subheader("View & Edit Dataset")
         if st.session_state.dataset is None:
             st.warning("Please create or load a dataset first.")
         else:
             ds = st.session_state.dataset
             tensor_names = list(ds.tensors.keys())
+            n = len(ds)
 
-            # Show current schema for reference
+            # 1) Current Schema (collapsed by default)
             with st.expander("Current Schema", expanded=False):
                 schema_rows = []
                 for tname, t in ds.tensors.items():
                     schema_rows.append({"Column": tname, "htype": t.htype, "dtype": str(t.dtype)})
-                st.dataframe(pd.DataFrame(schema_rows), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(schema_rows), width="stretch", hide_index=True)
 
-            with st.expander("Add Single Sample", expanded=True):
+            # 2) Dataset details
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Samples", n)
+            col2.metric("Tensors", len(ds.tensors))
+            col3.metric("Branch", ds.branch)
+
+            if n == 0:
+                st.info("Dataset is empty. Add samples below.")
+            else:
+                preview_limit = min(n, 200)
+                df, err = dataset_to_dataframe(ds, end=preview_limit)
+                if err:
+                    st.error(err)
+                else:
+                    st.dataframe(df, width="stretch")
+
+            # 3) Add Single Sample (collapsed by default)
+            with st.expander("Add Single Sample", expanded=False):
                 sample_data = {}
                 for tname in tensor_names:
                     t = ds.tensors[tname]
@@ -262,18 +282,23 @@ if page == "📊 Dataset Management":
                         if uploaded_file is not None:
                             sample_data[tname] = [np.frombuffer(uploaded_file.read(), dtype=np.uint8)]
                         else:
-                            sample_data[tname] = None  # will skip
+                            sample_data[tname] = None
                     elif "int" in dtype_str:
-                        val = st.number_input(f"{tname} (integer)", value=0, step=1, key=f"add_{tname}")
-                        sample_data[tname] = [int(val)]
+                        val = st.text_input(f"{tname} (integer)", value="0", key=f"add_{tname}")
+                        try:
+                            sample_data[tname] = [int(val)]
+                        except ValueError:
+                            sample_data[tname] = [0]
                     elif "float" in dtype_str:
-                        val = st.number_input(f"{tname} (float)", value=0.0, key=f"add_{tname}")
-                        sample_data[tname] = [float(val)]
+                        val = st.text_input(f"{tname} (float)", value="0.0", key=f"add_{tname}")
+                        try:
+                            sample_data[tname] = [float(val)]
+                        except ValueError:
+                            sample_data[tname] = [0.0]
                     elif "bool" in dtype_str:
                         val = st.checkbox(f"{tname} (bool)", key=f"add_{tname}")
                         sample_data[tname] = [val]
                     else:
-                        # Fallback: text input with auto type conversion
                         val = st.text_input(f"{tname}", key=f"add_{tname}")
                         try:
                             sample_data[tname] = [int(val)]
@@ -284,7 +309,6 @@ if page == "📊 Dataset Management":
                                 sample_data[tname] = [val]
 
                 if st.button("Add Sample", type="primary"):
-                    # Filter out None entries (e.g. file not uploaded)
                     filtered = {k: v for k, v in sample_data.items() if v is not None}
                     if not filtered:
                         st.error("Please fill in at least one field.")
@@ -296,11 +320,12 @@ if page == "📊 Dataset Management":
                             st.success("Sample added and committed.")
                             st.rerun()
 
-            with st.expander("Batch Upload (CSV)"):
+            # 4) Batch Upload via CSV (collapsed by default)
+            with st.expander("Batch Upload via CSV", expanded=False):
                 uploaded = st.file_uploader("Choose CSV file", type=["csv"])
                 if uploaded is not None:
                     df_up = pd.read_csv(uploaded)
-                    st.dataframe(df_up.head(), use_container_width=True)
+                    st.dataframe(df_up.head(), width="stretch")
 
                     matched = [col for col in df_up.columns if col in tensor_names]
                     unmatched = [col for col in df_up.columns if col not in tensor_names]
@@ -309,7 +334,6 @@ if page == "📊 Dataset Management":
                     if unmatched:
                         st.warning(f"Columns not in dataset (will be skipped): {unmatched}")
 
-                    # Let users mark columns containing file paths
                     media_cols = [
                         col for col in matched
                         if ds.tensors[col].htype in ("image", "video", "audio")
@@ -336,7 +360,6 @@ if page == "📊 Dataset Management":
                         else:
                             tmp_path = None
                             try:
-                                # Save uploaded file to a temp path for ds.add_data_from_csv()
                                 with tempfile.NamedTemporaryFile(
                                     suffix=".csv", delete=False, mode="wb"
                                 ) as tmp:
@@ -357,31 +380,11 @@ if page == "📊 Dataset Management":
                                 if tmp_path and os.path.exists(tmp_path):
                                     os.unlink(tmp_path)
 
-    # --- Tab 3: View & Edit ---
-    with tab_view:
-        st.subheader("View & Edit Dataset")
-        if st.session_state.dataset is None:
-            st.warning("Please create or load a dataset first.")
-        else:
-            ds = st.session_state.dataset
-            n = len(ds)
-
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Samples", n)
-            col2.metric("Tensors", len(ds.tensors))
-            col3.metric("Branch", ds.branch)
-
-            if n == 0:
-                st.info("Dataset is empty. Add samples first.")
-            else:
-                preview_limit = min(n, 200)
-                df, err = dataset_to_dataframe(ds, end=preview_limit)
-                if err:
-                    st.error(err)
+            # 5) Delete Sample (collapsed by default)
+            with st.expander("Delete Sample", expanded=False):
+                if n == 0:
+                    st.info("No samples to delete.")
                 else:
-                    st.dataframe(df, use_container_width=True)
-
-                with st.expander("Delete Sample"):
                     del_idx = st.number_input("Sample Index", min_value=0, max_value=max(n - 1, 0), value=0)
                     if st.button("Delete", type="secondary"):
                         err = delete_sample(ds, del_idx)
@@ -392,7 +395,11 @@ if page == "📊 Dataset Management":
                             st.success(f"Deleted sample {del_idx}")
                             st.rerun()
 
-                with st.expander("Update Sample"):
+            # 6) Update Sample (collapsed by default)
+            with st.expander("Update Sample", expanded=False):
+                if n == 0:
+                    st.info("No samples to update.")
+                else:
                     upd_idx = st.number_input("Sample Index to Update", min_value=0, max_value=max(n - 1, 0), value=0, key="upd_idx")
                     upd_tensor = st.selectbox("Tensor", list(ds.tensors.keys()), key="upd_tensor")
                     upd_val = st.text_input("New Value", key="upd_val")
@@ -430,26 +437,50 @@ elif page == "🔍 Query & Search":
         with tab_filter:
             st.subheader("Conditional Filtering")
 
-            # Allow multiple conditions
-            num_conds = st.number_input("Number of conditions", 1, 5, 1, key="num_conds")
+            # Dynamic condition list tracked by unique IDs
+            if "filter_cond_ids" not in st.session_state:
+                st.session_state.filter_cond_ids = [0]
+                st.session_state.filter_next_id = 1
 
             conditions = []
             connectors = []
-            for i in range(num_conds):
-                cols = st.columns([3, 2, 3, 2] if i > 0 else [3, 2, 3])
-                idx = 0
-                if i > 0:
-                    with cols[0]:
-                        conn = st.selectbox("Logic", ["AND", "OR"], key=f"conn_{i}")
+            cond_ids = st.session_state.filter_cond_ids
+            for pos, cid in enumerate(cond_ids):
+                if pos == 0:
+                    c_field, c_op, c_val, c_btn = st.columns([3, 2, 3, 1])
+                else:
+                    c_conn, c_field, c_op, c_val, c_btn = st.columns([1, 3, 2, 3, 1])
+                    with c_conn:
+                        conn = st.selectbox("Logic", ["AND", "OR"], key=f"conn_{cid}",
+                                            label_visibility="collapsed")
                         connectors.append(conn)
-                    idx = 1
 
-                with cols[idx]:
-                    field = st.selectbox("Field", tensor_names, key=f"field_{i}")
-                with cols[idx + 1]:
-                    op = st.selectbox("Op", ["==", "!=", ">", "<", ">=", "<=", "CONTAINS", "LIKE"], key=f"op_{i}")
-                with cols[idx + 2]:
-                    val = st.text_input("Value", key=f"val_{i}")
+                with c_field:
+                    field = st.selectbox("Field" if pos == 0 else "Field",
+                                         tensor_names, key=f"field_{cid}",
+                                         label_visibility="collapsed" if pos > 0 else "visible")
+                with c_op:
+                    op = st.selectbox("Op" if pos == 0 else "Op",
+                                      ["==", "!=", ">", "<", ">=", "<=", "CONTAINS", "LIKE"],
+                                      key=f"op_{cid}",
+                                      label_visibility="collapsed" if pos > 0 else "visible")
+                with c_val:
+                    val = st.text_input("Value" if pos == 0 else "Value",
+                                        key=f"val_{cid}",
+                                        label_visibility="collapsed" if pos > 0 else "visible")
+                with c_btn:
+                    if pos == 0:
+                        # Spacer to align with label row, then ＋ button
+                        st.markdown("<div style='height:29px'></div>", unsafe_allow_html=True)
+                        if st.button("＋", key="add_cond", help="Add condition"):
+                            new_id = st.session_state.filter_next_id
+                            st.session_state.filter_next_id += 1
+                            cond_ids.append(new_id)
+                            st.rerun()
+                    else:
+                        if st.button("−", key=f"del_cond_{cid}", help="Remove this condition"):
+                            cond_ids.remove(cid)
+                            st.rerun()
 
                 conditions.append((field, op, val))
 
@@ -470,6 +501,24 @@ elif page == "🔍 Query & Search":
                             pass
                     parsed_conds.append((field, op, val))
 
+                # Auto-create inverted index for CONTAINS queries if missing
+                for field, op, val in parsed_conds:
+                    if op == "CONTAINS":
+                        branch = ds.version_state["branch"]
+                        meta_path = f"inverted_index_dir_vec/{branch}/meta.json"
+                        has_index = False
+                        try:
+                            import json as _json
+                            meta = _json.loads(ds.storage[meta_path].decode("utf-8"))
+                            has_index = field in meta
+                        except KeyError:
+                            pass
+                        if not has_index:
+                            with st.spinner(f"Creating inverted index for '{field}'..."):
+                                if ds.has_head_changes:
+                                    ds.commit(message="Auto-commit before index creation")
+                                ds.create_index_vectorized(field)
+
                 result_ds, err = run_query(ds, parsed_conds, connectors if connectors else None)
                 if err:
                     st.error(err)
@@ -479,7 +528,7 @@ elif page == "🔍 Query & Search":
                     if n_results > 0:
                         df, _ = dataset_to_dataframe(result_ds, end=min(n_results, 200))
                         if df is not None:
-                            st.dataframe(df, use_container_width=True)
+                            st.dataframe(df, width="stretch")
 
         with tab_vector:
             st.subheader("Vector Similarity Search")
@@ -505,7 +554,7 @@ elif page == "🌿 Version Control":
     else:
         ds = st.session_state.dataset
 
-        tab_branch, tab_merge, tab_log = st.tabs(["Branches", "Merge & Conflicts", "Commit Log"])
+        tab_branch, tab_merge = st.tabs(["Branches", "Merge & Conflicts"])
 
         # --- Branches ---
         with tab_branch:
@@ -518,12 +567,22 @@ elif page == "🌿 Version Control":
 
             branch_names = list(branches.keys()) if isinstance(branches, dict) else branches
 
-            st.markdown("**Current branches:**")
-            for bname in branch_names:
-                if bname == ds.branch:
-                    st.markdown(f"- **{bname}** ← current")
-                else:
-                    st.markdown(f"- {bname}")
+            if st.button("Refresh", key="refresh_graph"):
+                st.rerun()
+
+            # Visual commit graph
+            try:
+                _graph_data = build_commit_graph_data(ds)
+                _graph_html = render_commit_graph_html(_graph_data, height=350)
+                components.html(_graph_html, height=370, scrolling=True)
+            except Exception:
+                # Fallback to markdown
+                st.markdown("**Current branches:**")
+                for bname in branch_names:
+                    if bname == ds.branch:
+                        st.markdown(f"- **{bname}** ← current")
+                    else:
+                        st.markdown(f"- {bname}")
 
             col_create, col_switch = st.columns(2)
 
@@ -598,7 +657,7 @@ elif page == "🌿 Version Control":
                                         for j, idx in enumerate(cdata.get("app_tar_idx", [])):
                                             rows.append({"Index": idx, "Source (theirs)": str(tar_vals[j]) if j < len(tar_vals) else "—"})
                                         if rows:
-                                            st.dataframe(pd.DataFrame(rows), use_container_width=True)
+                                            st.dataframe(pd.DataFrame(rows), width="stretch")
 
                                     # Update conflicts
                                     if cdata.get("update_values"):
@@ -624,7 +683,7 @@ elif page == "🌿 Version Control":
                                                         return ["background-color: #ffcccc"] * len(row)
                                                     return [""] * len(row)
 
-                                                st.dataframe(cdf.style.apply(_hl, axis=1), use_container_width=True)
+                                                st.dataframe(cdf.style.apply(_hl, axis=1), width="stretch")
 
                                     # Delete conflicts
                                     if cdata.get("del_ori_idx") or cdata.get("del_tar_idx"):
@@ -659,24 +718,6 @@ elif page == "🌿 Version Control":
                         st.success(res)
                         st.rerun()
 
-        # --- Commit Log ---
-        with tab_log:
-            st.subheader("Commit History")
-            if st.button("Refresh Log"):
-                st.rerun()
-
-            commits, err = branch_ops(ds, "log")
-            if err:
-                st.error(err)
-            else:
-                if commits:
-                    for c in commits:
-                        if isinstance(c, dict):
-                            st.markdown(f"- `{c.get('commit_id', '?')[:8]}` — {c.get('message', '(no message)')}")
-                        else:
-                            st.markdown(f"- `{str(c)[:8]}`")
-                else:
-                    st.info("No commits yet.")
 
 
 # ============================================================================
@@ -721,7 +762,7 @@ elif page == "⚡ Benchmarks":
                 if err:
                     st.error(err)
                 else:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
                     st.markdown("""
                     **Key Takeaways:**
                     - MULLER uses chunk-based storage with lazy loading for efficient I/O

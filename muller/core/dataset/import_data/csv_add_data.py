@@ -54,6 +54,22 @@ def add_data_from_csv(
             mode = path_columns[col]
             if mode == "read":
                 return muller.read(value)
+        # Auto-convert CSV string values to match the tensor's dtype
+        tensor_dtype = str(ds.tensors[col].dtype)
+        if "int" in tensor_dtype:
+            try:
+                return int(float(value))
+            except (ValueError, TypeError):
+                return value
+        elif "float" in tensor_dtype:
+            try:
+                return float(value)
+            except (ValueError, TypeError):
+                return value
+        elif "bool" in tensor_dtype:
+            if isinstance(value, str):
+                return value.lower() in ("true", "1", "yes")
+            return bool(value)
         return value
 
     if workers in (0, 1):

@@ -170,6 +170,275 @@ def branch_ops(ds: Any, action: str, branch_name: Optional[str] = None,
         return None, f"Branch operation failed: {e}"
 
 
+def build_commit_graph_data(ds: Any) -> Dict[str, Any]:
+    """Extract the full commit DAG from dataset version state for visualization.
+
+    Returns a JSON-serializable dict with commits, branches, and lane assignments.
+    """
+    from muller.constants import FIRST_COMMIT_ID
+    from collections import deque
+
+    commit_node_map = ds.version_state.get("commit_node_map", {})
+    branch_commit_map = ds.version_state.get("branch_commit_map", {})
+    branch_info = ds.version_state.get("branch_info", {})
+    current_branch = ds.version_state.get("branch", "main")
+    current_node = ds.version_state.get("commit_node")
+    current_commit_id = current_node.commit_id if current_node else ""
+
+    # Assign lanes: main=0, others sorted by create_time
+    all_branch_names = set(branch_commit_map.keys())
+    for node in commit_node_map.values():
+        all_branch_names.add(node.branch)
+
+    def _branch_sort_key(name):
+        if name == "main":
+            return (0, "")
+        info = branch_info.get(name, {})
+        ct = info.get("create_time")
+        if ct is None:
+            return (2, name)
+        if hasattr(ct, "timestamp"):
+            return (1, ct.timestamp())
+        return (1, str(ct))
+
+    sorted_branches = sorted(all_branch_names, key=_branch_sort_key)
+    branch_lanes = {name: i for i, name in enumerate(sorted_branches)}
+
+    # BFS topological order from FIRST_COMMIT_ID
+    root = commit_node_map.get(FIRST_COMMIT_ID)
+    if not root:
+        return {"commits": [], "branches": [], "lane_count": 0}
+
+    topo_order = []
+    visited = set()
+    queue = deque([root])
+    visited.add(root.commit_id)
+    while queue:
+        node = queue.popleft()
+        topo_order.append(node)
+        for child in node.children:
+            if child.commit_id not in visited:
+                visited.add(child.commit_id)
+                queue.append(child)
+
+    # Reverse so newest first
+    topo_order.reverse()
+
+    # Build commit records
+    commits = []
+    for row_idx, node in enumerate(topo_order):
+        lane = branch_lanes.get(node.branch, 0)
+        commits.append({
+            "id": node.commit_id,
+            "short_id": node.commit_id[:8],
+            "branch": node.branch,
+            "lane": lane,
+            "message": node.commit_message or "",
+            "time": str(node.commit_time)[:-7] if node.commit_time else "",
+            "author": node.commit_user_name or "",
+            "parent_id": node.parent.commit_id if node.parent else None,
+            "merge_parent_id": node.merge_parent if node.merge_parent else None,
+            "is_merge": node.is_merge_node,
+            "is_head": node.is_head_node,
+            "is_checkout": getattr(node, "checkout_node", False),
+            "is_current": (node.commit_id == current_commit_id),
+            "row": row_idx,
+        })
+
+    branches_list = []
+    for name in sorted_branches:
+        branches_list.append({
+            "name": name,
+            "lane": branch_lanes[name],
+            "is_current": name == current_branch,
+            "head_commit_id": branch_commit_map.get(name, ""),
+        })
+
+    return {
+        "commits": commits,
+        "branches": branches_list,
+        "lane_count": len(branch_lanes),
+    }
+
+
+def render_commit_graph_html(graph_data: Dict[str, Any], height: int = 500) -> str:
+    """Render the commit graph as self-contained horizontal HTML with SVG + vanilla JS."""
+    import json
+    json_data = json.dumps(graph_data)
+
+    return f'''<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+  body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: transparent; }}
+  .graph-container {{ position: relative; overflow: auto; max-height: {height}px; }}
+  .tooltip {{
+    position: absolute; display: none; background: #1e1e2e; color: #cdd6f4;
+    padding: 10px 14px; border-radius: 8px; font-size: 12px; line-height: 1.5;
+    pointer-events: none; z-index: 100; white-space: pre-line; max-width: 320px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid #45475a;
+  }}
+  .tooltip .hash {{ color: #89b4fa; font-family: monospace; }}
+  .tooltip .branch-name {{ color: #a6e3a1; font-weight: 600; }}
+  .tooltip .msg {{ color: #f5e0dc; }}
+  .tooltip .meta {{ color: #9399b2; font-size: 11px; }}
+</style>
+</head>
+<body>
+<div class="graph-container" id="container">
+  <svg id="graph" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="tooltip" id="tooltip"></div>
+</div>
+<script>
+(function() {{
+  const data = {json_data};
+  const COL_W = 60, LANE_H = 50, R = 8;
+  const LEFT_M = 80, TOP_M = 20;
+  const COLORS = ["#4CAF50","#2196F3","#FF9800","#9C27B0","#F44336","#00BCD4","#795548","#607D8B","#E91E63","#CDDC39"];
+  const N = data.commits ? data.commits.length : 0;
+
+  if (N === 0) {{
+    document.getElementById("container").innerHTML = '<p style="padding:16px;color:#888;">No commits yet.</p>';
+    return;
+  }}
+
+  const svg = document.getElementById("graph");
+  const tooltip = document.getElementById("tooltip");
+  const W = LEFT_M + N * COL_W + 30;
+  const H = TOP_M + data.lane_count * LANE_H + 30;
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
+
+  // Horizontal layout: x = time axis (oldest left, newest right), y = branch lane
+  const pos = {{}};
+  data.commits.forEach((c, i) => {{
+    pos[c.id] = {{ x: LEFT_M + (N - 1 - i) * COL_W, y: TOP_M + c.lane * LANE_H }};
+  }});
+
+  function color(lane) {{ return COLORS[lane % COLORS.length]; }}
+
+  function svgEl(tag, attrs) {{
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+  }}
+
+  // Branch labels on the left
+  data.branches.forEach(b => {{
+    const y = TOP_M + b.lane * LANE_H;
+    const label = svgEl("text", {{
+      x: LEFT_M - 12, y: y + 4, "text-anchor": "end", fill: color(b.lane),
+      "font-size": b.is_current ? "13px" : "11px",
+      "font-weight": b.is_current ? "700" : "500",
+      "font-family": "-apple-system, BlinkMacSystemFont, sans-serif"
+    }});
+    label.textContent = b.name + (b.is_current ? " *" : "");
+    svg.appendChild(label);
+  }});
+
+  // Horizontal lane guide lines
+  data.branches.forEach(b => {{
+    const y = TOP_M + b.lane * LANE_H;
+    svg.appendChild(svgEl("line", {{
+      x1: LEFT_M - 8, y1: y, x2: W - 10, y2: y,
+      stroke: color(b.lane), "stroke-width": 1, opacity: 0.12
+    }}));
+  }});
+
+  // Connection lines
+  data.commits.forEach(c => {{
+    if (c.parent_id && pos[c.parent_id]) {{
+      const from = pos[c.id];
+      const to = pos[c.parent_id];
+      if (from.y === to.y) {{
+        svg.appendChild(svgEl("line", {{
+          x1: from.x - R, y1: from.y, x2: to.x + R, y2: to.y,
+          stroke: color(c.lane), "stroke-width": 2, opacity: 0.7
+        }}));
+      }} else {{
+        const midX = (from.x + to.x) / 2;
+        svg.appendChild(svgEl("path", {{
+          d: `M ${{from.x - R}} ${{from.y}} C ${{midX}} ${{from.y}}, ${{midX}} ${{to.y}}, ${{to.x + R}} ${{to.y}}`,
+          stroke: color(c.lane), "stroke-width": 2, fill: "none", opacity: 0.7
+        }}));
+      }}
+    }}
+    if (c.merge_parent_id && pos[c.merge_parent_id]) {{
+      const from = pos[c.merge_parent_id];
+      const to = pos[c.id];
+      const midX = (from.x + to.x) / 2;
+      svg.appendChild(svgEl("path", {{
+        d: `M ${{from.x + R}} ${{from.y}} C ${{midX}} ${{from.y}}, ${{midX}} ${{to.y}}, ${{to.x - R}} ${{to.y}}`,
+        stroke: color(data.commits.find(x => x.id === c.merge_parent_id)?.lane || c.lane),
+        "stroke-width": 2, fill: "none", "stroke-dasharray": "6,3", opacity: 0.6
+      }}));
+    }}
+  }});
+
+  // Commit nodes
+  data.commits.forEach(c => {{
+    const cx = pos[c.id].x;
+    const cy = pos[c.id].y;
+    const col = color(c.lane);
+    const g = svgEl("g", {{}});
+
+    if (c.is_current) {{
+      const ring = svgEl("circle", {{
+        cx: cx, cy: cy, r: 14, fill: "none", stroke: col,
+        "stroke-width": 2, opacity: 0.4
+      }});
+      ring.innerHTML = `<animate attributeName="r" values="12;17;12" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;0.15;0.5" dur="2s" repeatCount="indefinite"/>`;
+      g.appendChild(ring);
+    }}
+
+    if (c.is_merge) {{
+      g.appendChild(svgEl("circle", {{
+        cx: cx, cy: cy, r: R, fill: col, stroke: "#fff", "stroke-width": 2
+      }}));
+    }} else if (c.is_checkout) {{
+      g.appendChild(svgEl("circle", {{
+        cx: cx, cy: cy, r: R, fill: "#fff", stroke: col, "stroke-width": 2.5
+      }}));
+    }} else {{
+      g.appendChild(svgEl("circle", {{
+        cx: cx, cy: cy, r: R, fill: col, stroke: col, "stroke-width": 1
+      }}));
+    }}
+
+    // Tooltip
+    g.style.cursor = "default";
+    g.addEventListener("mouseenter", (e) => {{
+      let html = `<span class="hash">${{c.short_id}}</span> <span class="branch-name">${{c.branch}}</span>`;
+      if (c.is_merge) html += ' <span style="color:#f9e2af">[merge]</span>';
+      if (c.is_checkout) html += ' <span style="color:#89dceb">[checkout]</span>';
+      if (c.is_current) html += ' <span style="color:#a6e3a1">[current]</span>';
+      html += `\\n`;
+      if (c.message) html += `<span class="msg">${{c.message}}</span>\\n`;
+      else if (c.is_head && !c.time) html += `<span class="msg">(Uncommitted working copy)</span>\\n`;
+      if (c.author || c.time) html += `<span class="meta">${{c.author}}${{c.time ? " — " + c.time : ""}}</span>`;
+      tooltip.innerHTML = html;
+      tooltip.style.display = "block";
+      const rect = document.getElementById("container").getBoundingClientRect();
+      tooltip.style.left = (e.clientX - rect.left + 15) + "px";
+      tooltip.style.top = (e.clientY - rect.top - 10) + "px";
+    }});
+    g.addEventListener("mousemove", (e) => {{
+      const rect = document.getElementById("container").getBoundingClientRect();
+      tooltip.style.left = (e.clientX - rect.left + 15) + "px";
+      tooltip.style.top = (e.clientY - rect.top - 10) + "px";
+    }});
+    g.addEventListener("mouseleave", () => {{ tooltip.style.display = "none"; }});
+
+    svg.appendChild(g);
+  }});
+}})();
+</script>
+</body>
+</html>'''
+
+
 def benchmark_parquet_vs_muller(ds: Any, query_conditions: List[Tuple[str, str, Any]],
                                 parquet_path: Optional[str] = None,
                                 num_runs: int = 3) -> Tuple[Optional[go.Figure], Optional[str]]:

@@ -247,7 +247,7 @@ def get_data_with_dict_from_csv(csv_path):
     """Read data from a CSV file and convert to list of dicts."""
     dicts = []
     try:
-        with open(csv_path, 'r', newline='') as f:
+        with open(csv_path, 'r', newline='', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 dicts.append(dict(row))
