@@ -74,3 +74,9 @@ TEST_DETECT_ERROR = "results/detect_error"
 TEST_PROCESS_INTERRUPT = "results/process_interrupt"
 
 GIST_DATA_DIR = "results/gist_dataset/gist.npy"
+
+TEST_CSV_DATASET_PATH = "results/csv_dataset_test"
+CSV_WITH_PATHS_FILE = "data/csv_with_paths.csv"
+CSV_TEXT_ONLY_FILE = "data/csv_text_only.csv"
+CIFAR10_TRAIN_DIR = "data/cifar10/shared/train"
+NUM_CIFAR10_SAMPLES = 10

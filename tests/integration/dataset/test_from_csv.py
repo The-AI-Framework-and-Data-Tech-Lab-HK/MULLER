@@ -14,19 +14,13 @@ import pytest
 
 import muller
 from tests.utils import official_path, official_creds
-
-CIFAR10_TRAIN_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "..", "data", "cifar10", "shared", "train"
+from tests.constants import (
+    TEST_CSV_DATASET_PATH,
+    CSV_WITH_PATHS_FILE,
+    CSV_TEXT_ONLY_FILE,
+    CIFAR10_TRAIN_DIR,
+    NUM_CIFAR10_SAMPLES,
 )
-
-TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
-
-CSV_WITH_PATHS = os.path.join(TEST_DATA_DIR, "csv_with_paths.csv")
-CSV_TEXT_ONLY = os.path.join(TEST_DATA_DIR, "csv_text_only.csv")
-
-CSV_DATASET_PATH = "results/csv_dataset_test"
-
-NUM_CIFAR10_SAMPLES = 10
 
 
 def _read_label(txt_path):
@@ -36,22 +30,22 @@ def _read_label(txt_path):
 
 def _ensure_csv_with_paths():
     """Create the CSV file with image paths and labels if it doesn't already exist."""
-    if os.path.exists(CSV_WITH_PATHS):
+    if os.path.exists(CSV_WITH_PATHS_FILE):
         return
-    with open(CSV_WITH_PATHS, "w", newline="") as f:
+    with open(CSV_WITH_PATHS_FILE, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["image_path", "label"])
         for i in range(NUM_CIFAR10_SAMPLES):
-            img_path = os.path.abspath(os.path.join(CIFAR10_TRAIN_DIR, f"{i}.jpeg"))
+            img_path = os.path.join(CIFAR10_TRAIN_DIR, f"{i}.jpeg")
             label = _read_label(os.path.join(CIFAR10_TRAIN_DIR, f"{i}.txt"))
             writer.writerow([img_path, str(label)])
 
 
 def _ensure_csv_text_only():
     """Create the CSV file with text-only data if it doesn't already exist."""
-    if os.path.exists(CSV_TEXT_ONLY):
+    if os.path.exists(CSV_TEXT_ONLY_FILE):
         return
-    with open(CSV_TEXT_ONLY, "w", newline="") as f:
+    with open(CSV_TEXT_ONLY_FILE, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["name", "score"])
         for i in range(NUM_CIFAR10_SAMPLES):
@@ -66,8 +60,8 @@ def test_from_csv_text_and_generic(storage):
         "score": ("text", "", "lz4"),
     }
     ds = muller.from_csv(
-        csv_path=CSV_TEXT_ONLY,
-        muller_path=official_path(storage, CSV_DATASET_PATH),
+        csv_path=CSV_TEXT_ONLY_FILE,
+        muller_path=official_path(storage, TEST_CSV_DATASET_PATH),
         schema=schema,
         workers=0,
     )
@@ -87,8 +81,8 @@ def test_from_csv_image_read(storage):
     }
     path_columns = {"image_path": "read"}
     ds = muller.from_csv(
-        csv_path=CSV_WITH_PATHS,
-        muller_path=official_path(storage, CSV_DATASET_PATH),
+        csv_path=CSV_WITH_PATHS_FILE,
+        muller_path=official_path(storage, TEST_CSV_DATASET_PATH),
         schema=schema,
         path_columns=path_columns,
         workers=0,
@@ -109,15 +103,15 @@ def test_from_csv_path_as_text(storage):
     }
     path_columns = {"image_path": "text"}
     ds = muller.from_csv(
-        csv_path=CSV_WITH_PATHS,
-        muller_path=official_path(storage, CSV_DATASET_PATH),
+        csv_path=CSV_WITH_PATHS_FILE,
+        muller_path=official_path(storage, TEST_CSV_DATASET_PATH),
         schema=schema,
         path_columns=path_columns,
         workers=0,
     )
     assert len(ds) == NUM_CIFAR10_SAMPLES
-    # The stored value should be the path string
-    expected_path = os.path.abspath(os.path.join(CIFAR10_TRAIN_DIR, "0.jpeg"))
+    # The stored value should be the relative path string
+    expected_path = os.path.join(CIFAR10_TRAIN_DIR, "0.jpeg")
     assert ds["image_path"][0].numpy() == expected_path
 
 
@@ -130,8 +124,8 @@ def test_from_csv_mixed_columns(storage):
     }
     path_columns = {"image_path": "read"}
     ds = muller.from_csv(
-        csv_path=CSV_WITH_PATHS,
-        muller_path=official_path(storage, CSV_DATASET_PATH),
+        csv_path=CSV_WITH_PATHS_FILE,
+        muller_path=official_path(storage, TEST_CSV_DATASET_PATH),
         schema=schema,
         path_columns=path_columns,
         workers=0,
@@ -151,7 +145,7 @@ def test_add_data_from_csv_to_existing_dataset(storage):
 
     # Create dataset with tensors
     ds = muller.dataset(
-        path=official_path(storage, CSV_DATASET_PATH),
+        path=official_path(storage, TEST_CSV_DATASET_PATH),
         creds=official_creds(storage),
         overwrite=True,
     )
@@ -162,7 +156,7 @@ def test_add_data_from_csv_to_existing_dataset(storage):
     # Append data from CSV
     path_columns = {"image_path": "read"}
     ds.add_data_from_csv(
-        csv_path=CSV_WITH_PATHS,
+        csv_path=CSV_WITH_PATHS_FILE,
         path_columns=path_columns,
         workers=0,
     )
@@ -180,7 +174,7 @@ def test_add_data_from_csv_append_twice(storage):
     _ensure_csv_with_paths()
 
     ds = muller.dataset(
-        path=official_path(storage, CSV_DATASET_PATH),
+        path=official_path(storage, TEST_CSV_DATASET_PATH),
         creds=official_creds(storage),
         overwrite=True,
     )
@@ -188,10 +182,10 @@ def test_add_data_from_csv_append_twice(storage):
     ds.create_tensor("label", htype="text", sample_compression="lz4")
 
     path_columns = {"image_path": "read"}
-    ds.add_data_from_csv(csv_path=CSV_WITH_PATHS, path_columns=path_columns, workers=0)
+    ds.add_data_from_csv(csv_path=CSV_WITH_PATHS_FILE, path_columns=path_columns, workers=0)
     assert len(ds) == NUM_CIFAR10_SAMPLES
 
-    ds.add_data_from_csv(csv_path=CSV_WITH_PATHS, path_columns=path_columns, workers=0)
+    ds.add_data_from_csv(csv_path=CSV_WITH_PATHS_FILE, path_columns=path_columns, workers=0)
     assert len(ds) == NUM_CIFAR10_SAMPLES * 2
 
 
@@ -199,8 +193,8 @@ def test_from_csv_missing_file(storage):
     """Should raise ValueError for non-existent CSV file."""
     with pytest.raises(ValueError):
         muller.from_csv(
-            csv_path="/nonexistent/path/to/file.csv",
-            muller_path=official_path(storage, CSV_DATASET_PATH),
+            csv_path="nonexistent/path/to/file.csv",
+            muller_path=official_path(storage, TEST_CSV_DATASET_PATH),
         )
 
 
@@ -209,14 +203,14 @@ def test_from_csv_empty_path(storage):
     with pytest.raises(ValueError, match="csv_path and muller_path cannot be empty"):
         muller.from_csv(
             csv_path="",
-            muller_path=official_path(storage, CSV_DATASET_PATH),
+            muller_path=official_path(storage, TEST_CSV_DATASET_PATH),
         )
 
 
 def test_add_data_from_csv_empty_path(storage):
     """Should raise ValueError when csv_path is empty on instance method."""
     ds = muller.dataset(
-        path=official_path(storage, CSV_DATASET_PATH),
+        path=official_path(storage, TEST_CSV_DATASET_PATH),
         creds=official_creds(storage),
         overwrite=True,
     )
@@ -230,7 +224,7 @@ def test_add_data_from_csv_mismatched_columns(storage):
     _ensure_csv_text_only()
 
     ds = muller.dataset(
-        path=official_path(storage, CSV_DATASET_PATH),
+        path=official_path(storage, TEST_CSV_DATASET_PATH),
         creds=official_creds(storage),
         overwrite=True,
     )
@@ -238,4 +232,4 @@ def test_add_data_from_csv_mismatched_columns(storage):
     ds.create_tensor("col_b", htype="text")
 
     with pytest.raises(ValueError, match="do not match"):
-        ds.add_data_from_csv(csv_path=CSV_TEXT_ONLY, workers=0)
+        ds.add_data_from_csv(csv_path=CSV_TEXT_ONLY_FILE, workers=0)
