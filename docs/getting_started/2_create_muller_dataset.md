@@ -273,3 +273,83 @@ For detailed API specifications and file format examples, please refer to
 ```
 For detailed API specifications and file format examples, please refer to
 [`muller.create_dataset_from_dataframes()`](../api/dataset-creation/#create_dataset_from_dataframes).
+
+### Option 3. Creating a MULLER Dataset from a CSV File
+
+Use `muller.from_csv()` to create a dataset directly from a CSV file. This is convenient for tabular data where each column becomes a tensor.
+
+The CSV file must have a **header row**. Column names in the header are used as tensor names.
+
+#### Basic usage (text/numeric data)
+
+```python
+>>> schema = {
+        'name': ('text', '', 'lz4'),
+        'score': ('text', '', 'lz4'),
+    }
+>>> ds = muller.from_csv(
+        csv_path="data.csv",
+        muller_path="my_muller_dataset/",
+        schema=schema,
+    )
+>>> ds.summary()
+tensor   htype   shape    dtype   compression
+-------  ------- -------  ------- -----------
+name     text    (10, 1)  str     lz4
+score    text    (10, 1)  str     lz4
+```
+
+#### Handling file path columns with `path_columns`
+
+When a CSV column contains file paths (e.g., paths to images or videos), use the `path_columns` parameter to control how they are handled:
+
+| Mode     | Behavior                                                                  |
+|----------|---------------------------------------------------------------------------|
+| `"read"` | Calls `muller.read(path)` to load the file as a Sample (image/video/audio) |
+| `"text"` | Stores the file path as a plain text string                               |
+
+**Example CSV** (`images.csv`):
+```
+image_path,label
+/data/img_001.jpg,cat
+/data/img_002.jpg,dog
+```
+
+**Loading images from file paths:**
+```python
+>>> schema = {
+        'image_path': ('image', 'uint8', 'jpeg'),
+        'label': ('text', '', 'lz4'),
+    }
+>>> ds = muller.from_csv(
+        csv_path="images.csv",
+        muller_path="my_image_dataset/",
+        schema=schema,
+        path_columns={"image_path": "read"},  # load images via muller.read()
+    )
+>>> ds['image_path'][0].numpy().shape
+(224, 224, 3)
+```
+
+#### Appending CSV data to an existing dataset
+
+If a dataset already exists with tensors created, use `ds.add_data_from_csv()` to append data from a CSV file:
+
+```python
+>>> ds = muller.dataset(path="my_muller_dataset/")
+>>> ds.create_tensor("image_path", htype="image", sample_compression="jpeg")
+>>> ds.create_tensor("label", htype="text", sample_compression="lz4")
+>>> ds.add_data_from_csv(
+        csv_path="images.csv",
+        path_columns={"image_path": "read"},
+    )
+>>> len(ds)
+2
+>>> # Append more data from another CSV
+>>> ds.add_data_from_csv(csv_path="images_batch2.csv", path_columns={"image_path": "read"})
+>>> len(ds)
+4
+```
+
+For detailed API specifications, please refer to
+[`muller.from_csv()`](../api/dataset-creation/#mullerfrom_csv) and [`ds.add_data_from_csv()`](../api/dataset-creation/#dsadd_data_from_csv).

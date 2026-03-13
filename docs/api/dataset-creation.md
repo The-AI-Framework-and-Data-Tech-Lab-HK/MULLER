@@ -12,6 +12,8 @@ This page documents functions for creating, loading, and managing datasets.
 - [muller.get_col_info()](#mullerget_col_info)
 - [muller.from_file()](#mullerfrom_file)
 - [muller.from_dataframes()](#mullerfrom_dataframes)
+- [muller.from_csv()](#mullerfrom_csv)
+- [ds.add_data_from_csv()](#dsadd_data_from_csv)
 
 ---
 
@@ -439,3 +441,154 @@ ds = muller.from_dataframes(
 - Each item in the `dataframes` list should be a dictionary representing one record.
 - Schema format: `{column_name: (htype, dtype, sample_compression)}` or nested dictionaries.
 - If schema is not provided, it will be inferred from the first record.
+
+---
+
+### muller.from_csv()
+
+#### Overview
+
+Create a new dataset from a CSV file. Each CSV column becomes a tensor in the dataset. Columns containing file paths (e.g., image or video files) can be loaded automatically via `muller.read()` using the `path_columns` parameter.
+
+#### Parameters
+
+- **csv_path** (`str`): Path to the source CSV file.
+- **muller_path** (`str`): Path where the MULLER dataset will be created.
+- **schema** (`dict`, optional): Schema definition for the dataset. Format: `{column_name: (htype, dtype, sample_compression)}`. If not provided, all columns are created as `generic` tensors. Defaults to `None`.
+- **path_columns** (`dict`, optional): Dict mapping column names to their handling mode for file path values. Defaults to `None`.
+  - `"read"`: Calls `muller.read(path)` to load the file as a Sample (for image/video/audio tensors).
+  - `"text"`: Stores the file path as a plain text string.
+- **workers** (`int`, optional): Number of workers for parallel processing. Defaults to `0`.
+- **scheduler** (`str`, optional): Scheduler type for compute operations. Defaults to `"processed"`.
+- **disable_rechunk** (`bool`, optional): Whether to disable rechunking. Defaults to `True`.
+- **progressbar** (`bool`, optional): Whether to show progress bar. Defaults to `True`.
+- **ignore_errors** (`bool`, optional): Whether to ignore errors during processing. Defaults to `True`.
+- **split_tensor_meta** (`bool`, optional): Each tensor has a tensor_meta.json if `True`. Defaults to `True`.
+
+#### Returns
+
+- **Dataset**: The created dataset.
+
+#### Raises
+
+- **ValueError**: If `csv_path` or `muller_path` is empty, or if the CSV file does not exist or is empty.
+
+#### Examples
+
+```python
+import muller
+
+# Create dataset from a CSV with text-only columns
+ds = muller.from_csv(
+    csv_path="./data/records.csv",
+    muller_path="./datasets/text_dataset",
+    schema={
+        "name": ("text", "", "lz4"),
+        "score": ("text", "", "lz4"),
+    },
+)
+
+# Create dataset from a CSV where a column contains image file paths
+ds = muller.from_csv(
+    csv_path="./data/images.csv",
+    muller_path="./datasets/image_dataset",
+    schema={
+        "image_path": ("image", "uint8", "jpeg"),
+        "label": ("text", "", "lz4"),
+    },
+    path_columns={"image_path": "read"},  # load images via muller.read()
+)
+
+# Store file paths as text instead of loading the files
+ds = muller.from_csv(
+    csv_path="./data/images.csv",
+    muller_path="./datasets/path_dataset",
+    schema={
+        "image_path": ("text", "", "lz4"),
+        "label": ("text", "", "lz4"),
+    },
+    path_columns={"image_path": "text"},  # store path string as-is
+)
+
+# Use multiple workers for faster processing
+ds = muller.from_csv(
+    csv_path="./data/large_data.csv",
+    muller_path="./datasets/large_dataset",
+    schema={
+        "image_path": ("image", "uint8", "jpeg"),
+        "label": ("class_label", "uint32", None),
+    },
+    path_columns={"image_path": "read"},
+    workers=4,
+    progressbar=True,
+)
+```
+
+#### Notes
+
+- The CSV file must have a header row. Column names in the header are used as tensor names.
+- All CSV values are read as strings. Use `schema` to specify the correct `htype` and `dtype` for each column.
+- Columns not listed in `path_columns` are appended directly as their raw CSV string values.
+- The `path_columns` parameter is only needed when a CSV column contains file paths that should be loaded as binary data (images, videos, etc.) or explicitly stored as path strings.
+
+---
+
+### ds.add_data_from_csv()
+
+#### Overview
+
+Append data from a CSV file into an existing dataset. Tensors must already be created before calling this method. This is useful for incrementally adding data from CSV files to a dataset that was created manually or from another source.
+
+#### Parameters
+
+- **csv_path** (`str`): Path to the source CSV file.
+- **schema** (`dict`, optional): Schema definition. If not provided, CSV column names are used directly. Defaults to `None`.
+- **path_columns** (`dict`, optional): Dict mapping column names to their handling mode for file path values. Defaults to `None`.
+  - `"read"`: Calls `muller.read(path)` to load the file as a Sample.
+  - `"text"`: Stores the file path as a plain text string.
+- **workers** (`int`, optional): Number of workers for parallel processing. Defaults to `0`.
+- **scheduler** (`str`, optional): Scheduler type for compute operations. Defaults to `"processed"`.
+- **disable_rechunk** (`bool`, optional): Whether to disable rechunking. Defaults to `True`.
+- **progressbar** (`bool`, optional): Whether to show progress bar. Defaults to `True`.
+- **ignore_errors** (`bool`, optional): Whether to ignore errors during processing. Defaults to `True`.
+
+#### Returns
+
+- **Dataset**: The updated dataset.
+
+#### Raises
+
+- **ValueError**: If `csv_path` is empty, the CSV file cannot be read, or CSV column names do not match existing tensor names.
+
+#### Examples
+
+```python
+import muller
+
+# Create a dataset and define tensors manually
+ds = muller.dataset(path="./datasets/my_dataset", overwrite=True)
+ds.create_tensor("image_path", htype="image", sample_compression="jpeg")
+ds.create_tensor("label", htype="text", sample_compression="lz4")
+
+# Append data from a CSV file
+ds.add_data_from_csv(
+    csv_path="./data/batch1.csv",
+    path_columns={"image_path": "read"},
+    workers=0,
+)
+print(len(ds))  # number of samples from batch1.csv
+
+# Append more data from another CSV file
+ds.add_data_from_csv(
+    csv_path="./data/batch2.csv",
+    path_columns={"image_path": "read"},
+    workers=0,
+)
+print(len(ds))  # accumulated samples from both CSV files
+```
+
+#### Notes
+
+- The CSV column names must match the existing tensor names in the dataset. A `ValueError` is raised if they do not match.
+- This method can be called multiple times to incrementally append data from different CSV files.
+- The `path_columns` parameter works identically to `muller.from_csv()`.
