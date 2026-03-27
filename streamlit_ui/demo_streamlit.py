@@ -28,7 +28,13 @@ if _project_root not in sys.path:
 
 from utils import (
     create_dataset, create_tensors, add_samples, update_sample, delete_sample,
-    run_query, dataset_to_dataframe, branch_ops, benchmark_parquet_vs_muller,
+    run_query, dataset_to_dataframe, dataframe_for_streamlit_display,
+    list_image_tensor_names, decode_muller_image_sample, pil_resize_to_height,
+    pil_square_thumbnail, pil_fit_inside,
+    pil_preview_available,
+    is_coco2017_muller_schema, load_coco_category_id_to_name,
+    pil_overlay_coco_bboxes, DEFAULT_COCO_INSTANCES_JSON,
+    branch_ops, benchmark_parquet_vs_muller,
     load_dataset, commit_dataset, get_dataset_info,
     build_commit_graph_data, render_commit_graph_html,
 )
@@ -59,6 +65,10 @@ for k, v in _defaults.items():
         st.session_state[k] = v
 
 
+def _dm_on_select_coco_thumb(gi: int) -> None:
+    st.session_state["dm_coco_selected_gi"] = int(gi)
+
+
 # ---------------------------------------------------------------------------
 # Helper: reload dataset from path (survives Streamlit reruns)
 # ---------------------------------------------------------------------------
@@ -71,6 +81,25 @@ def _ensure_dataset():
 
 
 _ensure_dataset()
+
+# Full-resolution image lightbox (native PIL size; avoids blurry browser zoom on thumbnails).
+_DM_PREVIEW_ROWS = 3
+
+
+def _dm_fullres_dialog_body() -> None:
+    img = st.session_state.get("dm_fullres_pil")
+    cap = st.session_state.get("dm_fullres_caption", "")
+    if img is None:
+        return
+    st.image(img, use_container_width=False)
+    st.caption(cap)
+
+
+_dm_fullres_dialog = (
+    st.dialog("Full resolution", width="large")(_dm_fullres_dialog_body)
+    if hasattr(st, "dialog")
+    else None
+)
 
 
 # ---------------------------------------------------------------------------
@@ -110,8 +139,13 @@ if page == "📊 Dataset Management":
         # ---- Create New Dataset (left column) ----
         with col_left:
             st.subheader("Create New Dataset")
-            ds_name = st.text_input("Dataset Name", value="demo_dataset", key="create_name")
-            ds_root = st.text_input("Root Directory", value=str(Path.home() / "muller_datasets"), key="create_root")
+            _default_create_path = str(Path.home() / "muller_datasets" / "demo_dataset")
+            ds_path_input = st.text_input(
+                "Dataset Path",
+                value=_default_create_path,
+                key="create_dataset_path",
+                help="Full path where the dataset folder will be created (parent directory must exist or be creatable).",
+            )
             overwrite = st.checkbox("Overwrite if exists", value=False)
 
             # --- Dynamic schema definition ---
@@ -184,37 +218,50 @@ if page == "📊 Dataset Management":
                 elif len(col_names) != len(set(col_names)):
                     st.error("Column names must be unique.")
                 else:
-                    with st.spinner("Creating dataset..."):
-                        ds, error = create_dataset(ds_name, ds_root, overwrite=overwrite)
-                        if error:
-                            st.error(error)
-                        else:
-                            schema = {}
-                            for name, htype, dtype, comp in schema_inputs:
-                                if not name:
-                                    continue
-                                cfg = {"htype": htype}
-                                if dtype != "(auto)":
-                                    cfg["dtype"] = dtype
-                                if comp != "(none)":
-                                    cfg["sample_compression"] = comp
-                                schema[name] = cfg
-
-                            err = create_tensors(ds, schema)
-                            if err:
-                                st.error(err)
+                    raw = (ds_path_input or "").strip()
+                    p = Path(raw).expanduser()
+                    if not raw or not p.name:
+                        st.error("Please enter a valid dataset path (including a folder name).")
+                    else:
+                        ds_root = str(p.parent)
+                        ds_name = p.name
+                        with st.spinner("Creating dataset..."):
+                            ds, error = create_dataset(ds_name, ds_root, overwrite=overwrite)
+                            if error:
+                                st.error(error)
                             else:
-                                ds.commit(message="Initial schema creation")
-                                st.session_state.dataset = ds
-                                st.session_state.dataset_path = str(Path(ds_root) / ds_name)
-                                st.session_state.current_branch = "main"
-                                st.success(f"Dataset created with columns: {list(schema.keys())}")
-                                st.rerun()
+                                schema = {}
+                                for name, htype, dtype, comp in schema_inputs:
+                                    if not name:
+                                        continue
+                                    cfg = {"htype": htype}
+                                    if dtype != "(auto)":
+                                        cfg["dtype"] = dtype
+                                    if comp != "(none)":
+                                        cfg["sample_compression"] = comp
+                                    schema[name] = cfg
+
+                                err = create_tensors(ds, schema)
+                                if err:
+                                    st.error(err)
+                                else:
+                                    ds.commit(message="Initial schema creation")
+                                    st.session_state.dataset = ds
+                                    st.session_state.dataset_path = str(Path(ds_root) / ds_name)
+                                    st.session_state.current_branch = "main"
+                                    st.success(f"Dataset created with columns: {list(schema.keys())}")
+                                    st.rerun()
 
         # ---- Load Existing Dataset (right column) ----
         with col_right:
             st.subheader("Load Existing Dataset")
-            load_path = st.text_input("Dataset Path", value="", key="load_path")
+            _default_load_path = "/Users/sherrylin/Documents/research_data/muller_datasetcoco"
+            load_path = st.text_input(
+                "Dataset Path",
+                value=_default_load_path,
+                key="load_path",
+                help="Full path to an existing MULLER dataset directory.",
+            )
             if st.button("Load Dataset"):
                 if not load_path:
                     st.error("Please enter a path")
@@ -255,12 +302,477 @@ if page == "📊 Dataset Management":
             if n == 0:
                 st.info("Dataset is empty. Add samples below.")
             else:
-                preview_limit = min(n, 200)
-                df, err = dataset_to_dataframe(ds, end=preview_limit)
-                if err:
-                    st.error(err)
-                else:
-                    st.dataframe(df, width="stretch")
+                _dp = st.session_state.get("dataset_path")
+                if st.session_state.get("_dm_view_dataset_path") != _dp:
+                    st.session_state["_dm_view_dataset_path"] = _dp
+                    st.session_state["dm_view_page_idx"] = 1
+
+                key_page = "dm_view_page_idx"
+                key_ps = "dm_view_page_size"
+                if key_page not in st.session_state:
+                    st.session_state[key_page] = 1
+                pg1, pg2, pg3 = st.columns([1, 1, 3])
+                with pg1:
+                    page_size = st.selectbox(
+                        "Rows per page",
+                        options=[10, 25, 50, 100],
+                        index=0,
+                        key=key_ps,
+                    )
+                total_pages = max(1, (n + page_size - 1) // page_size)
+                if st.session_state[key_page] > total_pages:
+                    st.session_state[key_page] = total_pages
+                with pg2:
+                    page = st.number_input(
+                        "Page",
+                        min_value=1,
+                        max_value=total_pages,
+                        step=1,
+                        key=key_page,
+                        help="Go to a page (default shows the first page only).",
+                    )
+                start_idx = (int(page) - 1) * page_size
+                end_idx = min(start_idx + page_size, n)
+                with pg3:
+                    st.caption(
+                        f"Showing samples **{start_idx + 1}–{end_idx}** of **{n}** · "
+                        f"page **{int(page)}** / **{total_pages}**"
+                    )
+
+                show_details = st.checkbox(
+                    "Show details",
+                    value=False,
+                    key="dm_show_table_details",
+                    help="When enabled, loads and shows the full tabular view for this page. "
+                    "Turn off for a lighter UI (e.g. image preview only).",
+                )
+
+                # Image strip preview (same row order as paginated rows; global # = row index in dataset)
+                img_tensors = list_image_tensor_names(ds)
+                _coco_layout = is_coco2017_muller_schema(ds)
+                if img_tensors:
+                    if not pil_preview_available():
+                        st.info("Install **Pillow** (`pip install pillow`) to enable image preview.")
+                    else:
+                        st.markdown("##### Image preview")
+                        if len(img_tensors) == 1:
+                            preview_col = img_tensors[0]
+                        else:
+                            preview_col = st.selectbox(
+                                "Image column",
+                                img_tensors,
+                                key="dm_img_preview_tensor",
+                            )
+                        _coco_overlay = False
+                        _coco_cat_map = None
+                        if _coco_layout:
+                            st.caption(
+                                "COCO2017-style layout detected (8 columns: area, bbox, category_id, id, "
+                                "image_id, images, iscrowd, segmentation)."
+                            )
+                            _ann_path = st.text_input(
+                                "COCO instances JSON (for category names)",
+                                value=DEFAULT_COCO_INSTANCES_JSON,
+                                key="dm_coco_ann_json",
+                                help="Same file as pycocotools.COCO(...), e.g. instances_val2017.json.",
+                            )
+                            _coco_overlay = st.checkbox(
+                                "Overlay bounding boxes & labels",
+                                value=True,
+                                key="dm_coco_overlay",
+                            )
+                            if _coco_overlay:
+                                _ap = (_ann_path or "").strip()
+                                # Only load when path is non-empty; never overwrite a good map with
+                                # a failed load from a transient empty path (e.g. widget timing on rerun).
+                                if _ap and (
+                                    st.session_state.get("_dm_coco_cat_map_path") != _ap
+                                    or st.session_state.get("_dm_coco_cat_map") is None
+                                ):
+                                    _m, _cerr = load_coco_category_id_to_name(_ap)
+                                    st.session_state["_dm_coco_cat_map_path"] = _ap
+                                    st.session_state["_dm_coco_cat_map"] = _m
+                                    st.session_state["_dm_coco_cat_err"] = _cerr
+                                _coco_cat_map = st.session_state.get("_dm_coco_cat_map")
+                                _cerr = st.session_state.get("_dm_coco_cat_err")
+                                if _cerr and _ap:
+                                    st.warning(_cerr)
+                        n_page = end_idx - start_idx
+                        try:
+                            _vimg = ds[start_idx:end_idx]
+                            raw_images = list(_vimg[preview_col].numpy(aslist=True))
+                        except Exception as _e:
+                            st.warning(f"Could not load images: {_e}")
+                            raw_images = []
+                        if raw_images:
+                            if _coco_layout:
+                                _coco_view_ctx = (
+                                    start_idx,
+                                    end_idx,
+                                    preview_col,
+                                    int(page),
+                                    page_size,
+                                )
+                                if (
+                                    st.session_state.get("_dm_coco_view_ctx")
+                                    != _coco_view_ctx
+                                ):
+                                    st.session_state["_dm_coco_view_ctx"] = _coco_view_ctx
+                                    st.session_state["dm_coco_thumb_subpage"] = 0
+                                    st.session_state["dm_coco_selected_gi"] = start_idx
+
+                                sel_gi = int(
+                                    st.session_state.get(
+                                        "dm_coco_selected_gi", start_idx
+                                    )
+                                )
+                                if sel_gi < start_idx or sel_gi >= end_idx:
+                                    sel_gi = start_idx
+                                    st.session_state["dm_coco_selected_gi"] = sel_gi
+
+                                st.caption(
+                                    "COCO layout: **thumbnail grid** (left) and **full preview** "
+                                    "(right). Tap **#index** under a thumbnail to update the right pane "
+                                    "(same-page rerun; no URL navigation)."
+                                )
+                                left_pane, right_pane = st.columns([0.4, 0.6], gap="large")
+
+                                with left_pane:
+                                    st.markdown("**Thumbnails**")
+                                    tc = st.slider(
+                                        "Columns",
+                                        min_value=2,
+                                        max_value=12,
+                                        value=5,
+                                        key="dm_coco_thumb_cols",
+                                        help="More columns → smaller tiles in the left column.",
+                                    )
+                                    tr = st.slider(
+                                        "Rows",
+                                        min_value=2,
+                                        max_value=10,
+                                        value=5,
+                                        key="dm_coco_thumb_rows",
+                                        help="More rows → smaller tiles.",
+                                    )
+                                    grid_n = int(tc) * int(tr)
+                                    n_thumb_pages = max(
+                                        1, (n_page + grid_n - 1) // grid_n
+                                    )
+                                    tsp = int(
+                                        st.number_input(
+                                            "Thumbnail page",
+                                            min_value=1,
+                                            max_value=n_thumb_pages,
+                                            step=1,
+                                            key="dm_coco_thumb_page",
+                                            help="Which batch of thumbnails to show for this dataset page.",
+                                        )
+                                    )
+                                    subpage = max(0, min(tsp - 1, n_thumb_pages - 1))
+                                    offset = subpage * grid_n
+                                    local_slots = list(
+                                        range(offset, min(offset + grid_n, n_page))
+                                    )
+                                    thumb_edge = max(
+                                        36,
+                                        min(
+                                            128,
+                                            min(
+                                                320 // max(int(tc), 1),
+                                                360 // max(int(tr), 1),
+                                            ),
+                                        ),
+                                    )
+                                    for rr in range(int(tr)):
+                                        row_slots = local_slots[
+                                            rr * int(tc) : (rr + 1) * int(tc)
+                                        ]
+                                        if not row_slots:
+                                            break
+                                        grid_cols = st.columns(int(tc))
+                                        for ci in range(int(tc)):
+                                            with grid_cols[ci]:
+                                                if ci >= len(row_slots):
+                                                    st.empty()
+                                                    continue
+                                                j = row_slots[ci]
+                                                gi = start_idx + j
+                                                _pil_dec = decode_muller_image_sample(
+                                                    raw_images[j]
+                                                )
+                                                _sq = (
+                                                    pil_square_thumbnail(
+                                                        _pil_dec, int(thumb_edge)
+                                                    )
+                                                    if _pil_dec
+                                                    else None
+                                                )
+                                                if _sq is not None:
+                                                    st.image(_sq)
+                                                    st.button(
+                                                        f"#{gi}",
+                                                        key=f"dm_coco_pick_{gi}",
+                                                        type=(
+                                                            "primary"
+                                                            if gi == sel_gi
+                                                            else "secondary"
+                                                        ),
+                                                        use_container_width=True,
+                                                        on_click=_dm_on_select_coco_thumb,
+                                                        args=(gi,),
+                                                        help="Show this sample on the right",
+                                                    )
+                                                else:
+                                                    st.caption("—")
+
+                                with right_pane:
+                                    st.markdown("**Full image**")
+                                    pv_w = st.slider(
+                                        "Preview pane width (px)",
+                                        min_value=480,
+                                        max_value=1200,
+                                        value=920,
+                                        step=20,
+                                        key="dm_coco_pv_w",
+                                    )
+                                    pv_h = st.slider(
+                                        "Preview pane height (px)",
+                                        min_value=400,
+                                        max_value=1000,
+                                        value=720,
+                                        step=20,
+                                        key="dm_coco_pv_h",
+                                    )
+                                    j_sel = sel_gi - start_idx
+                                    _pil_full = decode_muller_image_sample(
+                                        raw_images[j_sel]
+                                    )
+                                    if (
+                                        _pil_full is not None
+                                        and _coco_overlay
+                                    ):
+                                        try:
+                                            _bb = ds.bbox[sel_gi].numpy(aslist=True)
+                                            _cid = ds.category_id[sel_gi].numpy(
+                                                aslist=True
+                                            )
+                                            _pil_full = pil_overlay_coco_bboxes(
+                                                _pil_full,
+                                                _bb,
+                                                _cid,
+                                                _coco_cat_map,
+                                            )
+                                        except Exception:
+                                            pass
+                                    _fitted = (
+                                        pil_fit_inside(
+                                            _pil_full,
+                                            int(pv_w),
+                                            int(pv_h),
+                                        )
+                                        if _pil_full
+                                        else None
+                                    )
+                                    if _fitted is not None:
+                                        st.image(_fitted, use_container_width=False)
+                                    else:
+                                        st.markdown(
+                                            f'<div style="width:100%;max-width:{int(pv_w)}px;'
+                                            f"height:{int(pv_h)}px;background:#ececf0;"
+                                            'border-radius:8px;display:flex;align-items:center;'
+                                            'justify-content:center;color:#666;">'
+                                            "Decode failed for this sample.</div>",
+                                            unsafe_allow_html=True,
+                                        )
+                                    st.caption(
+                                        f"Sample **#{sel_gi}** · overlay "
+                                        f"{'on' if _coco_overlay else 'off'} · "
+                                        "pane shows native resolution scaled down to fit (no upscaling)."
+                                    )
+                                    _cap = (
+                                        f"Sample index **{sel_gi}** (native resolution)"
+                                    )
+                                    _zk = f"dm_fullres_coco_{sel_gi}"
+                                    if _pil_full is not None:
+                                        if _dm_fullres_dialog is not None:
+                                            if st.button(
+                                                "Open full resolution",
+                                                key=_zk,
+                                                help="Dialog at native image size",
+                                            ):
+                                                st.session_state["dm_fullres_pil"] = (
+                                                    _pil_full.copy()
+                                                )
+                                                st.session_state[
+                                                    "dm_fullres_caption"
+                                                ] = _cap
+                                                _dm_fullres_dialog()
+                                        elif hasattr(st, "popover"):
+                                            with st.popover("Full resolution"):
+                                                st.image(
+                                                    _pil_full,
+                                                    use_container_width=False,
+                                                )
+                                                st.caption(_cap)
+                                        else:
+                                            with st.expander("Full resolution"):
+                                                st.image(
+                                                    _pil_full,
+                                                    use_container_width=False,
+                                                )
+                                                st.caption(_cap)
+                            else:
+                                _strip_ctx = (
+                                    start_idx,
+                                    end_idx,
+                                    preview_col,
+                                    int(page),
+                                    page_size,
+                                )
+                                if (
+                                    st.session_state.get("_dm_img_strip_ctx")
+                                    != _strip_ctx
+                                ):
+                                    st.session_state["_dm_img_strip_ctx"] = _strip_ctx
+                                    st.session_state["dm_img_strip_pan"] = 0
+                                    _max_cols = min(12, max(1, n_page))
+                                    st.session_state["dm_img_cols_per_row"] = min(
+                                        4, _max_cols
+                                    )
+                                max_cols = min(12, max(1, n_page))
+                                c_a, c_b, c_c = st.columns([1.1, 1.1, 1.0])
+                                with c_a:
+                                    if max_cols > 1:
+                                        st.slider(
+                                            "Thumbnails per row",
+                                            min_value=1,
+                                            max_value=max_cols,
+                                            key="dm_img_cols_per_row",
+                                            help=f"Grid uses {_DM_PREVIEW_ROWS} rows (up to "
+                                            f"{max_cols * _DM_PREVIEW_ROWS} thumbnails visible).",
+                                        )
+                                    else:
+                                        st.caption(
+                                            "Single sample on this page — one thumbnail."
+                                        )
+                                cols_per_row = (
+                                    1
+                                    if max_cols <= 1
+                                    else int(
+                                        st.session_state.get(
+                                            "dm_img_cols_per_row",
+                                            min(4, max_cols),
+                                        )
+                                    )
+                                )
+                                cols_per_row = max(1, min(cols_per_row, max_cols))
+                                vis = min(cols_per_row * _DM_PREVIEW_ROWS, n_page)
+                                pan_max = max(0, n_page - vis)
+                                if pan_max > 0:
+                                    if (
+                                        st.session_state.get("dm_img_strip_pan", 0)
+                                        > pan_max
+                                    ):
+                                        st.session_state["dm_img_strip_pan"] = pan_max
+                                    with c_b:
+                                        st.slider(
+                                            "Pan (this page)",
+                                            min_value=0,
+                                            max_value=pan_max,
+                                            key="dm_img_strip_pan",
+                                            help="Same order as this page's samples (and as the details table when shown). "
+                                            "**#** is the 0-based sample index in the dataset.",
+                                        )
+                                else:
+                                    st.session_state["dm_img_strip_pan"] = 0
+                                    with c_b:
+                                        st.caption(
+                                            f"All samples on this page fit in the {_DM_PREVIEW_ROWS}-row grid — "
+                                            "no panning needed."
+                                        )
+                                with c_c:
+                                    px_h = st.slider(
+                                        "Preview height (px)",
+                                        min_value=120,
+                                        max_value=400,
+                                        value=200,
+                                        step=10,
+                                        key="dm_img_px_h",
+                                    )
+                                pan = (
+                                    0
+                                    if pan_max <= 0
+                                    else int(
+                                        st.session_state.get("dm_img_strip_pan", 0)
+                                    )
+                                )
+                                row_indices = list(
+                                    range(pan, min(pan + vis, n_page))
+                                )
+                                if row_indices:
+                                    for row_i in range(_DM_PREVIEW_ROWS):
+                                        chunk = row_indices[
+                                            row_i
+                                            * cols_per_row : (row_i + 1)
+                                            * cols_per_row
+                                        ]
+                                        if not chunk:
+                                            break
+                                        prev_cols = st.columns(len(chunk))
+                                        for slot, j in enumerate(chunk):
+                                            with prev_cols[slot]:
+                                                _pil_full = decode_muller_image_sample(
+                                                    raw_images[j]
+                                                )
+                                                if _pil_full is not None:
+                                                    _thumb = pil_resize_to_height(
+                                                        _pil_full, int(px_h)
+                                                    )
+                                                else:
+                                                    _thumb = None
+                                                if _thumb is not None:
+                                                    st.image(_thumb)
+                                                else:
+                                                    st.caption("_(decode failed)_")
+                                                st.caption(f"**#{start_idx + j}**")
+                                                _cap = f"Sample index **{start_idx + j}** (full resolution)"
+                                                _zk = f"dm_fullres_{start_idx}_{j}"
+                                                if _pil_full is not None:
+                                                    if _dm_fullres_dialog is not None:
+                                                        if st.button(
+                                                            "Full size",
+                                                            key=_zk,
+                                                            help="Open at native image resolution",
+                                                        ):
+                                                            st.session_state[
+                                                                "dm_fullres_pil"
+                                                            ] = _pil_full.copy()
+                                                            st.session_state[
+                                                                "dm_fullres_caption"
+                                                            ] = _cap
+                                                            _dm_fullres_dialog()
+                                                    elif hasattr(st, "popover"):
+                                                        with st.popover("Full size"):
+                                                            st.image(
+                                                                _pil_full,
+                                                                use_container_width=False,
+                                                            )
+                                                            st.caption(_cap)
+                                                    else:
+                                                        with st.expander("Full size"):
+                                                            st.image(
+                                                                _pil_full,
+                                                                use_container_width=False,
+                                                            )
+                                                            st.caption(_cap)
+
+                if show_details:
+                    df, err = dataset_to_dataframe(ds, start=start_idx, end=end_idx)
+                    if err:
+                        st.error(err)
+                    else:
+                        st.dataframe(dataframe_for_streamlit_display(df), width="stretch")
 
             # 3) Add Single Sample (collapsed by default)
             with st.expander("Add Single Sample", expanded=False):
@@ -541,7 +1053,7 @@ elif page == "🔍 Query & Search":
                     if n_results > 0:
                         df, _ = dataset_to_dataframe(result_ds, end=min(n_results, 200))
                         if df is not None:
-                            st.dataframe(df, width="stretch")
+                            st.dataframe(dataframe_for_streamlit_display(df), width="stretch")
 
         with tab_vector:
             st.subheader("Vector Similarity Search")
