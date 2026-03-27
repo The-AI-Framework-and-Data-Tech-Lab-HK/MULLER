@@ -69,6 +69,13 @@ def _dm_on_select_coco_thumb(gi: int) -> None:
     st.session_state["dm_coco_selected_gi"] = int(gi)
 
 
+def _dm_coco_thumb_page_delta(delta: int, max_page: int) -> None:
+    cur = int(st.session_state.get("dm_coco_thumb_page", 1))
+    st.session_state["dm_coco_thumb_page"] = max(
+        1, min(int(max_page), cur + int(delta))
+    )
+
+
 # ---------------------------------------------------------------------------
 # Helper: reload dataset from path (survives Streamlit reruns)
 # ---------------------------------------------------------------------------
@@ -307,49 +314,59 @@ if page == "📊 Dataset Management":
                     st.session_state["_dm_view_dataset_path"] = _dp
                     st.session_state["dm_view_page_idx"] = 1
 
-                key_page = "dm_view_page_idx"
-                key_ps = "dm_view_page_size"
-                if key_page not in st.session_state:
-                    st.session_state[key_page] = 1
-                pg1, pg2, pg3 = st.columns([1, 1, 3])
-                with pg1:
-                    page_size = st.selectbox(
-                        "Rows per page",
-                        options=[10, 25, 50, 100],
-                        index=0,
-                        key=key_ps,
-                    )
-                total_pages = max(1, (n + page_size - 1) // page_size)
-                if st.session_state[key_page] > total_pages:
-                    st.session_state[key_page] = total_pages
-                with pg2:
-                    page = st.number_input(
-                        "Page",
-                        min_value=1,
-                        max_value=total_pages,
-                        step=1,
-                        key=key_page,
-                        help="Go to a page (default shows the first page only).",
-                    )
-                start_idx = (int(page) - 1) * page_size
-                end_idx = min(start_idx + page_size, n)
-                with pg3:
-                    st.caption(
-                        f"Showing samples **{start_idx + 1}–{end_idx}** of **{n}** · "
-                        f"page **{int(page)}** / **{total_pages}**"
-                    )
+                _coco_layout = is_coco2017_muller_schema(ds)
+                img_tensors = list_image_tensor_names(ds)
 
-                show_details = st.checkbox(
-                    "Show details",
-                    value=False,
-                    key="dm_show_table_details",
-                    help="When enabled, loads and shows the full tabular view for this page. "
-                    "Turn off for a lighter UI (e.g. image preview only).",
-                )
+                if not _coco_layout:
+                    key_page = "dm_view_page_idx"
+                    key_ps = "dm_view_page_size"
+                    if key_page not in st.session_state:
+                        st.session_state[key_page] = 1
+                    pg1, pg2, pg3 = st.columns([1, 1, 3])
+                    with pg1:
+                        page_size = st.selectbox(
+                            "Rows per page",
+                            options=[10, 25, 50, 100],
+                            index=0,
+                            key=key_ps,
+                        )
+                    total_pages = max(1, (n + page_size - 1) // page_size)
+                    if st.session_state[key_page] > total_pages:
+                        st.session_state[key_page] = total_pages
+                    with pg2:
+                        page = st.number_input(
+                            "Page",
+                            min_value=1,
+                            max_value=total_pages,
+                            step=1,
+                            key=key_page,
+                            help="Go to a page (default shows the first page only).",
+                        )
+                    start_idx = (int(page) - 1) * page_size
+                    end_idx = min(start_idx + page_size, n)
+                    with pg3:
+                        st.caption(
+                            f"Showing samples **{start_idx + 1}–{end_idx}** of **{n}** · "
+                            f"page **{int(page)}** / **{total_pages}**"
+                        )
+
+                    show_details = st.checkbox(
+                        "Show details",
+                        value=False,
+                        key="dm_show_table_details",
+                        help="When enabled, loads and shows the full tabular view for this page. "
+                        "Turn off for a lighter UI (e.g. image preview only).",
+                    )
+                else:
+                    start_idx = 0
+                    end_idx = n
+                    show_details = False
+                    st.caption(
+                        f"**{n}** samples · COCO layout uses a fixed **5×5** thumbnail grid "
+                        "with its own paging (no table pagination here)."
+                    )
 
                 # Image strip preview (same row order as paginated rows; global # = row index in dataset)
-                img_tensors = list_image_tensor_names(ds)
-                _coco_layout = is_coco2017_muller_schema(ds)
                 if img_tensors:
                     if not pil_preview_available():
                         st.info("Install **Pillow** (`pip install pillow`) to enable image preview.")
@@ -397,37 +414,66 @@ if page == "📊 Dataset Management":
                                 _cerr = st.session_state.get("_dm_coco_cat_err")
                                 if _cerr and _ap:
                                     st.warning(_cerr)
-                        n_page = end_idx - start_idx
-                        try:
-                            _vimg = ds[start_idx:end_idx]
-                            raw_images = list(_vimg[preview_col].numpy(aslist=True))
-                        except Exception as _e:
-                            st.warning(f"Could not load images: {_e}")
-                            raw_images = []
+                        if _coco_layout:
+                            _COCO_THUMB_GRID = 5
+                            _COCO_THUMB_PER_PAGE = _COCO_THUMB_GRID * _COCO_THUMB_GRID
+                            n_thumb_pages = max(
+                                1, (n + _COCO_THUMB_PER_PAGE - 1) // _COCO_THUMB_PER_PAGE
+                            )
+                            if "dm_coco_thumb_page" not in st.session_state:
+                                st.session_state["dm_coco_thumb_page"] = 1
+                            tp_cur = int(st.session_state.get("dm_coco_thumb_page", 1))
+                            if tp_cur > n_thumb_pages:
+                                st.session_state["dm_coco_thumb_page"] = n_thumb_pages
+                                tp_cur = n_thumb_pages
+                            thumb_offset = (tp_cur - 1) * _COCO_THUMB_PER_PAGE
+                            thumb_len = min(_COCO_THUMB_PER_PAGE, n - thumb_offset)
+                            n_page = thumb_len
+                            try:
+                                _vimg = ds[thumb_offset : thumb_offset + thumb_len]
+                                raw_images = list(
+                                    _vimg[preview_col].numpy(aslist=True)
+                                )
+                            except Exception as _e:
+                                st.warning(f"Could not load images: {_e}")
+                                raw_images = []
+                        else:
+                            n_page = end_idx - start_idx
+                            try:
+                                _vimg = ds[start_idx:end_idx]
+                                raw_images = list(
+                                    _vimg[preview_col].numpy(aslist=True)
+                                )
+                            except Exception as _e:
+                                st.warning(f"Could not load images: {_e}")
+                                raw_images = []
                         if raw_images:
                             if _coco_layout:
                                 _coco_view_ctx = (
-                                    start_idx,
-                                    end_idx,
+                                    _dp,
+                                    str(st.session_state.get("current_branch")),
+                                    n,
                                     preview_col,
-                                    int(page),
-                                    page_size,
                                 )
                                 if (
                                     st.session_state.get("_dm_coco_view_ctx")
                                     != _coco_view_ctx
                                 ):
                                     st.session_state["_dm_coco_view_ctx"] = _coco_view_ctx
-                                    st.session_state["dm_coco_thumb_subpage"] = 0
-                                    st.session_state["dm_coco_selected_gi"] = start_idx
+                                    st.session_state["dm_coco_thumb_page"] = 1
+                                    st.session_state["dm_coco_selected_gi"] = 0
 
                                 sel_gi = int(
-                                    st.session_state.get(
-                                        "dm_coco_selected_gi", start_idx
-                                    )
+                                    st.session_state.get("dm_coco_selected_gi", 0)
                                 )
-                                if sel_gi < start_idx or sel_gi >= end_idx:
-                                    sel_gi = start_idx
+                                if sel_gi < 0 or sel_gi >= n:
+                                    sel_gi = 0
+                                    st.session_state["dm_coco_selected_gi"] = sel_gi
+                                if (
+                                    sel_gi < thumb_offset
+                                    or sel_gi >= thumb_offset + thumb_len
+                                ):
+                                    sel_gi = thumb_offset
                                     st.session_state["dm_coco_selected_gi"] = sel_gi
 
                                 st.caption(
@@ -438,66 +484,52 @@ if page == "📊 Dataset Management":
                                 left_pane, right_pane = st.columns([0.4, 0.6], gap="large")
 
                                 with left_pane:
-                                    st.markdown("**Thumbnails**")
-                                    tc = st.slider(
-                                        "Columns",
-                                        min_value=2,
-                                        max_value=12,
-                                        value=5,
-                                        key="dm_coco_thumb_cols",
-                                        help="More columns → smaller tiles in the left column.",
-                                    )
-                                    tr = st.slider(
-                                        "Rows",
-                                        min_value=2,
-                                        max_value=10,
-                                        value=5,
-                                        key="dm_coco_thumb_rows",
-                                        help="More rows → smaller tiles.",
-                                    )
-                                    grid_n = int(tc) * int(tr)
-                                    n_thumb_pages = max(
-                                        1, (n_page + grid_n - 1) // grid_n
-                                    )
-                                    tsp = int(
+                                    st.markdown("**Thumbnails** (fixed **5×5** grid, 25 per page)")
+                                    nav_a, nav_b, nav_c = st.columns([1, 1, 2])
+                                    with nav_a:
+                                        st.button(
+                                            "◀ Prev",
+                                            key="dm_coco_thumb_prev",
+                                            disabled=(tp_cur <= 1),
+                                            on_click=_dm_coco_thumb_page_delta,
+                                            args=(-1, n_thumb_pages),
+                                        )
+                                    with nav_b:
+                                        st.button(
+                                            "Next ▶",
+                                            key="dm_coco_thumb_next",
+                                            disabled=(tp_cur >= n_thumb_pages),
+                                            on_click=_dm_coco_thumb_page_delta,
+                                            args=(1, n_thumb_pages),
+                                        )
+                                    with nav_c:
                                         st.number_input(
                                             "Thumbnail page",
                                             min_value=1,
                                             max_value=n_thumb_pages,
                                             step=1,
                                             key="dm_coco_thumb_page",
-                                            help="Which batch of thumbnails to show for this dataset page.",
-                                        )
-                                    )
-                                    subpage = max(0, min(tsp - 1, n_thumb_pages - 1))
-                                    offset = subpage * grid_n
-                                    local_slots = list(
-                                        range(offset, min(offset + grid_n, n_page))
-                                    )
-                                    thumb_edge = max(
-                                        36,
-                                        min(
-                                            128,
-                                            min(
-                                                320 // max(int(tc), 1),
-                                                360 // max(int(tr), 1),
+                                            help=(
+                                                f"Showing global samples **{thumb_offset + 1}–"
+                                                f"{thumb_offset + thumb_len}** of **{n}**."
                                             ),
-                                        ),
+                                        )
+                                    st.caption(
+                                        f"Page **{tp_cur}** / **{n_thumb_pages}** · "
+                                        f"samples **{thumb_offset + 1}–{thumb_offset + thumb_len}**"
                                     )
-                                    for rr in range(int(tr)):
-                                        row_slots = local_slots[
-                                            rr * int(tc) : (rr + 1) * int(tc)
-                                        ]
-                                        if not row_slots:
-                                            break
-                                        grid_cols = st.columns(int(tc))
-                                        for ci in range(int(tc)):
+                                    tc = tr = _COCO_THUMB_GRID
+                                    thumb_edge = max(36, min(128, 300 // tc))
+                                    for rr in range(tr):
+                                        grid_cols = st.columns(tc)
+                                        for ci in range(tc):
+                                            slot = rr * tc + ci
                                             with grid_cols[ci]:
-                                                if ci >= len(row_slots):
+                                                if slot >= thumb_len:
                                                     st.empty()
                                                     continue
-                                                j = row_slots[ci]
-                                                gi = start_idx + j
+                                                j = slot
+                                                gi = thumb_offset + j
                                                 _pil_dec = decode_muller_image_sample(
                                                     raw_images[j]
                                                 )
@@ -544,9 +576,15 @@ if page == "📊 Dataset Management":
                                         step=20,
                                         key="dm_coco_pv_h",
                                     )
-                                    j_sel = sel_gi - start_idx
+                                    try:
+                                        _one = ds[sel_gi : sel_gi + 1]
+                                        _raw_sel = list(
+                                            _one[preview_col].numpy(aslist=True)
+                                        )[0]
+                                    except Exception:
+                                        _raw_sel = None
                                     _pil_full = decode_muller_image_sample(
-                                        raw_images[j_sel]
+                                        _raw_sel
                                     )
                                     if (
                                         _pil_full is not None
