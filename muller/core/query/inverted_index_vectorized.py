@@ -300,11 +300,18 @@ class InvertedIndexVectorized(object):
                 raise ExecuteError from e
         else:
             pool = multiprocessing.Pool(num_process)
-            for i in range(num_of_shards):
+            # Collect AsyncResults so worker exceptions propagate to the
+            # main process via ``.get()`` below, instead of being silently
+            # swallowed by ``close() + join()``.
+            results = [
                 pool.apply_async(func=self._merge_shards,
-                                args=(optimize_mode, i,))
+                                 args=(optimize_mode, i,))
+                for i in range(num_of_shards)
+            ]
             pool.close()
             pool.join()
+            for res in results:
+                res.get()
 
         # Rename the original index folder (if it exists) to col_[uuid].
         # Then, rename the col_optimized folder to col, and delete the col_tmp folder.
@@ -396,9 +403,10 @@ class InvertedIndexVectorized(object):
             optimize_batch = [pool.apply_async(func=self._reshard_single,
                                                args=(i, old_shard_num, new_shard_num))
                               for i in range(old_shard_num)]
-            # Wait for all the above tasks to be finished
+            # Use ``.get()`` rather than ``.wait()`` so worker exceptions
+            # propagate to the main process instead of being silently dropped.
             for res in optimize_batch:
-                res.wait()
+                res.get()
 
     def add_hot_shard(self, max_workers: int = 16, n: int = 100000):
         """Select the top n most frequently occurring terms from the existing shards
@@ -719,7 +727,14 @@ class InvertedIndexVectorized(object):
             'num_shards': batch_params['num_of_shards']
         }
 
-        for i, start in enumerate(ranges[0]):
+        # Collect AsyncResults so worker exceptions propagate to the main
+        # process via ``.get()`` below. Previously this loop was fire-and-
+        # forget, which made every worker-side failure (unpicklable args,
+        # ``spawn`` re-importing an unfindable ``__main__`` under hosts like
+        # ``streamlit run`` or ``jupyter``, read-only storage, etc.) invisible
+        # — the only trace was a missing batch-completion marker that later
+        # made ``check_index_completeness`` return "unfinished".
+        results = [
             pool.apply_async(
                 func=self._process_index,
                 args=(
@@ -730,9 +745,13 @@ class InvertedIndexVectorized(object):
                     tokenizer_params
                 )
             )
+            for i, start in enumerate(ranges[0])
+        ]
 
         pool.close()
         pool.join()
+        for res in results:
+            res.get()
 
 
     def _check_index_completion(self, num_of_batches):
@@ -826,8 +845,10 @@ class InvertedIndexVectorized(object):
 
         tokenizer_params['num_shards'] = num_of_shards
 
-        # Submit the task
-        for i, start in enumerate(ranges[0]):
+        # Submit the tasks. Collect AsyncResults so worker exceptions
+        # propagate via ``.get()`` below instead of being silently dropped
+        # (see analogous comment in ``_create_python_index``).
+        results = [
             pool.apply_async(
                 func=self._process_index,
                 args=(
@@ -838,9 +859,13 @@ class InvertedIndexVectorized(object):
                     tokenizer_params
                 )
             )
+            for i, start in enumerate(ranges[0])
+        ]
 
         pool.close()
         pool.join()
+        for res in results:
+            res.get()
 
 
     def _check_update_completion(self, num_of_batches):
@@ -960,7 +985,11 @@ class InvertedIndexVectorized(object):
             self._log_completion(self.index_folder + "_tmp", batch_count, start)
 
         except Exception as e:
+            # Log then re-raise so the caller's ``AsyncResult.get()`` surfaces
+            # the real error in the main process instead of silently leaving a
+            # missing batch-completion marker behind.
             self.logger.info(f"{batch_count} creation fails because of {e}")
+            raise
 
 
     def _add_to_shard(self, shards, data, line_num, num_of_shards):
@@ -1035,7 +1064,11 @@ class InvertedIndexVectorized(object):
             self.logger.info(f"merged shards: {shard_id}")
 
         except Exception as e:
+            # Log then re-raise so the caller's ``AsyncResult.get()`` surfaces
+            # the real error in the main process instead of silently leaving a
+            # half-merged optimized folder behind.
             self.logger.info(f"{shard_id} merge fails because of {e}")
+            raise
 
 
     def _load_index(self, shard_id):
