@@ -313,6 +313,13 @@ class Dataset(
         if isinstance(item, str):
             return self._return_tensor(item, is_iteration)
 
+        # Accept numpy scalar integers (``np.int64`` / ``np.int32`` / …) in
+        # addition to Python ``int``. The underlying ``IndexEntry`` now
+        # normalizes both to the same Python ``int`` internally, but the
+        # type gate here still had to be widened to let the value reach it.
+        if isinstance(item, np.integer):
+            item = int(item)
+
         if isinstance(item, (int, slice, list, tuple, Index, type(Ellipsis))):
 
             def _is_list_of_str_or_list_of_list_of_str(tmp_item):

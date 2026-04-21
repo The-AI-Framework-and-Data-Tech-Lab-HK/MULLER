@@ -16,6 +16,7 @@ This demo showcases MULLER's capabilities:
 - Performance benchmarking vs Parquet
 """
 import streamlit as st
+import json
 import sys
 import os
 import tempfile
@@ -125,17 +126,22 @@ st.sidebar.markdown("**Multimodal Data Lake with Git-like Versioning**")
 # -- Current user (for multi-user / permission demos) -----------------------
 # SensitiveConfig is a process singleton, so setting it here affects every
 # subsequent MULLER call in this Streamlit process — exactly the semantics we
-# need to act as different engineers within a single demo session.
+# need to act as different engineers within a single demo session. The demo
+# storyline only needs three personas, so we expose them as a fixed dropdown
+# rather than a free-form textbox to keep the script copy-paste-free.
+DEMO_USERS = ["public", "A", "B"]
 _cur_user = current_user()
-_user_input = st.sidebar.text_input(
+_default_idx = DEMO_USERS.index(_cur_user) if _cur_user in DEMO_USERS else 0
+_user_input = st.sidebar.selectbox(
     "👤 Current user",
-    value=_cur_user,
-    key="current_user_input",
+    options=DEMO_USERS,
+    index=_default_idx,
+    key="current_user_select",
     help="MULLER permission checks (branch ownership, delete_view, …) "
-    "compare against this uid. Change it here to impersonate another engineer "
-    "and exercise the permission model.",
+    "compare against this uid. Pick one of the three demo personas to "
+    "impersonate that engineer and exercise the permission model.",
 )
-if _user_input.strip() and _user_input.strip() != _cur_user:
+if _user_input and _user_input != _cur_user:
     new_uid = set_current_user(_user_input)
     st.sidebar.success(f"Acting as `{new_uid}`.")
     st.rerun()
@@ -190,11 +196,45 @@ if page == "📊 Dataset Management":
             overwrite = st.checkbox("Overwrite if exists", value=False)
 
             # --- Dynamic schema definition ---
-            HTYPE_OPTIONS = ["generic", "text", "image", "video", "audio", "embedding", "class_label", "json"]
-            DTYPE_OPTIONS = ["(auto)", "int32", "int64", "float32", "float64", "uint8", "bool", "str"]
-            COMPRESSION_OPTIONS = ["(none)", "lz4", "jpg", "png", "mp4", "mp3", "wav"]
+            # Pull htype names from MULLER's canonical configuration table so
+            # the dropdown always matches what core accepts (e.g. `bbox`,
+            # `polygon`, `keypoints_coco`, `list`, `segment_mask`, …). Any
+            # hardcoded short-list here drifts out of sync as soon as someone
+            # writes a valid schema JSON that uses one of the long-tail htypes,
+            # with a confusing "htype X not in [...]" error.
+            try:
+                from muller.core.types.htype import HTYPE_CONFIGURATIONS as _HTYPE_CFG
+                _CORE_HTYPES = list(_HTYPE_CFG.keys())
+            except Exception:
+                _CORE_HTYPES = []
 
-            st.markdown("**Define Columns (Tensors)**")
+            # Promote the htypes we touch most often in the demo to the top
+            # of the dropdown (order matters for UX); append any remaining
+            # core htypes alphabetically so nothing is hidden.
+            _PREFERRED_HTYPES = [
+                "generic", "text", "image", "video", "audio",
+                "embedding", "class_label", "bbox", "polygon",
+                "keypoints_coco", "segment_mask", "binary_mask",
+                "instance_label", "list", "json", "vector", "point",
+            ]
+            _seen = set()
+            HTYPE_OPTIONS = []
+            for h in _PREFERRED_HTYPES:
+                if h in _CORE_HTYPES or not _CORE_HTYPES:
+                    HTYPE_OPTIONS.append(h)
+                    _seen.add(h)
+            for h in sorted(_CORE_HTYPES):
+                if h not in _seen:
+                    HTYPE_OPTIONS.append(h)
+
+            DTYPE_OPTIONS = [
+                "(auto)",
+                "int8", "int16", "int32", "int64",
+                "uint8", "uint16", "uint32", "uint64",
+                "float16", "float32", "float64",
+                "bool", "str",
+            ]
+            COMPRESSION_OPTIONS = ["(none)", "lz4", "jpg", "png", "mp4", "mp3", "wav"]
 
             # Each row is tracked by a unique ID so insert/delete anywhere is safe.
             _DEFAULT_ROWS = [
@@ -207,6 +247,111 @@ if page == "📊 Dataset Management":
             if "schema_next_id" not in st.session_state:
                 st.session_state.schema_next_id = len(_DEFAULT_ROWS)
 
+            # --- Optional: bulk-load schema from JSON ---
+            # Typing a 8-tensor COCO schema cell-by-cell is tedious and error
+            # prone. Users can upload a small JSON once and get the rows
+            # below pre-populated. The editor stays live — they can still
+            # tweak, add, or delete rows before hitting Create Dataset.
+            with st.expander("📥 Load schema from JSON file (optional)", expanded=False):
+                st.caption(
+                    "Upload a JSON describing the tensors. Accepted shapes:  \n"
+                    "• `{\"tensors\": [{\"name\": …, \"htype\": …, \"dtype\": …, "
+                    "\"sample_compression\": …}, …]}`  \n"
+                    "• a plain list of the same objects  \n"
+                    "• a `{name: {htype, dtype, sample_compression}}` dict  \n"
+                    "See `sigmod_demo_revision/coco_schema.json` for a ready-to-use "
+                    "8-tensor COCO2017 example."
+                )
+                schema_file = st.file_uploader(
+                    "Schema JSON", type=["json"], key="schema_json_upload",
+                )
+
+                def _normalize_schema_entries(data):
+                    """Return (list-of-dicts, errors)."""
+                    if isinstance(data, dict) and "tensors" in data:
+                        raw = data.get("tensors") or []
+                    elif isinstance(data, list):
+                        raw = data
+                    elif isinstance(data, dict):
+                        raw = [{"name": k, **(v or {})} for k, v in data.items()]
+                    else:
+                        return [], ["Top-level JSON must be an object or an array."]
+                    norm, errs = [], []
+                    for i, e in enumerate(raw):
+                        if not isinstance(e, dict):
+                            errs.append(f"entry #{i} is not a JSON object")
+                            continue
+                        nm = (e.get("name") or "").strip()
+                        if not nm:
+                            errs.append(f"entry #{i} missing 'name'")
+                            continue
+                        ht = e.get("htype") or "generic"
+                        dt = e.get("dtype") or "(auto)"
+                        comp = e.get("sample_compression") or "(none)"
+                        # Only htype is strictly validated here — we already
+                        # pull every MULLER-recognized htype from
+                        # HTYPE_CONFIGURATIONS above, so a miss here is a real
+                        # typo. dtype / compression have many valid values
+                        # MULLER accepts (e.g. "Any", "List", "jpeg" alias)
+                        # that may not be in the shortlist dropdown, so we
+                        # pass them through and let MULLER validate at
+                        # tensor-creation time; the UI below dynamically
+                        # extends its dropdowns to show whatever we got.
+                        if ht not in HTYPE_OPTIONS:
+                            errs.append(
+                                f"entry '{nm}': htype '{ht}' is not a "
+                                f"MULLER htype. Known htypes: {HTYPE_OPTIONS}"
+                            )
+                            continue
+                        norm.append({"name": nm, "htype": ht, "dtype": dt, "comp": comp})
+                    return norm, errs
+
+                if schema_file is not None:
+                    try:
+                        _schema_data = json.load(schema_file)
+                    except Exception as _e:
+                        st.error(f"Could not parse JSON: {_e}")
+                    else:
+                        normalized, errs = _normalize_schema_entries(_schema_data)
+                        if errs:
+                            st.error("Schema JSON has problems:\n- " + "\n- ".join(errs))
+                        elif not normalized:
+                            st.error("Schema JSON has no valid tensor entries.")
+                        else:
+                            # Fingerprint the applied schema so streamlit's
+                            # auto-reruns don't re-apply on every keystroke.
+                            sig = json.dumps(normalized, sort_keys=True)
+                            if st.session_state.get("_schema_json_sig") != sig:
+                                next_id = int(st.session_state.get("schema_next_id", 0))
+                                new_rows = []
+                                for item in normalized:
+                                    new_rows.append({"id": next_id, **item})
+                                    next_id += 1
+                                st.session_state.schema_rows = new_rows
+                                st.session_state.schema_next_id = next_id
+                                st.session_state["_schema_json_sig"] = sig
+                                st.success(
+                                    f"Loaded **{len(normalized)}** tensor rows "
+                                    f"from `{schema_file.name}`."
+                                )
+                                st.rerun()
+                            else:
+                                st.caption(
+                                    f"`{schema_file.name}` already applied "
+                                    f"({len(normalized)} rows) — edit the table "
+                                    "below to tweak, or upload a different file."
+                                )
+
+                col_reset, _ = st.columns([1, 3])
+                with col_reset:
+                    if st.button("Reset schema to UI defaults", key="schema_reset_btn"):
+                        st.session_state.schema_rows = list(_DEFAULT_ROWS)
+                        st.session_state.schema_next_id = len(_DEFAULT_ROWS)
+                        st.session_state.pop("_schema_json_sig", None)
+                        st.rerun()
+
+            st.markdown("**Define Columns (Tensors)**")
+
             # Header row
             h_name, h_htype, h_dtype, h_comp, h_btns = st.columns([3, 2, 2, 2, 1])
             h_name.markdown("**Name**")
@@ -214,6 +359,18 @@ if page == "📊 Dataset Management":
             h_dtype.markdown("**dtype**")
             h_comp.markdown("**compress**")
             h_btns.markdown("**+/−**")
+
+            def _opts_with_value(base_opts, value):
+                """Return a dropdown-options list that always contains ``value``.
+
+                A schema loaded from JSON may carry a dtype / compression the
+                preset shortlist does not include (e.g. ``"Any"``, ``"List"``,
+                ``"jpeg"``). Without this, ``selectbox`` silently resets to
+                index 0 and the user's explicit choice is lost.
+                """
+                if value in base_opts:
+                    return base_opts
+                return list(base_opts) + [value]
 
             schema_inputs = []
             rows = st.session_state.schema_rows
@@ -224,16 +381,19 @@ if page == "📊 Dataset Management":
                     col_name = st.text_input("n", value=row["name"], key=f"col_name_{rid}",
                                              label_visibility="collapsed")
                 with c_htype:
-                    col_htype = st.selectbox("h", HTYPE_OPTIONS,
-                                             index=HTYPE_OPTIONS.index(row["htype"]) if row["htype"] in HTYPE_OPTIONS else 0,
+                    _htype_opts = _opts_with_value(HTYPE_OPTIONS, row["htype"])
+                    col_htype = st.selectbox("h", _htype_opts,
+                                             index=_htype_opts.index(row["htype"]),
                                              key=f"col_htype_{rid}", label_visibility="collapsed")
                 with c_dtype:
-                    col_dtype = st.selectbox("d", DTYPE_OPTIONS,
-                                             index=DTYPE_OPTIONS.index(row["dtype"]) if row["dtype"] in DTYPE_OPTIONS else 0,
+                    _dtype_opts = _opts_with_value(DTYPE_OPTIONS, row["dtype"])
+                    col_dtype = st.selectbox("d", _dtype_opts,
+                                             index=_dtype_opts.index(row["dtype"]),
                                              key=f"col_dtype_{rid}", label_visibility="collapsed")
                 with c_comp:
-                    col_comp = st.selectbox("c", COMPRESSION_OPTIONS,
-                                            index=COMPRESSION_OPTIONS.index(row["comp"]) if row["comp"] in COMPRESSION_OPTIONS else 0,
+                    _comp_opts = _opts_with_value(COMPRESSION_OPTIONS, row["comp"])
+                    col_comp = st.selectbox("c", _comp_opts,
+                                            index=_comp_opts.index(row["comp"]),
                                             key=f"col_comp_{rid}", label_visibility="collapsed")
                 with c_btns:
                     b1, b2 = st.columns(2)
@@ -931,21 +1091,88 @@ if page == "📊 Dataset Management":
                     if unmatched:
                         st.warning(f"Columns not in dataset (will be skipped): {unmatched}")
 
-                    media_cols = [
-                        col for col in matched
-                        if ds.tensors[col].htype in ("image", "video", "audio")
-                    ]
+                    # Per-column import mode:
+                    #  - "read" for media columns (calls muller.read() on the path)
+                    #  - "json" for cells whose payload is a JSON array/object
+                    #    (per-sample arrays like bbox (N,4), segmentation polygons,
+                    #    variable-length area / category_id / id / iscrowd)
+                    #  - "skip" (i.e. not in path_columns) for plain scalars
+                    #
+                    # Why sniff the CSV content instead of the tensor metadata:
+                    # at Batch Upload time the target tensor was just created
+                    # and holds no samples, so tensor.shape is (0,) and we
+                    # cannot tell from the schema alone whether a `generic`
+                    # column will hold one number or a length-N array. The
+                    # CSV cell itself is the source of truth — a leading `[`
+                    # or `{` unambiguously means JSON. We peek a handful of
+                    # rows to be robust to blank leading cells.
+                    def _first_non_null(series, n=8):
+                        try:
+                            return [v for v in series.dropna().head(n).tolist()]
+                        except Exception:
+                            return []
+
+                    def _looks_json(values):
+                        for v in values:
+                            s = str(v).strip()
+                            if not s:
+                                continue
+                            if s.startswith("[") or s.startswith("{"):
+                                return True
+                        return False
+
+                    def _infer_mode(col_name, tensor):
+                        h = (tensor.htype or "").lower()
+                        if h in ("image", "video", "audio"):
+                            return "read"
+                        # Some htypes are inherently non-scalar regardless of
+                        # what the CSV looks like; catch them explicitly so a
+                        # malformed / empty first few cells don't regress to
+                        # skip and then break on append.
+                        if h in ("bbox", "list", "polygon", "keypoints_coco",
+                                 "segment_mask", "binary_mask", "embedding",
+                                 "json", "vector", "point"):
+                            return "json"
+                        if _looks_json(_first_non_null(df_up[col_name])):
+                            return "json"
+                        return "skip"
+
+                    inferred = {col: _infer_mode(col, ds.tensors[col]) for col in matched}
+                    media_cols = [c for c in matched if inferred[c] == "read"]
+                    array_cols = [c for c in matched if inferred[c] == "json"]
+                    needs_selector = media_cols + array_cols
+
                     path_columns = {}
-                    if media_cols:
-                        st.markdown("**Path columns** — these columns have media htypes. "
-                                    "If their CSV values are file paths, select how to handle them:")
-                        for col in media_cols:
+                    if needs_selector:
+                        st.markdown(
+                            "**Path / array columns** — the UI inferred these "
+                            "from each column's CSV content; override if needed:"
+                        )
+                        for col in needs_selector:
+                            t = ds.tensors[col]
+                            is_media = col in media_cols
+                            if is_media:
+                                opts = ["read", "text", "skip"]
+                                col_help = (
+                                    "read: load file via muller.read(); "
+                                    "text: store path as text; "
+                                    "skip: treat as plain value"
+                                )
+                            else:
+                                opts = ["json", "text", "skip"]
+                                col_help = (
+                                    "json: parse cell with json.loads (use this "
+                                    "for per-sample arrays like bbox / "
+                                    "segmentation / variable-length labels); "
+                                    "text: store as plain string; "
+                                    "skip: pass through unchanged"
+                                )
+                            default_idx = opts.index(inferred[col]) if inferred[col] in opts else 0
                             mode = st.selectbox(
-                                f"`{col}` ({ds.tensors[col].htype})",
-                                options=["read", "text", "skip"],
-                                help="read: load file via muller.read(); "
-                                     "text: store path as text; "
-                                     "skip: treat as plain value",
+                                f"`{col}` ({t.htype})",
+                                options=opts,
+                                index=default_idx,
+                                help=col_help,
                                 key=f"csv_pathcol_{col}",
                             )
                             if mode != "skip":
@@ -1010,13 +1237,26 @@ if page == "📊 Dataset Management":
                         "Commit Message", value="Update sample via Streamlit UI",
                         key="upd_commit_msg")
                     if st.button("Update", type="secondary"):
-                        try:
-                            parsed = int(upd_val)
-                        except ValueError:
+                        # Try JSON first so users can paste array literals like
+                        # "[1]" or "[[1,2,3,4]]" (matches the CSV-import "json"
+                        # mode for non-scalar tensors); fall back to int / float
+                        # / raw string for scalar tensors.
+                        parsed = None
+                        _stripped = (upd_val or "").strip()
+                        if _stripped and _stripped[0] in "[{":
                             try:
-                                parsed = float(upd_val)
+                                import json as _json
+                                parsed = _json.loads(_stripped)
                             except ValueError:
-                                parsed = upd_val
+                                parsed = None
+                        if parsed is None:
+                            try:
+                                parsed = int(upd_val)
+                            except ValueError:
+                                try:
+                                    parsed = float(upd_val)
+                                except ValueError:
+                                    parsed = upd_val
                         err = update_sample(ds, upd_tensor, upd_idx, parsed)
                         if err:
                             st.error(err)
@@ -1479,12 +1719,32 @@ elif page == "🔍 Query & Search":
                             f"Showing samples **{lo + 1}–{hi}** of **{n_results}** · "
                             f"page **{int(grid_page)}** / **{total_pages}**"
                         )
+                        # Bulk-fetch per-page: this is the ONLY access pattern
+                        # that works on a filter-view sub-dataset. Accessing
+                        # `_chunk.bbox[k]` one-by-one returns an empty [] on
+                        # filter views for non-image tensors (only the bulk
+                        # `.numpy(aslist=True)` path respects the filter's
+                        # sample-uuid remap), so the overlay used to silently
+                        # render every image without boxes.
                         try:
                             _chunk = result_ds[lo:hi]
                             _raw_imgs = list(_chunk[preview_col].numpy(aslist=True))
                         except Exception as _e:
                             st.warning(f"Could not load images: {_e}")
                             _raw_imgs = []
+                            _chunk = None
+
+                        _chunk_bboxes = None
+                        _chunk_cats = None
+                        if _chunk is not None and _coco_overlay and _is_coco:
+                            try:
+                                _chunk_bboxes = list(_chunk.bbox.numpy(aslist=True))
+                                _chunk_cats = list(_chunk.category_id.numpy(aslist=True))
+                            except Exception as _e:
+                                st.warning(
+                                    "Could not load bbox/category_id for overlay: "
+                                    f"{_e}"
+                                )
 
                         if _raw_imgs:
                             cols_per_row = 4
@@ -1496,15 +1756,21 @@ elif page == "🔍 Query & Search":
                                         continue
                                     with cell:
                                         _pil = decode_muller_image_sample(_raw_imgs[k])
-                                        if _pil is not None and _coco_overlay and _is_coco:
-                                            try:
-                                                _bb = _chunk.bbox[k].numpy(aslist=True)
-                                                _cid = _chunk.category_id[k].numpy(aslist=True)
-                                                _pil = pil_overlay_coco_bboxes(
-                                                    _pil, _bb, _cid, _coco_cat_map
-                                                )
-                                            except Exception:
-                                                pass
+                                        if (
+                                            _pil is not None
+                                            and _coco_overlay
+                                            and _is_coco
+                                            and _chunk_bboxes is not None
+                                            and _chunk_cats is not None
+                                            and k < len(_chunk_bboxes)
+                                            and k < len(_chunk_cats)
+                                        ):
+                                            _pil = pil_overlay_coco_bboxes(
+                                                _pil,
+                                                _chunk_bboxes[k],
+                                                _chunk_cats[k],
+                                                _coco_cat_map,
+                                            )
                                         _thumb = (
                                             pil_square_thumbnail(_pil, 180)
                                             if _pil is not None else None
@@ -1711,7 +1977,20 @@ elif page == "🌿 Version Control":
                     # Check tensor-level conflicts (renames/deletes)
                     has_tensor_conflicts = bool(result["columns"])
 
-                    # Check sample-level conflicts across ALL common tensors
+                    # Check sample-level conflicts across ALL common tensors.
+                    # MULLER's `detect_merge_conflict` returns *differences vs. LCA*
+                    # in `del_ori_idx / del_tar_idx / app_ori_idx / app_tar_idx`,
+                    # NOT conflicts. A real conflict requires divergence on the
+                    # same uuid:
+                    #   - append: both branches added new uuids → both append-lists
+                    #     non-empty (new uuids are always disjoint, so any double
+                    #     append needs an `append_resolution`).
+                    #   - update: MULLER pre-filters `update_values` to only carry
+                    #     true update-vs-update (or update-vs-pop) divergence, so
+                    #     "either side non-empty" is the right test here.
+                    #   - delete: only a conflict when both sides popped the SAME
+                    #     LCA index (`pop_resolution` is needed). One-sided deletes
+                    #     merge cleanly without a strategy.
                     tensors_with_sample_conflicts = []
                     for col_name, cdata in result.get("records", {}).items():
                         has_append = bool(cdata.get("app_ori_idx") and cdata.get("app_tar_idx"))
@@ -1719,7 +1998,9 @@ elif page == "🌿 Version Control":
                         if cdata.get("update_values"):
                             uv = cdata["update_values"]
                             has_update = bool(uv.get("update_ori") or uv.get("update_tar"))
-                        has_delete = bool(cdata.get("del_ori_idx") or cdata.get("del_tar_idx"))
+                        ori_del = set(cdata.get("del_ori_idx") or [])
+                        tar_del = set(cdata.get("del_tar_idx") or [])
+                        has_delete = bool(ori_del & tar_del)
                         if has_append or has_update or has_delete:
                             tensors_with_sample_conflicts.append(col_name)
 

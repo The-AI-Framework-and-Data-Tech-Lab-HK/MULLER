@@ -17,6 +17,35 @@ import numpy as np
 IndexValue = Union[int, slice, Tuple[int, ...]]
 
 
+def _coerce_index_scalar(value):
+    """Normalize numpy scalar integers to native Python ``int``.
+
+    MULLER's ``IndexEntry`` / downstream dispatch (e.g. ``subscriptable``,
+    ``indices``, ``validate``, ``to_numpy._detect_access_pattern``) gate on
+    ``isinstance(x, int)``. NumPy scalar integers (``np.int64`` / ``np.int32``
+    etc.) are **not** instances of Python ``int``, so a value like
+    ``np.int64(4)`` silently slips past every single-sample check and
+    ``IndexEntry.indices()`` yields nothing — a filter view's per-sample
+    read (``result_ds.bbox[0].numpy(aslist=True)``) then returns ``[]``
+    with no error. ``filter_vectorized`` happens to produce exactly such
+    ``np.int64`` tuples. Coercing here is the narrowest, most obvious fix
+    that makes every downstream check behave the same regardless of
+    whether the caller handed us Python ints or NumPy scalar ints.
+
+    Tuples / lists are coerced element-wise; slices and non-integer values
+    pass through untouched.
+    """
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, tuple):
+        return tuple(
+            int(v) if isinstance(v, np.integer) else v for v in value
+        )
+    if isinstance(value, list):
+        return [int(v) if isinstance(v, np.integer) else v for v in value]
+    return value
+
+
 def has_negatives(s: slice) -> bool:
     """Function to determine whether it is negatives."""
     if s.start and s.start < 0:
@@ -148,7 +177,7 @@ def replace_ellipsis_with_slices(items, ndim: int):
 
 class IndexEntry:
     def __init__(self, value: IndexValue = slice(None)):
-        self.value = value
+        self.value = _coerce_index_scalar(value)
 
     def __str__(self):
         return f"IndexEntry({self.value})"
@@ -180,6 +209,9 @@ class IndexEntry:
         Raises:
             TypeError: An integer IndexEntry should not be indexed further.
         """
+        # Normalize numpy scalar ints so the ``isinstance(item, int)``
+        # checks below behave uniformly for Python and NumPy integers.
+        item = _coerce_index_scalar(item)
 
         if not self.subscriptable():
             raise TypeError(
@@ -383,6 +415,10 @@ class Index:
             TypeError: Given item should be another Index,
                 or compatible with NumPy's advanced integer indexing.
         """
+        # Normalize numpy scalar ints / tuples-of-numpy-ints so callers
+        # can freely pass the output of ``np.where``, ``np.argsort`` etc.
+        # without tripping the ``isinstance(item, int)`` checks below.
+        item = _coerce_index_scalar(item)
         if isinstance(item, (int, slice)):
             ax = self.find_axis_idx()
             return self.compose_at(item, ax)

@@ -6,6 +6,8 @@
 #
 # Copyright (c) 2026 Xueling Lin
 
+import json
+
 import muller
 
 
@@ -28,7 +30,14 @@ def add_data_from_csv(
         schema: Schema definition (dict or None). If None, uses dict keys.
         path_columns: Dict mapping column names to handling mode:
             - "read": Use muller.read() to load the file as a Sample.
-            - "text": Store the path as a plain text string.
+            - "text": Store the path as a plain text string (no parsing/coercion).
+            - "json": Parse the cell with json.loads(...) before append.
+              Use this for tensors that hold per-sample arrays / nested lists
+              (e.g. COCO-style ``bbox`` (N,4), ``segmentation`` polygons,
+              variable-length ``area`` / ``category_id`` / ``id``). The CSV
+              cell is expected to be a JSON-encoded string; the parsed Python
+              object (list/dict/scalar) is then appended unchanged so the
+              tensor's own dtype/shape coercion applies.
         workers: Number of workers for parallel processing.
         scheduler: Scheduler type for compute operations.
         disable_rechunk: Whether to disable rechunking.
@@ -54,6 +63,25 @@ def add_data_from_csv(
             mode = path_columns[col]
             if mode == "read":
                 return muller.read(value)
+            if mode == "text":
+                return value
+            if mode == "json":
+                # Skip dtype coercion below: JSON already produced a typed
+                # Python object (list/dict/int/float/bool/None/str). Letting
+                # the int/float coercion run on a list raises TypeError and
+                # silently swallows the row when ignore_errors=True.
+                if value is None:
+                    return None
+                if not isinstance(value, str):
+                    # Already deserialized (e.g. by a custom upstream loader).
+                    return value
+                try:
+                    return json.loads(value)
+                except (ValueError, TypeError) as e:
+                    raise ValueError(
+                        f"Column '{col}' is configured as path_columns='json' "
+                        f"but the cell is not valid JSON: {value!r} ({e})"
+                    )
         # Auto-convert CSV string values to match the tensor's dtype
         tensor_dtype = str(ds.tensors[col].dtype)
         if "int" in tensor_dtype:
