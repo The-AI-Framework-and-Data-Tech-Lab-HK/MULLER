@@ -13,10 +13,315 @@ import muller
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from typing import Optional, List, Tuple, Dict, Any, Union
+from typing import Optional, List, Tuple, Dict, Any
 import time
 import os
+import io
 import plotly.graph_objects as go
+
+try:
+    from PIL import Image as PILImage
+    from PIL import ImageDraw, ImageFont
+except ImportError:
+    PILImage = None  # type: ignore
+    ImageDraw = None  # type: ignore
+    ImageFont = None  # type: ignore
+
+# COCO2017 layout produced by official_demo.ipynb (muller_datasetcoco-style).
+COCO2017_MULLER_SCHEMA = frozenset(
+    {
+        "area",
+        "bbox",
+        "category_id",
+        "id",
+        "image_id",
+        "images",
+        "iscrowd",
+        "segmentation",
+    }
+)
+DEFAULT_COCO_INSTANCES_JSON = (
+    "/Users/sherrylin/Documents/research_data/coco2017/annotations/instances_val2017.json"
+)
+
+# Matplotlib tab20 base colors (RGB 0–255) for box / label styling.
+_TAB20_RGB: List[Tuple[int, int, int]] = [
+    (31, 119, 180),
+    (174, 199, 232),
+    (255, 127, 14),
+    (255, 187, 120),
+    (44, 160, 44),
+    (152, 223, 138),
+    (214, 39, 40),
+    (255, 152, 150),
+    (148, 103, 189),
+    (197, 176, 213),
+    (140, 86, 75),
+    (196, 156, 148),
+    (227, 119, 194),
+    (247, 182, 210),
+    (127, 127, 127),
+    (199, 199, 199),
+    (188, 189, 34),
+    (219, 219, 141),
+    (23, 190, 207),
+    (158, 218, 229),
+]
+
+
+def pil_preview_available() -> bool:
+    return PILImage is not None
+
+
+def _is_image_htype(ht: Any) -> bool:
+    if ht is None:
+        return False
+    h = str(ht).lower()
+    if h in ("image", "image.rgb", "image.gray", "dicom", "nifti"):
+        return True
+    if h.startswith("image."):
+        return True
+    if h.startswith("link[") and "image" in h:
+        return True
+    return False
+
+
+def list_image_tensor_names(ds: Any) -> List[str]:
+    """Tensor names whose htype stores image samples (for Streamlit preview)."""
+    return [n for n, t in ds.tensors.items() if _is_image_htype(t.htype)]
+
+
+def decode_muller_image_sample(v: Any) -> Optional[Any]:
+    """Decode one image sample to a PIL Image, or None if unsupported."""
+    if PILImage is None or v is None:
+        return None
+    if not isinstance(v, np.ndarray):
+        try:
+            if pd.isna(v) and not isinstance(v, (str, bytes)):
+                return None
+        except (TypeError, ValueError):
+            pass
+    try:
+        img = None
+        if isinstance(v, bytes):
+            img = PILImage.open(io.BytesIO(v))
+        elif isinstance(v, np.ndarray):
+            if v.size == 0 or v.dtype == object:
+                return None
+            if v.ndim == 1 and v.dtype == np.uint8:
+                try:
+                    img = PILImage.open(io.BytesIO(v.tobytes()))
+                except Exception:
+                    return None
+            elif v.ndim >= 2:
+                arr = v
+                if arr.dtype != np.uint8:
+                    if np.issubdtype(arr.dtype, np.floating):
+                        arr = np.clip(arr, 0, 1)
+                        arr = (arr * 255).astype(np.uint8)
+                    else:
+                        arr = arr.astype(np.uint8, copy=False)
+                img = PILImage.fromarray(arr)
+        if img is None:
+            return None
+        return img
+    except Exception:
+        return None
+
+
+def pil_resize_to_height(img: Any, target_h: int) -> Optional[Any]:
+    """Resize to fixed height; width scales with aspect ratio."""
+    if img is None or PILImage is None or target_h <= 0:
+        return None
+    try:
+        if img.mode not in ("RGB", "RGBA"):
+            img = img.convert("RGB")
+        w, h = img.size
+        if h <= 0:
+            return None
+        new_w = max(1, int(round(w * target_h / float(h))))
+        try:
+            resample = PILImage.Resampling.LANCZOS
+        except AttributeError:
+            resample = PILImage.LANCZOS  # type: ignore[attr-defined]
+        return img.resize((new_w, target_h), resample)
+    except Exception:
+        return None
+
+
+def pil_square_thumbnail(img: Any, edge: int) -> Optional[Any]:
+    """Center-crop to a square, then resize to edge×edge (for uniform thumbnail grids)."""
+    if img is None or PILImage is None or edge <= 0:
+        return None
+    try:
+        im = img if img.mode in ("RGB", "RGBA") else img.convert("RGB")
+        if im.mode == "RGBA":
+            im = im.convert("RGB")
+        w, h = im.size
+        if w <= 0 or h <= 0:
+            return None
+        s = min(w, h)
+        left = (w - s) // 2
+        top = (h - s) // 2
+        im = im.crop((left, top, left + s, top + s))
+        try:
+            resample = PILImage.Resampling.LANCZOS
+        except AttributeError:
+            resample = PILImage.LANCZOS  # type: ignore[attr-defined]
+        return im.resize((edge, edge), resample)
+    except Exception:
+        return None
+
+
+def pil_fit_inside(
+    img: Any,
+    max_w: int,
+    max_h: int,
+    pad_color: Tuple[int, int, int] = (238, 238, 242),
+) -> Optional[Any]:
+    """Uniform scale to fit inside max_w×max_h (no upscaling); letterbox on pad_color."""
+    if img is None or PILImage is None or max_w <= 0 or max_h <= 0:
+        return None
+    try:
+        im = img if img.mode in ("RGB", "RGBA") else img.convert("RGB")
+        if im.mode == "RGBA":
+            im = im.convert("RGB")
+        w, h = im.size
+        if w <= 0 or h <= 0:
+            return None
+        scale = min(max_w / float(w), max_h / float(h), 1.0)
+        nw = max(1, int(round(w * scale)))
+        nh = max(1, int(round(h * scale)))
+        try:
+            resample = PILImage.Resampling.LANCZOS
+        except AttributeError:
+            resample = PILImage.LANCZOS  # type: ignore[attr-defined]
+        im2 = im.resize((nw, nh), resample)
+        canvas = PILImage.new("RGB", (max_w, max_h), pad_color)
+        ox = (max_w - nw) // 2
+        oy = (max_h - nh) // 2
+        canvas.paste(im2, (ox, oy))
+        return canvas
+    except Exception:
+        return None
+
+
+def is_coco2017_muller_schema(ds: Any) -> bool:
+    """True if public tensors match the 8-column COCO2017 MULLER layout (ignores _uuid)."""
+    names = set(ds.tensors.keys())
+    names.discard("_uuid")
+    return names == COCO2017_MULLER_SCHEMA
+
+
+def load_coco_category_id_to_name(instances_json: str) -> Tuple[Optional[Dict[int, str]], Optional[str]]:
+    """Load COCO category id → name from instances JSON (pycocotools if installed, else JSON)."""
+    path = Path(instances_json).expanduser()
+    if not path.is_file():
+        return None, f"COCO annotations file not found: {path}"
+    try:
+        from pycocotools.coco import COCO  # type: ignore
+
+        coco = COCO(str(path))
+        return {int(k): v["name"] for k, v in coco.cats.items()}, None
+    except ImportError:
+        pass
+    except Exception as e:
+        return None, f"pycocotools could not load annotations: {e}"
+    try:
+        import json
+
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        cats = data.get("categories") or []
+        m = {int(c["id"]): str(c["name"]) for c in cats if "id" in c and "name" in c}
+        if not m:
+            return None, "No categories found in JSON"
+        return m, None
+    except Exception as e:
+        return None, str(e)
+
+
+def _unwrap_muller_aslist_sample(x: Any) -> Any:
+    """MULLER often returns ``aslist=True`` as a one-element list wrapping the real ndarray."""
+    if isinstance(x, (list, tuple)) and len(x) == 1 and isinstance(x[0], np.ndarray):
+        return x[0]
+    return x
+
+
+def _normalize_bboxes_for_overlay(b: Any) -> np.ndarray:
+    b = _unwrap_muller_aslist_sample(b)
+    a = np.asarray(b, dtype=np.float64)
+    if a.size == 0:
+        return np.zeros((0, 4), dtype=np.float64)
+    if a.ndim == 1 and a.shape[0] == 4:
+        a = a.reshape(1, 4)
+    if a.ndim != 2 or a.shape[1] != 4:
+        return np.zeros((0, 4), dtype=np.float64)
+    return a
+
+
+def _normalize_category_ids_for_overlay(c: Any, n: int) -> np.ndarray:
+    c = _unwrap_muller_aslist_sample(c)
+    a = np.asarray(c)
+    if a.ndim == 0:
+        a = np.array([a.item()], dtype=np.int64)
+    else:
+        a = a.reshape(-1).astype(np.int64, copy=False)
+    if a.shape[0] != n:
+        if a.shape[0] == 0 and n > 0:
+            return np.zeros(n, dtype=np.int64)
+        m = min(a.shape[0], n)
+        out = np.zeros(n, dtype=np.int64)
+        out[:m] = a[:m]
+        return out
+    return a
+
+
+def pil_overlay_coco_bboxes(
+    img: Any,
+    bbox_sample: Any,
+    category_id_sample: Any,
+    cat_id_to_name: Optional[Dict[int, str]] = None,
+) -> Any:
+    """Draw COCO-style [x, y, w, h] boxes and labels on a PIL image (mutates a copy)."""
+    if PILImage is None or ImageDraw is None or img is None:
+        return img
+    _names = cat_id_to_name or {}
+    try:
+        out = img.copy()
+        if out.mode not in ("RGB", "RGBA"):
+            out = out.convert("RGB")
+        else:
+            out = out.convert("RGB")
+        draw = ImageDraw.Draw(out)
+        try:
+            font = ImageFont.load_default()
+        except Exception:
+            font = None
+        bboxes = _normalize_bboxes_for_overlay(bbox_sample)
+        n = int(bboxes.shape[0])
+        cats = _normalize_category_ids_for_overlay(category_id_sample, n)
+        for i in range(n):
+            x, y, w, h = (float(bboxes[i, j]) for j in range(4))
+            if w <= 1e-6 or h <= 1e-6:
+                continue
+            x0, y0 = int(round(x)), int(round(y))
+            x1, y1 = int(round(x + w)), int(round(y + h))
+            rgb = _TAB20_RGB[i % len(_TAB20_RGB)]
+            draw.rectangle([x0, y0, x1, y1], outline=rgb, width=max(2, int(round(min(out.size) / 400))))
+            cid = int(cats[i]) if i < len(cats) else 0
+            label = _names.get(cid, str(cid))
+            ty = max(0, y0 - 12)
+            if font is not None:
+                _bb = draw.textbbox((0, 0), label, font=font)
+                tw, th = _bb[2] - _bb[0], _bb[3] - _bb[1]
+            else:
+                tw, th = (len(label) * 6, 11)
+            draw.rectangle([x0, ty, x0 + tw + 4, ty + th + 2], fill=rgb)
+            draw.text((x0 + 2, ty + 1), label, fill=(255, 255, 255), font=font)
+        return out
+    except Exception:
+        return img
 
 
 def create_dataset(name: str, root: str, overwrite: bool = False) -> Tuple[Optional[Any], Optional[str]]:
@@ -99,7 +404,11 @@ def run_query(ds: Any, conditions: List[Tuple[str, str, Any]],
 
 def dataset_to_dataframe(ds: Any, tensor_list: Optional[List[str]] = None,
                          start: int = 0, end: Optional[int] = None) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
-    """Convert dataset (or view) to pandas DataFrame."""
+    """Convert dataset (or view) to pandas DataFrame.
+
+    Uses the sliced *view* for the fallback path so only ``end - start`` rows are
+    materialized (avoids loading entire tensors for pagination).
+    """
     try:
         if end is not None:
             view = ds[start:end]
@@ -109,23 +418,63 @@ def dataset_to_dataframe(ds: Any, tensor_list: Optional[List[str]] = None,
             view = ds
         df = view.to_dataframe(tensor_list=tensor_list)
         return df, None
-    except Exception as e:
-        # Fallback: manual conversion for filtered views that may not support to_dataframe
+    except Exception:
         try:
+            if end is not None:
+                view = ds[start:end]
+            elif start > 0:
+                view = ds[start:]
+            else:
+                view = ds
             if tensor_list is None:
-                tensor_list = list(ds.tensors.keys())
+                tensor_list = list(view.tensors.keys())
             data = {}
             for tname in tensor_list:
-                tensor = ds[tname]
+                tensor = view[tname]
                 vals = tensor.numpy(aslist=True)
-                if end is not None:
-                    vals = vals[start:end]
-                elif start > 0:
-                    vals = vals[start:]
                 data[tname] = vals
             return pd.DataFrame(data), None
         except Exception as e2:
             return None, f"Failed to convert to DataFrame: {e2}"
+
+
+def dataframe_for_streamlit_display(df: pd.DataFrame) -> pd.DataFrame:
+    """Make a DataFrame safe for ``st.dataframe`` (PyArrow round-trip).
+
+    Object columns with nested lists, multi-dimensional arrays, or other
+    non-scalar cells (e.g. COCO ``bbox``) otherwise raise ArrowInvalid.
+    """
+    if df is None or df.empty:
+        return df
+
+    def _cell(v: Any) -> Any:
+        if v is None:
+            return None
+        try:
+            if pd.isna(v) and not isinstance(v, (str, bytes)):
+                return None
+        except (TypeError, ValueError):
+            pass
+        if isinstance(v, (str, bytes)):
+            return v
+        if isinstance(v, (bool, int, float, np.integer, np.floating, np.bool_)):
+            return v
+        if isinstance(v, np.ndarray):
+            if v.ndim == 0 and v.dtype != object:
+                try:
+                    return v.item()
+                except Exception:
+                    return str(v)
+            return str(v)
+        if isinstance(v, (list, tuple, dict, set)):
+            return str(v)
+        return str(v)
+
+    out = df.copy()
+    for col in out.columns:
+        if out[col].dtype == object:
+            out[col] = out[col].map(_cell)
+    return out
 
 
 def branch_ops(ds: Any, action: str, branch_name: Optional[str] = None,

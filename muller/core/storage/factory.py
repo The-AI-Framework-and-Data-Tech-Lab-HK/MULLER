@@ -14,11 +14,9 @@ import os
 from typing import Optional, Union
 
 from muller.constants import MB
-from muller.core.storage.huawei_obs import OBSProvider
 from muller.core.storage.local import LocalProvider
 from muller.core.storage.memory import MemoryProvider
 from muller.core.storage.roma import RomaProvider
-from muller.core.storage.s3 import S3Provider
 from muller.core.storage.cache_chain import generate_chain
 
 
@@ -48,6 +46,8 @@ def storage_provider_from_path(
     if path.startswith("mem://"):
         storage = MemoryProvider(path)
     elif path.startswith("huawei-obs://"):
+        from muller.core.storage.huawei_obs import OBSProvider
+
         storage = OBSProvider(endpoint=creds.get("endpoint"),
                               ak=creds.get("ak"),
                               sk=creds.get("sk"),
@@ -62,6 +62,8 @@ def storage_provider_from_path(
                                root=path[len("roma://"):])
         storage.creds_used = "PLATFORM"
     elif path.startswith("s3://"):
+        from muller.core.storage.s3 import S3Provider
+
         storage = S3Provider(endpoint=creds.get("endpoint"),
                              ak=creds.get("ak"),
                              sk=creds.get("sk"),
