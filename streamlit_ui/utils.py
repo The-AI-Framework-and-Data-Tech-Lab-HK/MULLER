@@ -13,11 +13,111 @@ import muller
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from typing import Optional, List, Tuple, Dict, Any
+from typing import Optional, List, Tuple, Dict, Any, Callable
+import json
 import time
 import os
 import io
+import multiprocessing as _real_multiprocessing
+from multiprocessing.pool import ThreadPool as _ThreadPool
 import plotly.graph_objects as go
+
+from muller.util.exceptions import InvertedIndexNotExistsError, LockedException
+from muller.util.sensitive_config import SensitiveConfig
+from muller.core.auth.authorization import obtain_current_user as _obtain_current_user
+
+
+# ---------------------------------------------------------------------------
+# Current-user helpers (used by UI for multi-user demo + permission gating)
+# ---------------------------------------------------------------------------
+
+
+def current_user() -> str:
+    """Return MULLER's current process-global user (``SensitiveConfig().uid``).
+
+    This is the identity all permission checks (branch ownership, view
+    ownership, etc.) compare against. Default is ``"public"``.
+    """
+    try:
+        return _obtain_current_user() or "public"
+    except Exception:
+        return "public"
+
+
+def set_current_user(uid: str) -> str:
+    """Set the MULLER process-global current user.
+
+    Returns the value actually stored (falls back to ``"public"`` on empty).
+    Streamlit uses this to impersonate different engineers during the demo.
+    Because ``SensitiveConfig`` is a singleton tied to the Python process,
+    this affects every subsequent MULLER call in the same Streamlit session
+    (which is exactly what we want for multi-user storytelling).
+    """
+    value = (uid or "").strip() or "public"
+    try:
+        SensitiveConfig().uid = value
+    except Exception:
+        pass
+    return value
+
+
+# ---------------------------------------------------------------------------
+# MULLER process-pool compatibility shim for Streamlit (and any other host
+# whose __main__ is not importable, or whose process is multi-threaded).
+#
+# ``create_index_vectorized`` and ``optimize_index`` fan out their per-batch /
+# per-shard work through ``multiprocessing.Pool(...).apply_async(...)`` and
+# then ``pool.close(); pool.join()`` — they never call ``.get()`` on the
+# futures. Under macOS/Py3.8+ the default start method is ``spawn``, which
+# re-imports ``__main__`` in each worker; when running under ``streamlit run``
+# that ``__main__`` resolves to ``streamlit.web.cli`` (not our script), and the
+# worker either boot-loops Streamlit or dies before running ``_process_index``.
+# Either way no batch completion markers get written, ``check_index_completeness``
+# returns "unfinished", ``create_index`` returns False, ``_create_new_index``
+# only emits ``warnings.warn("Create index fails.")``, and meta.json is never
+# updated — the exact symptom our users hit ("did not complete").
+#
+# Switching to ``multiprocessing.pool.ThreadPool`` sidesteps the issue: threads
+# share the parent's address space (no pickling, no re-import of __main__), the
+# MULLER workers' Python-level tokenization plus storage writes are mostly
+# GIL-releasing I/O, and the indexing volumes in a demo UI are trivially small.
+# ---------------------------------------------------------------------------
+
+
+def _MullerThreadPoolShim(*args, **kwargs):
+    """Drop-in for ``multiprocessing.Pool`` that runs tasks in threads.
+
+    ``multiprocessing.Pool`` accepts ``maxtasksperchild``, which
+    ``ThreadPool`` does not; strip it so callers that pass it through
+    (MULLER does) don't blow up with ``TypeError``.
+    """
+    kwargs.pop("maxtasksperchild", None)
+    return _ThreadPool(*args, **kwargs)
+
+
+def _install_muller_pool_shim() -> None:
+    """Idempotently replace ``multiprocessing`` inside MULLER's index module.
+
+    We only touch the attribute lookup used inside
+    ``muller.core.query.inverted_index_vectorized`` — everything else in
+    MULLER continues to use the stdlib's real ``multiprocessing``.
+    """
+    from muller.core.query import inverted_index_vectorized as _iiv_mod
+
+    if getattr(_iiv_mod.multiprocessing, "_is_muller_ui_shim", False):
+        return
+
+    class _ShimModule:
+        _is_muller_ui_shim = True
+        Pool = staticmethod(_MullerThreadPoolShim)
+
+        def __getattr__(self, name):
+            return getattr(_real_multiprocessing, name)
+
+    _iiv_mod.multiprocessing = _ShimModule()
+
+
+_install_muller_pool_shim()
 
 try:
     from PIL import Image as PILImage
@@ -388,18 +488,152 @@ def delete_sample(ds: Any, index: int) -> Optional[str]:
         return f"Failed to delete sample: {e}"
 
 
+def _inverted_index_has_field(ds: Any, tensor_column: str) -> bool:
+    """Return True iff ``inverted_index_dir_vec/<branch>/meta.json`` has an
+    entry for ``tensor_column`` (the source of truth used by
+    ``filter_vectorized`` to decide whether an index exists)."""
+    branch = ds.version_state.get("branch", "main")
+    meta_path = os.path.join("inverted_index_dir_vec", branch, "meta.json")
+    try:
+        raw = ds.storage[meta_path]
+    except Exception:
+        return False
+    try:
+        meta = json.loads(raw.decode("utf-8") if isinstance(raw, (bytes, bytearray)) else raw)
+    except Exception:
+        return False
+    return isinstance(meta, dict) and tensor_column in meta
+
+
+def _try_make_writable(ds: Any) -> bool:
+    """Best-effort upgrade of a read-only Dataset to writable.
+
+    Returns True iff the dataset is writable after this call. Swallows the
+    LockedException that ``set_read_only(False, err=True)`` raises when the
+    write-lock is held elsewhere, so the caller can react with a clean error
+    message.
+    """
+    if not getattr(ds, "read_only", False):
+        return True
+    try:
+        ds.set_read_only(False, err=True)
+    except LockedException:
+        return False
+    except Exception:
+        return False
+    return not getattr(ds, "read_only", False)
+
+
+def ensure_inverted_index(
+    ds: Any,
+    tensor_column: str,
+    progress_cb: Optional[Callable[[str], None]] = None,
+) -> Optional[str]:
+    """Make sure a vectorized inverted index exists for ``tensor_column``.
+
+    - No-op if an entry already exists in the meta.json.
+    - Requires a writable dataset: ``create_index_vectorized`` spawns worker
+      subprocesses that write shard files through ``ds.storage[...] = ...``;
+      if the storage is read-only those writes raise ``ReadOnlyModeError``,
+      which ``_process_index`` catches and logs but does **not** re-raise, so
+      the top-level call appears to succeed while meta.json is never written.
+      We detect this up-front and report a clear, actionable error.
+    - Auto-commits pending changes first, because ``create_index_vectorized``
+      silently skips (only ``warnings.warn``) when ``ds.has_head_changes`` is True.
+    - Verifies via meta.json that the index was actually written, so any other
+      silent failure (empty tensor, unsupported htype, worker crash) surfaces
+      as an error string instead of pretending success.
+
+    Returns ``None`` on success; returns an error string on failure.
+    """
+    if _inverted_index_has_field(ds, tensor_column):
+        return None
+
+    if getattr(ds, "read_only", False) and not _try_make_writable(ds):
+        return (
+            f"Cannot create inverted index for '{tensor_column}': the dataset "
+            "is loaded in read-only mode (its write lock is held by another "
+            "MULLER process or a stale session). Please close any other "
+            "process that has this dataset open and re-load it here."
+        )
+
+    try:
+        if progress_cb is not None:
+            progress_cb(tensor_column)
+        if ds.has_head_changes:
+            ds.commit(message=f"Auto-commit before inverted index for '{tensor_column}'")
+        ds.create_index_vectorized(tensor_column)
+    except Exception as e:
+        return f"Failed to create inverted index for '{tensor_column}': {e}"
+
+    if not _inverted_index_has_field(ds, tensor_column):
+        return (
+            f"Inverted index creation for '{tensor_column}' did not complete "
+            "(no entry recorded in meta.json). Most common causes: (a) the "
+            "tensor is empty, (b) its htype/dtype is unsupported — CONTAINS "
+            "indexing requires htype `text`/`class_label` or dtype `int64`/"
+            "`float64`, (c) the dataset is read-only (check `ds.read_only`)."
+        )
+    return None
+
+
 def run_query(ds: Any, conditions: List[Tuple[str, str, Any]],
               connectors: Optional[List[str]] = None,
-              offset: int = 0, limit: Optional[int] = None) -> Tuple[Optional[Any], Optional[str]]:
-    """Run a filter query on the dataset."""
-    try:
-        kwargs = {"offset": offset, "limit": limit}
-        if connectors:
-            kwargs["connector_list"] = connectors
-        result = ds.filter_vectorized(conditions, **kwargs)
-        return result, None
-    except Exception as e:
-        return None, f"Query failed: {e}"
+              offset: int = 0, limit: Optional[int] = None,
+              auto_create_index: bool = True,
+              progress_cb: Optional[Callable[[str], None]] = None,
+              ) -> Tuple[Optional[Any], Optional[str]]:
+    """Run a filter query on the dataset.
+
+    When ``auto_create_index`` is True (default), a failure caused by a missing
+    inverted index on a ``CONTAINS`` field is transparently recovered by
+    building the index for that field and retrying the query. ``progress_cb``
+    is invoked as ``progress_cb(field_name)`` once per field just before its
+    index is built, so the caller can render progress.
+    """
+    kwargs = {"offset": offset, "limit": limit}
+    if connectors:
+        kwargs["connector_list"] = connectors
+
+    contains_fields = [c[0] for c in conditions if len(c) >= 2 and c[1] == "CONTAINS"]
+    handled: set = set()
+    # One retry per CONTAINS field (plus one slack) is enough: each retry
+    # clears exactly one missing index, and the loop exits as soon as
+    # filter_vectorized stops raising InvertedIndexNotExistsError.
+    max_attempts = len(contains_fields) + 2
+
+    for _ in range(max_attempts):
+        try:
+            result = ds.filter_vectorized(conditions, **kwargs)
+            return result, None
+        except InvertedIndexNotExistsError as e:
+            if not auto_create_index:
+                return None, f"Query failed: {e}"
+            # Find the next CONTAINS field that is missing from meta.json and
+            # that we have not already attempted. Prefer the tensor named in
+            # the exception message when available, to match the backend's view.
+            err_text = str(e)
+            ordered_candidates = sorted(
+                contains_fields,
+                key=lambda f: (f not in err_text, contains_fields.index(f)),
+            )
+            target = None
+            for field in ordered_candidates:
+                if field in handled:
+                    continue
+                if not _inverted_index_has_field(ds, field):
+                    target = field
+                    break
+            if target is None:
+                return None, f"Query failed: {e}"
+            handled.add(target)
+            build_err = ensure_inverted_index(ds, target, progress_cb=progress_cb)
+            if build_err:
+                return None, build_err
+        except Exception as e:
+            return None, f"Query failed: {e}"
+
+    return None, "Query failed: exceeded retry budget while auto-building inverted indexes."
 
 
 def dataset_to_dataframe(ds: Any, tensor_list: Optional[List[str]] = None,
@@ -489,6 +723,10 @@ def branch_ops(ds: Any, action: str, branch_name: Optional[str] = None,
             ds.checkout(branch_name)
             return f"Switched to branch '{branch_name}'", None
 
+        elif action == "delete":
+            ds.delete_branch(branch_name)
+            return f"Branch '{branch_name}' deleted", None
+
         elif action == "merge":
             strategy = merge_strategy or {}
             ds.merge(
@@ -522,6 +760,81 @@ def branch_ops(ds: Any, action: str, branch_name: Optional[str] = None,
 
     except Exception as e:
         return None, f"Branch operation failed: {e}"
+
+
+def classify_deletable_branches(ds: Any) -> Dict[str, Optional[str]]:
+    """For each branch, return None if deletable, else a short reason string.
+
+    Mirrors the constraints of ``muller.core.version_control.delete_branch``:
+      - cannot delete ``main``
+      - cannot delete the currently checked out branch
+      - cannot delete a branch that has sub-branches
+      - cannot delete a branch that has been merged into another branch
+
+    Returns a dict mapping branch_name -> reason (or None if deletable).
+    """
+    result: Dict[str, Optional[str]] = {}
+    try:
+        version_state = ds.version_state
+        commit_node_map = version_state.get("commit_node_map", {}) or {}
+        branch_commit_map = version_state.get("branch_commit_map", {}) or {}
+        current_branch = version_state.get("branch")
+    except Exception as e:
+        return {b: f"unavailable ({e})" for b in (ds.branches if hasattr(ds, "branches") else [])}
+
+    for bname in branch_commit_map.keys():
+        if bname == "main":
+            result[bname] = "cannot delete `main`"
+            continue
+        if bname == current_branch:
+            result[bname] = "currently checked out"
+            continue
+
+        head_id = branch_commit_map.get(bname)
+        head_node = commit_node_map.get(head_id) if head_id else None
+        if head_node is None:
+            # Branch pointer with no commit info — let backend decide; mark deletable.
+            result[bname] = None
+            continue
+
+        # Walk up parent chain while still on this branch; collect commit_ids.
+        all_commits = set()
+        has_subbranch = False
+        cur = head_node
+        try:
+            while cur is not None and getattr(cur, "branch", None) == bname:
+                all_commits.add(cur.commit_id)
+                for child in getattr(cur, "children", []) or []:
+                    if getattr(child, "commit_id", None) not in all_commits:
+                        has_subbranch = True
+                        break
+                if has_subbranch:
+                    break
+                cur = getattr(cur, "parent", None)
+        except Exception as e:
+            result[bname] = f"introspection failed ({e})"
+            continue
+
+        if has_subbranch:
+            result[bname] = "has sub-branches"
+            continue
+
+        # Has any other commit ever merged from this branch?
+        merged = False
+        for cid, node in commit_node_map.items():
+            if cid in all_commits:
+                continue
+            mp = getattr(node, "merge_parent", None)
+            if not mp:
+                continue
+            mp_id = mp if isinstance(mp, str) else getattr(mp, "commit_id", None)
+            if mp_id in all_commits:
+                merged = True
+                break
+
+        result[bname] = "already merged into another branch" if merged else None
+
+    return result
 
 
 def build_commit_graph_data(ds: Any) -> Dict[str, Any]:
@@ -1008,13 +1321,66 @@ def benchmark_parquet_vs_muller(ds: Any, query_conditions: List[Tuple[str, str, 
         return None, f"Benchmark failed: {e}"
 
 
-def load_dataset(path: str) -> Tuple[Optional[Any], Optional[str]]:
-    """Load an existing MULLER dataset."""
+def release_dataset_lock(ds: Any) -> None:
+    """Best-effort release of any write lock held by ``ds``.
+
+    Used before loading a new dataset into the same Streamlit session, so the
+    about-to-be-replaced ``ds`` does not block the new load from obtaining the
+    write lock on the same (or a previously held) path.
+    """
+    if ds is None:
+        return
+    try:
+        if not getattr(ds, "read_only", True):
+            ds.set_read_only(True, err=False)
+    except Exception:
+        pass
+
+
+def load_dataset(
+    path: str,
+    prefer_writable: bool = True,
+) -> Tuple[Optional[Any], Optional[str], Optional[str]]:
+    """Load an existing MULLER dataset.
+
+    Returns ``(ds, error, warning)``:
+    - On success with a writable session: ``warning`` is ``None``.
+    - On success with a read-only fallback (write lock unavailable): ``warning``
+      explains the limitation so the caller can surface it in the UI.
+    - On failure: ``(None, error, None)``.
+
+    Why ``prefer_writable=True`` by default:
+    Several operations the UI exposes (``create_index_vectorized`` in
+    particular) silently do nothing when the storage is read-only, because the
+    worker subprocesses swallow ``ReadOnlyModeError`` deep inside the library.
+    We therefore try to open writable first and only fall back to read-only
+    when the write lock really cannot be acquired, surfacing a clear warning.
+    """
+    if prefer_writable:
+        try:
+            ds = muller.load(path, read_only=False)
+            return ds, None, None
+        except LockedException:
+            pass
+        except Exception as e:
+            return None, f"Failed to load dataset: {e}", None
+
+        try:
+            ds = muller.load(path, read_only=True)
+        except Exception as e:
+            return None, f"Failed to load dataset: {e}", None
+        return ds, None, (
+            "Loaded in **read-only** mode: the dataset's write lock is held "
+            "elsewhere (another process, or a previous Streamlit session that "
+            "did not shut down cleanly). Writes, commits, and inverted-index "
+            "creation will be rejected. Close the other holder and reload."
+        )
+
     try:
         ds = muller.load(path)
-        return ds, None
     except Exception as e:
-        return None, f"Failed to load dataset: {e}"
+        return None, f"Failed to load dataset: {e}", None
+    return ds, None, None
 
 
 def commit_dataset(ds: Any, message: str = "Commit from Streamlit UI") -> Tuple[Optional[str], Optional[str]]:
@@ -1024,6 +1390,322 @@ def commit_dataset(ds: Any, message: str = "Commit from Streamlit UI") -> Tuple[
         return cid, None
     except Exception as e:
         return None, f"Commit failed: {e}"
+
+
+# ---------------------------------------------------------------------------
+# Vector search helpers
+# ---------------------------------------------------------------------------
+
+
+def _is_vector_like_htype(ht: Any) -> bool:
+    if ht is None:
+        return False
+    h = str(ht).lower()
+    return h in ("embedding", "vector")
+
+
+def list_vector_tensor_names(ds: Any) -> List[str]:
+    """Tensor names that can be used as vector-search targets.
+
+    Returns tensors whose declared ``htype`` is ``embedding``/``vector``, plus
+    any 1-D float tensor that *could* be treated as an embedding column.
+    The first group is preferred; callers may display them distinctly.
+    """
+    names: List[str] = []
+    for n, t in ds.tensors.items():
+        if _is_vector_like_htype(t.htype):
+            names.append(n)
+    return names
+
+
+def list_vector_indexes(ds: Any) -> Dict[str, List[str]]:
+    """List vector indexes already built for the dataset on the current branch.
+
+    The vector-index layout (see ``TensorVectorIndex._init_tensor_index``):
+        <ds.path>/_vector_index/<branch>/<tensor_key>/<index_name>/
+
+    Returns ``{tensor_name: [index_name, ...]}``. Empty dict if the
+    ``_vector_index`` directory does not exist yet.
+    """
+    out: Dict[str, List[str]] = {}
+    try:
+        base = Path(ds.path) / "_vector_index" / ds.branch
+    except Exception:
+        return out
+    if not base.exists() or not base.is_dir():
+        return out
+    try:
+        for tdir in base.iterdir():
+            if not tdir.is_dir():
+                continue
+            idx_names = [p.name for p in tdir.iterdir() if p.is_dir()]
+            if idx_names:
+                out[tdir.name] = sorted(idx_names)
+    except Exception:
+        pass
+    return out
+
+
+def parse_query_vector(text: str, expected_dim: Optional[int] = None) -> Tuple[Optional[np.ndarray], Optional[str]]:
+    """Parse comma/space/newline-separated floats into a 1-D float32 vector.
+
+    Returns ``(vector, error)``. If ``expected_dim`` is given, mismatched
+    length becomes an error instead of silent padding/truncation.
+    """
+    if text is None:
+        return None, "Empty query vector."
+    cleaned = text.strip().replace("\n", ",").replace("\t", ",")
+    if not cleaned:
+        return None, "Empty query vector."
+    # Allow either JSON-style "[1, 2, 3]" or plain "1 2 3" / "1,2,3".
+    if cleaned.startswith("[") and cleaned.endswith("]"):
+        cleaned = cleaned[1:-1]
+    parts = [p.strip() for p in cleaned.replace(" ", ",").split(",") if p.strip()]
+    if not parts:
+        return None, "Empty query vector."
+    try:
+        vec = np.array([float(p) for p in parts], dtype=np.float32)
+    except ValueError as e:
+        return None, f"Could not parse as floats: {e}"
+    if expected_dim is not None and vec.shape[0] != expected_dim:
+        return None, (
+            f"Dimension mismatch: got {vec.shape[0]} values, "
+            f"but tensor expects {expected_dim}."
+        )
+    return vec, None
+
+
+def tensor_embedding_dim(ds: Any, tensor_name: str) -> Optional[int]:
+    """Best-effort embedding dimension for ``tensor_name`` (for input validation)."""
+    try:
+        t = ds.tensors.get(tensor_name)
+        if t is None:
+            return None
+        shp = getattr(t, "shape", None)
+        if shp is None and hasattr(t, "shape_interval"):
+            shp = t.shape_interval  # may be an interval
+        try:
+            shp = tuple(shp)
+        except Exception:
+            return None
+        if len(shp) >= 2 and isinstance(shp[-1], (int, np.integer)) and shp[-1] > 0:
+            return int(shp[-1])
+    except Exception:
+        pass
+    return None
+
+
+def _uuids_to_positions(ds: Any, tensor_name: str, uuids: Any) -> List[int]:
+    """Map sample-uuid results from FAISS back to positional row indexes."""
+    t = ds.tensors.get(tensor_name)
+    if t is None:
+        return []
+    try:
+        all_uuids = t._sample_id_tensor.numpy().flatten()
+    except Exception:
+        return []
+    arr = np.asarray(uuids).reshape(-1)
+    positions: List[int] = []
+    for uid in arr:
+        try:
+            hit = np.where(all_uuids == uid)[0]
+            if hit.size:
+                positions.append(int(hit[0]))
+        except Exception:
+            continue
+    return positions
+
+
+def run_vector_search(
+    ds: Any,
+    tensor_name: str,
+    index_name: str,
+    query_vector: np.ndarray,
+    topk: int = 10,
+) -> Tuple[Optional[Any], Optional[List[int]], Optional[np.ndarray], Optional[str]]:
+    """Run KNN search against a pre-built vector index.
+
+    Returns ``(result_ds, positions, distances, error)``.
+    - ``result_ds``: a sub-dataset view of ``ds`` containing the top-k hits
+      (ordered by returned position, not re-sorted by distance — callers that
+      need a "closest first" ordering should use ``positions``+``distances``
+      directly).
+    - ``positions``: the 0-based row indexes in ``ds`` (monotonic after uuid→pos
+      lookup) so the view can be re-computed later / saved as a view.
+    - ``distances``: the raw FAISS distance array aligned with the uuids the
+      index returned, for display only.
+    """
+    try:
+        try:
+            ds.load_vector_index(tensor_name, index_name)
+        except Exception as e:
+            return None, None, None, (
+                f"Failed to load vector index '{index_name}' on "
+                f"'{tensor_name}': {e}"
+            )
+        qv = np.asarray(query_vector, dtype=np.float32).reshape(1, -1)
+        dist, ids = ds.vector_search(qv, tensor_name, index_name, topk=topk)
+        dist_arr = np.asarray(dist).reshape(-1)
+        id_arr = np.asarray(ids).reshape(-1)
+        # Drop FAISS sentinel values for "no neighbour" (-1).
+        keep = id_arr != -1
+        id_arr = id_arr[keep]
+        dist_arr = dist_arr[keep] if dist_arr.shape[0] == keep.shape[0] else dist_arr
+        positions = _uuids_to_positions(ds, tensor_name, id_arr)
+        if not positions:
+            # Fall back to interpreting ids as positional indexes (some index
+            # backends might already return positions).
+            try:
+                maybe_pos = [int(x) for x in id_arr.tolist() if 0 <= int(x) < len(ds)]
+                if maybe_pos:
+                    positions = maybe_pos
+            except Exception:
+                pass
+        if not positions:
+            return None, [], dist_arr, (
+                "Vector search returned 0 hits (or IDs could not be resolved "
+                "to dataset rows). Try a different query vector, or rebuild "
+                "the index on the current branch."
+            )
+        # ``ds[positions]`` gives us a sub-view we can display + save as a view.
+        result_ds = ds[sorted(positions)]
+        return result_ds, positions, dist_arr, None
+    except Exception as e:
+        return None, None, None, f"Vector search failed: {e}"
+
+
+def ensure_vector_index(
+    ds: Any,
+    tensor_name: str,
+    index_name: str,
+    index_type: str = "FLAT",
+    metric: str = "l2",
+) -> Optional[str]:
+    """Create a vector index on-the-fly if it does not exist yet.
+
+    Returns ``None`` on success, or an error string. Auto-commits pending
+    changes first (``create_vector_index`` silently skips when
+    ``ds.has_head_changes``).
+    """
+    _existing = list_vector_indexes(ds)
+    if index_name in _existing.get(tensor_name, []):
+        return None
+    if getattr(ds, "read_only", False) and not _try_make_writable(ds):
+        return (
+            f"Cannot create vector index '{index_name}' on '{tensor_name}': "
+            "dataset is read-only."
+        )
+    try:
+        if ds.has_head_changes:
+            ds.commit(message=f"Auto-commit before building vector index '{index_name}'")
+        ds.create_vector_index(tensor_name, index_name, index_type=index_type, metric=metric)
+    except Exception as e:
+        return f"Failed to create vector index: {e}"
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Saved-view helpers
+# ---------------------------------------------------------------------------
+
+
+def save_query_view(
+    ds_or_view: Any,
+    view_id: str,
+    message: Optional[str] = None,
+) -> Tuple[Optional[str], Optional[str]]:
+    """Persist a sub-dataset / filtered view into the parent dataset's
+    ``.queries/`` store under a user-chosen ``view_id``.
+
+    ``ds_or_view`` is expected to be either the parent dataset or a sub-view
+    returned by ``filter_vectorized`` / ``ds[positions]``. Both expose
+    ``save_view(view_id=...)`` and persist the view inside the *source*
+    dataset's storage.
+
+    Returns ``(vds_path, error)``. Typical errors: empty ``view_id``, uncommitted
+    parent, duplicate id, read-only dataset.
+    """
+    vid = (view_id or "").strip()
+    if not vid:
+        return None, "View ID must be a non-empty string."
+    try:
+        vds_path = ds_or_view.save_view(message=message or None, view_id=vid)
+        return str(vds_path), None
+    except Exception as e:
+        return None, f"Failed to save view '{vid}': {e}"
+
+
+def list_saved_views(ds: Any) -> Tuple[List[Dict[str, Any]], Optional[str]]:
+    """Return a simple list-of-dicts snapshot of saved views for display.
+
+    Fields: ``id``, ``message``, ``owner`` (creator uid, from view info),
+    ``commit_id`` (short), ``virtual``. Errors are returned so the UI can
+    surface them without crashing.
+
+    The ``owner`` field is what permission checks compare against: a view
+    can only be deleted by its owner (or dataset creator in admin mode), and
+    UI elements for write-style interactions should be gated accordingly.
+    """
+    try:
+        entries = ds.get_views()
+    except Exception as e:
+        return [], f"Failed to list views: {e}"
+    rows: List[Dict[str, Any]] = []
+    for ve in entries:
+        try:
+            rows.append({
+                "id": ve.id,
+                "message": ve.message or "",
+                "owner": str(ve.get("uid") or "") or "-",
+                "commit_id": (ve.commit_id or "")[:8],
+                "virtual": bool(ve.virtual),
+            })
+        except Exception:
+            continue
+    return rows, None
+
+
+def get_view_entry(ds: Any, view_id: str) -> Tuple[Optional[Any], Optional[str]]:
+    """Return the raw ``ViewEntry`` for ``view_id`` (for origin-card display)."""
+    vid = (view_id or "").strip()
+    if not vid:
+        return None, "View ID must be a non-empty string."
+    try:
+        return ds.get_view(vid), None
+    except KeyError:
+        return None, f"No view with id '{vid}' was found in this dataset."
+    except Exception as e:
+        return None, f"Failed to get view '{vid}': {e}"
+
+
+def load_saved_view(ds: Any, view_id: str) -> Tuple[Optional[Any], Optional[Any], Optional[str]]:
+    """Load a view by id. Returns ``(view_ds, view_entry, error)``.
+
+    ``view_ds`` is a **read-only** sub-dataset (that is MULLER's default for
+    ``load_view``). ``view_entry`` is the raw ViewEntry so the UI can render
+    the view's origin metadata (owner, source commit, original query).
+    """
+    entry, err = get_view_entry(ds, view_id)
+    if err:
+        return None, None, err
+    try:
+        return entry.load(), entry, None
+    except Exception as e:
+        return None, None, f"Failed to load view '{view_id}': {e}"
+
+
+def delete_saved_view(ds: Any, view_id: str) -> Optional[str]:
+    """Delete a view by id. Returns ``None`` on success or an error string."""
+    vid = (view_id or "").strip()
+    if not vid:
+        return "View ID must be a non-empty string."
+    try:
+        ds.delete_view(vid)
+        return None
+    except KeyError:
+        return f"No view with id '{vid}' was found in this dataset."
+    except Exception as e:
+        return f"Failed to delete view '{vid}': {e}"
 
 
 def get_dataset_info(ds: Any) -> Dict[str, Any]:

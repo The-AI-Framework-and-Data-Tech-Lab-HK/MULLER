@@ -35,8 +35,13 @@ from utils import (
     is_coco2017_muller_schema, load_coco_category_id_to_name,
     pil_overlay_coco_bboxes, DEFAULT_COCO_INSTANCES_JSON,
     branch_ops, benchmark_parquet_vs_muller,
-    load_dataset, commit_dataset, get_dataset_info,
+    load_dataset, release_dataset_lock, commit_dataset, get_dataset_info,
     build_commit_graph_data, render_commit_graph_html,
+    classify_deletable_branches,
+    list_vector_tensor_names, list_vector_indexes, parse_query_vector,
+    run_vector_search, ensure_vector_index, tensor_embedding_dim,
+    save_query_view, list_saved_views, load_saved_view, delete_saved_view,
+    get_view_entry, current_user, set_current_user,
 )
 import streamlit.components.v1 as components
 import pandas as pd
@@ -82,9 +87,11 @@ def _dm_coco_thumb_page_delta(delta: int, max_page: int) -> None:
 def _ensure_dataset():
     """Reload the dataset object from path if it was lost across reruns."""
     if st.session_state.dataset is None and st.session_state.dataset_path:
-        ds, err = load_dataset(st.session_state.dataset_path)
+        ds, err, warn = load_dataset(st.session_state.dataset_path)
         if err is None:
             st.session_state.dataset = ds
+            if warn:
+                st.session_state["_load_warning"] = warn
 
 
 _ensure_dataset()
@@ -115,6 +122,26 @@ _dm_fullres_dialog = (
 st.sidebar.title("🗄️ MULLER Demo")
 st.sidebar.markdown("**Multimodal Data Lake with Git-like Versioning**")
 
+# -- Current user (for multi-user / permission demos) -----------------------
+# SensitiveConfig is a process singleton, so setting it here affects every
+# subsequent MULLER call in this Streamlit process — exactly the semantics we
+# need to act as different engineers within a single demo session.
+_cur_user = current_user()
+_user_input = st.sidebar.text_input(
+    "👤 Current user",
+    value=_cur_user,
+    key="current_user_input",
+    help="MULLER permission checks (branch ownership, delete_view, …) "
+    "compare against this uid. Change it here to impersonate another engineer "
+    "and exercise the permission model.",
+)
+if _user_input.strip() and _user_input.strip() != _cur_user:
+    new_uid = set_current_user(_user_input)
+    st.sidebar.success(f"Acting as `{new_uid}`.")
+    st.rerun()
+
+st.sidebar.markdown("---")
+
 page = st.sidebar.radio(
     "Navigation",
     ["📊 Dataset Management", "🔍 Query & Search",
@@ -128,6 +155,13 @@ if st.session_state.dataset is not None:
     st.sidebar.info(f"Branch: `{info.get('branch', '?')}`")
     if info.get("has_uncommitted"):
         st.sidebar.warning("Uncommitted changes")
+    # Surface read-only fallback prominently: it silently blocks commits,
+    # inverted-index creation, and most write paths.
+    if getattr(st.session_state.dataset, "read_only", False):
+        st.sidebar.error(
+            "Read-only mode — write lock unavailable. "
+            "Close other holders and reload."
+        )
 else:
     st.sidebar.warning("No dataset loaded")
 
@@ -273,14 +307,23 @@ if page == "📊 Dataset Management":
                 if not load_path:
                     st.error("Please enter a path")
                 else:
-                    ds, error = load_dataset(load_path)
+                    # Release the previous dataset's write lock first; otherwise
+                    # re-loading the same path in the same Streamlit session
+                    # races itself for the lock and falls back to read-only.
+                    release_dataset_lock(st.session_state.dataset)
+                    st.session_state.dataset = None
+
+                    ds, error, warn = load_dataset(load_path)
                     if error:
                         st.error(error)
                     else:
                         st.session_state.dataset = ds
                         st.session_state.dataset_path = load_path
                         st.session_state.current_branch = ds.branch
+                        st.session_state["_load_warning"] = warn  # may be None
                         st.success(f"Dataset loaded from: {load_path}")
+                        if warn:
+                            st.warning(warn)
                         st.rerun()
 
     # --- Tab 2: View & Edit ---
@@ -995,12 +1038,134 @@ elif page == "🔍 Query & Search":
         ds = st.session_state.dataset
         tensor_names = list(ds.tensors.keys())
 
-        tab_filter, tab_vector = st.tabs(["Conditional Filtering", "Vector Search"])
+        # Result of the most recent query/view load lives across reruns so the
+        # user can scroll, tweak display options, and then save it as a view
+        # without losing it. Invalidated whenever the dataset identity changes.
+        _qs_ctx = (st.session_state.get("dataset_path"), ds.branch, len(ds))
+        if st.session_state.get("_qs_result_ctx") != _qs_ctx:
+            st.session_state["_qs_result_ctx"] = _qs_ctx
+            st.session_state["qs_result_ds"] = None
+            st.session_state["qs_result_desc"] = None
+            st.session_state["qs_result_meta"] = None
 
-        with tab_filter:
+        # ── Saved views (expander at top) ──────────────────────────────────
+        _me = current_user()
+        with st.expander(f"📁 Saved Views · you are `{_me}`", expanded=False):
+            col_refresh, _ = st.columns([1, 6])
+            with col_refresh:
+                if st.button("Refresh", key="qs_views_refresh"):
+                    st.rerun()
+            view_rows, view_err = list_saved_views(ds)
+            if view_err:
+                st.error(view_err)
+            if view_rows:
+                # Decorate each row so the table makes ownership obvious at a glance.
+                _display_rows = [
+                    {
+                        "owner": f"👤 you ({r['owner']})" if r["owner"] == _me
+                        else f"{r['owner']} (read-only)",
+                        "id": r["id"],
+                        "message": r["message"],
+                        "commit": r["commit_id"],
+                        "virtual": r["virtual"],
+                    }
+                    for r in view_rows
+                ]
+                st.dataframe(pd.DataFrame(_display_rows), width="stretch", hide_index=True)
+            else:
+                st.caption("No views saved yet. Run a query below and save the result.")
+
+            # owner_of[view_id] → owner uid, so the Delete button can gate itself.
+            owner_of = {r["id"]: r["owner"] for r in view_rows}
+            existing_ids = list(owner_of.keys())
+
+            col_sel, col_input = st.columns(2)
+            with col_sel:
+                picked = st.selectbox(
+                    "Pick from saved views",
+                    options=["(type an ID instead)"] + existing_ids,
+                    key="qs_view_pick",
+                )
+            with col_input:
+                typed = st.text_input(
+                    "…or type a view ID",
+                    key="qs_view_typed",
+                    help="Takes precedence over the dropdown when non-empty.",
+                )
+            target_vid = typed.strip() or (picked if picked != "(type an ID instead)" else "")
+            _target_owner = owner_of.get(target_vid) if target_vid else None
+            _is_mine = (_target_owner == _me) if _target_owner else False
+
+            col_load, col_del = st.columns(2)
+            with col_load:
+                if st.button("Load View", type="primary", key="qs_view_load",
+                             disabled=(not target_vid)):
+                    view_ds, view_entry, err = load_saved_view(ds, target_vid)
+                    if err:
+                        st.error(err)
+                    else:
+                        st.session_state["qs_result_ds"] = view_ds
+                        st.session_state["qs_result_desc"] = (
+                            f"View `{target_vid}` (length = {len(view_ds)})"
+                        )
+                        _owner = str(view_entry.get("uid") or "-") if view_entry else "-"
+                        st.session_state["qs_result_meta"] = {
+                            "source": "view",
+                            "view_id": target_vid,
+                            "owner": _owner,
+                            "is_mine": _owner == _me,
+                            "source_commit": getattr(view_entry, "commit_id", "") or "",
+                            "message": getattr(view_entry, "message", "") or "",
+                            "query": getattr(view_entry, "query", None),
+                            "tql_query": getattr(view_entry, "tql_query", None),
+                        }
+                        st.rerun()
+            with col_del:
+                # Owner-only: the backend would raise UnAuthorizationError for
+                # non-owners anyway; gating here avoids a scary stack trace
+                # during the live demo and makes the rule visually obvious.
+                _can_delete = bool(target_vid) and _is_mine
+                _del_help = None
+                if target_vid and not _is_mine:
+                    _del_help = (
+                        f"View `{target_vid}` is owned by `{_target_owner}`. "
+                        "Only its owner can delete it."
+                    )
+                _confirm_del = st.checkbox(
+                    f"Confirm delete `{target_vid}`" if target_vid else "Confirm delete",
+                    key="qs_view_del_confirm",
+                    disabled=not _can_delete,
+                    help=_del_help,
+                )
+                if st.button("Delete View", key="qs_view_delete",
+                             disabled=not _can_delete, help=_del_help):
+                    if not _confirm_del:
+                        st.warning("Please tick the confirmation box before deleting.")
+                    else:
+                        err = delete_saved_view(ds, target_vid)
+                        if err:
+                            st.error(err)
+                        else:
+                            st.success(f"Deleted view '{target_vid}'.")
+                            st.rerun()
+                if target_vid and not _is_mine:
+                    st.caption(f"🔒 Owned by `{_target_owner}` — read-only to you.")
+
+        st.markdown("---")
+
+        # ── Mode switch: a single unified "Run Query" form ─────────────────
+        mode = st.radio(
+            "Query mode",
+            ["Conditional filter", "Vector search"],
+            key="qs_mode",
+            horizontal=True,
+            help="Pick one approach per run. The two modes share the result "
+            "pane below and the 'Save as view' step.",
+        )
+
+        if mode == "Conditional filter":
             st.subheader("Conditional Filtering")
 
-            # Dynamic condition list tracked by unique IDs
             if "filter_cond_ids" not in st.session_state:
                 st.session_state.filter_cond_ids = [0]
                 st.session_state.filter_next_id = 1
@@ -1033,7 +1198,6 @@ elif page == "🔍 Query & Search":
                                         label_visibility="collapsed" if pos > 0 else "visible")
                 with c_btn:
                     if pos == 0:
-                        # Spacer to align with label row, then ＋ button
                         st.markdown("<div style='height:29px'></div>", unsafe_allow_html=True)
                         if st.button("＋", key="add_cond", help="Add condition"):
                             new_id = st.session_state.filter_next_id
@@ -1047,8 +1211,7 @@ elif page == "🔍 Query & Search":
 
                 conditions.append((field, op, val))
 
-            if st.button("Run Query", type="primary"):
-                # Parse values
+            if st.button("Run Query", type="primary", key="qs_run_filter"):
                 parsed_conds = []
                 for field, op, val in conditions:
                     if op in (">", "<", ">=", "<="):
@@ -1064,46 +1227,358 @@ elif page == "🔍 Query & Search":
                             pass
                     parsed_conds.append((field, op, val))
 
-                # Auto-create inverted index for CONTAINS queries if missing
-                for field, op, val in parsed_conds:
-                    if op == "CONTAINS":
-                        branch = ds.version_state["branch"]
-                        meta_path = f"inverted_index_dir_vec/{branch}/meta.json"
-                        has_index = False
-                        try:
-                            import json as _json
-                            meta = _json.loads(ds.storage[meta_path].decode("utf-8"))
-                            has_index = field in meta
-                        except KeyError:
-                            pass
-                        if not has_index:
-                            with st.spinner(f"Creating inverted index for '{field}'..."):
-                                if ds.has_head_changes:
-                                    ds.commit(message="Auto-commit before index creation")
-                                ds.create_index_vectorized(field)
+                def _idx_progress(field: str) -> None:
+                    st.info(
+                        f"No inverted index found for `{field}` — building it "
+                        "now (one-time cost; reused on later CONTAINS queries)."
+                    )
 
-                result_ds, err = run_query(ds, parsed_conds, connectors if connectors else None)
+                with st.spinner("Running query..."):
+                    result_ds, err = run_query(
+                        ds,
+                        parsed_conds,
+                        connectors if connectors else None,
+                        progress_cb=_idx_progress,
+                    )
                 if err:
                     st.error(err)
                 else:
                     n_results = len(result_ds)
-                    st.success(f"Found {n_results} matching samples")
-                    if n_results > 0:
-                        df, _ = dataset_to_dataframe(result_ds, end=min(n_results, 200))
-                        if df is not None:
-                            st.dataframe(dataframe_for_streamlit_display(df), width="stretch")
+                    st.session_state["qs_result_ds"] = result_ds
+                    st.session_state["qs_result_desc"] = (
+                        f"Conditional filter → {n_results} matching samples"
+                    )
+                    st.session_state["qs_result_meta"] = {
+                        "source": "filter",
+                        "conditions": parsed_conds,
+                        "connectors": list(connectors),
+                    }
 
-        with tab_vector:
+        else:  # Vector search
             st.subheader("Vector Similarity Search")
-            st.info("Vector search requires an embeddings tensor with a vector index.")
-            st.markdown("""
-            **How to use:**
-            1. Create a tensor with `htype='embedding'`
-            2. Build a vector index with `ds.create_index()`
-            3. Query with `ds.query(tensor_name, query_vector)`
 
-            *This feature requires pre-computed embeddings.*
-            """)
+            vec_tensors = list_vector_tensor_names(ds)
+            idx_map = list_vector_indexes(ds)
+
+            if not vec_tensors and not idx_map:
+                st.info(
+                    "No `embedding`/`vector` tensor declared on this dataset. "
+                    "Add one with `htype='embedding'` (float32), populate it, "
+                    "then build an index via `ds.create_vector_index(...)`."
+                )
+            else:
+                # Allow choosing any tensor that *has* an index, even if its
+                # declared htype is not literally 'embedding' — so users with
+                # generic float tensors + an index are not blocked.
+                selectable = sorted(set(vec_tensors) | set(idx_map.keys()))
+                col_t, col_i, col_k = st.columns([2, 2, 1])
+                with col_t:
+                    v_tensor = st.selectbox(
+                        "Embedding tensor", selectable, key="qs_vec_tensor"
+                    )
+                indexes_for_tensor = idx_map.get(v_tensor, [])
+                with col_i:
+                    if indexes_for_tensor:
+                        v_index = st.selectbox(
+                            "Vector index", indexes_for_tensor, key="qs_vec_index"
+                        )
+                    else:
+                        v_index = st.text_input(
+                            "Vector index (will be created)",
+                            value="demo_flat",
+                            key="qs_vec_index_new",
+                            help="No existing index on this tensor; one will be "
+                            "built on the current commit when you run the search.",
+                        )
+                with col_k:
+                    topk = st.number_input(
+                        "top-k", min_value=1, max_value=1000, value=10, step=1,
+                        key="qs_vec_topk",
+                    )
+
+                dim = tensor_embedding_dim(ds, v_tensor)
+                qv_help = (
+                    f"Comma/space-separated floats. Expected dimension: {dim}"
+                    if dim else "Comma/space-separated floats."
+                )
+                qv_text = st.text_area(
+                    "Query vector", key="qs_vec_text", height=100, help=qv_help,
+                    placeholder="e.g. 0.12, -0.03, 0.88, ..." if not dim else
+                    ", ".join(["0.0"] * min(int(dim), 8)) + (", ..." if dim and dim > 8 else ""),
+                )
+
+                col_metric, col_type = st.columns(2)
+                with col_metric:
+                    metric = st.selectbox("Metric", ["l2", "cosine", "ip"], key="qs_vec_metric",
+                                          disabled=bool(indexes_for_tensor),
+                                          help="Ignored when reusing an existing index "
+                                          "(that index was built with its own metric).")
+                with col_type:
+                    index_type = st.selectbox("Index type", ["FLAT", "IVF", "IVFPQ"],
+                                              key="qs_vec_idx_type",
+                                              disabled=bool(indexes_for_tensor),
+                                              help="Used only when creating a new index.")
+
+                if st.button("Run Vector Search", type="primary", key="qs_run_vec"):
+                    qvec, perr = parse_query_vector(qv_text, expected_dim=dim)
+                    if perr:
+                        st.error(perr)
+                    else:
+                        if not indexes_for_tensor:
+                            with st.spinner(
+                                f"Building vector index '{v_index}' on '{v_tensor}'…"
+                            ):
+                                ierr = ensure_vector_index(
+                                    ds, v_tensor, v_index,
+                                    index_type=index_type, metric=metric,
+                                )
+                            if ierr:
+                                st.error(ierr)
+                                st.stop()
+                        with st.spinner("Searching…"):
+                            result_ds, positions, dists, verr = run_vector_search(
+                                ds, v_tensor, v_index, qvec, topk=int(topk),
+                            )
+                        if verr:
+                            st.error(verr)
+                        else:
+                            n_hits = len(result_ds) if result_ds is not None else 0
+                            st.session_state["qs_result_ds"] = result_ds
+                            st.session_state["qs_result_desc"] = (
+                                f"Vector search on `{v_tensor}` (index `{v_index}`, "
+                                f"top-{int(topk)}) → {n_hits} hits"
+                            )
+                            st.session_state["qs_result_meta"] = {
+                                "source": "vector",
+                                "tensor": v_tensor,
+                                "index": v_index,
+                                "topk": int(topk),
+                                "positions": list(positions or []),
+                                "distances": dists.tolist() if dists is not None else [],
+                            }
+
+        # ── Shared result pane ─────────────────────────────────────────────
+        st.markdown("---")
+        result_ds = st.session_state.get("qs_result_ds")
+        result_desc = st.session_state.get("qs_result_desc")
+        result_meta = st.session_state.get("qs_result_meta") or {}
+
+        if result_ds is None:
+            st.caption("No active query result. Run a query above, or load a saved view.")
+        else:
+            n_results = len(result_ds)
+
+            # ── Origin card for loaded views ─────────────────────────────
+            # Views are the collaboration handoff primitive: seeing *who*
+            # created the view and *what question* they asked is what turns
+            # an opaque sample list into actionable context.
+            if result_meta.get("source") == "view":
+                _vid = result_meta.get("view_id", "")
+                _owner = result_meta.get("owner", "-")
+                _is_mine = bool(result_meta.get("is_mine"))
+                _source_commit = (result_meta.get("source_commit") or "")[:8]
+                _msg = result_meta.get("message") or ""
+                _query = result_meta.get("query") or result_meta.get("tql_query") or ""
+
+                if _is_mine:
+                    _owner_badge = f"👤 **you** (`{_owner}`) · editable"
+                else:
+                    _owner_badge = f"🔒 **read-only** · owned by `{_owner}`"
+
+                st.markdown(
+                    f"### 📁 View `{_vid}`  \n{_owner_badge}"
+                )
+                meta_cols = st.columns(3)
+                meta_cols[0].metric("Samples", n_results)
+                meta_cols[1].metric("Source commit", _source_commit or "—")
+                meta_cols[2].metric("Virtual", "yes" if result_meta.get("virtual", True) else "no")
+
+                if _msg:
+                    st.caption(f"**Message:** {_msg}")
+                if _query:
+                    st.markdown("**Original query:**")
+                    st.code(_query, language="text")
+                else:
+                    st.caption(
+                        "_No query string recorded — this view was saved from "
+                        "a programmatic sub-view rather than a filter._"
+                    )
+                st.markdown("")
+            else:
+                st.success(result_desc or f"{n_results} samples in current result")
+
+            # Vector-search hit list
+            if result_meta.get("source") == "vector" and result_meta.get("positions"):
+                pos = result_meta["positions"]
+                dists = result_meta.get("distances", [])
+                if len(dists) == len(pos):
+                    hits_df = pd.DataFrame({
+                        "rank": list(range(1, len(pos) + 1)),
+                        "sample_idx": pos,
+                        "distance": dists,
+                    })
+                else:
+                    hits_df = pd.DataFrame({
+                        "rank": list(range(1, len(pos) + 1)),
+                        "sample_idx": pos,
+                    })
+                with st.expander("Nearest-neighbor hit list", expanded=False):
+                    st.dataframe(hits_df, width="stretch", hide_index=True)
+
+            # ── Image grid inspector ─────────────────────────────────────
+            # Mostly matters for loaded views (engineer wants to visually
+            # confirm what Alice's query produced before reusing it), but we
+            # make it available for any image-bearing result.
+            img_tensors_r = list_image_tensor_names(result_ds) if n_results > 0 else []
+            if img_tensors_r:
+                if not pil_preview_available():
+                    st.info(
+                        "Install **Pillow** (`pip install pillow`) to enable "
+                        "the image grid preview."
+                    )
+                else:
+                    with st.expander("🖼️ Inspect images", expanded=(result_meta.get("source") == "view")):
+                        preview_col = (
+                            img_tensors_r[0]
+                            if len(img_tensors_r) == 1
+                            else st.selectbox(
+                                "Image column", img_tensors_r, key="qs_view_img_col"
+                            )
+                        )
+
+                        # COCO overlay support — only bother auto-detecting on
+                        # datasets that obviously follow that schema.
+                        _is_coco = is_coco2017_muller_schema(result_ds)
+                        _coco_cat_map = None
+                        _coco_overlay = False
+                        if _is_coco:
+                            _coco_overlay = st.checkbox(
+                                "Overlay bounding boxes & labels",
+                                value=True, key="qs_view_coco_overlay",
+                            )
+                            if _coco_overlay:
+                                _ann = st.text_input(
+                                    "COCO instances JSON (for category names)",
+                                    value=DEFAULT_COCO_INSTANCES_JSON,
+                                    key="qs_view_coco_ann",
+                                )
+                                if _ann.strip():
+                                    _coco_cat_map, _cerr = load_coco_category_id_to_name(_ann.strip())
+                                    if _cerr:
+                                        st.warning(_cerr)
+
+                        per_page = 12
+                        total_pages = max(1, (n_results + per_page - 1) // per_page)
+                        grid_page = st.number_input(
+                            "Page", min_value=1, max_value=total_pages, step=1,
+                            key="qs_view_grid_page",
+                        )
+                        lo = (int(grid_page) - 1) * per_page
+                        hi = min(lo + per_page, n_results)
+                        st.caption(
+                            f"Showing samples **{lo + 1}–{hi}** of **{n_results}** · "
+                            f"page **{int(grid_page)}** / **{total_pages}**"
+                        )
+                        try:
+                            _chunk = result_ds[lo:hi]
+                            _raw_imgs = list(_chunk[preview_col].numpy(aslist=True))
+                        except Exception as _e:
+                            st.warning(f"Could not load images: {_e}")
+                            _raw_imgs = []
+
+                        if _raw_imgs:
+                            cols_per_row = 4
+                            for row_start in range(0, len(_raw_imgs), cols_per_row):
+                                row_cells = st.columns(cols_per_row)
+                                for j, cell in enumerate(row_cells):
+                                    k = row_start + j
+                                    if k >= len(_raw_imgs):
+                                        continue
+                                    with cell:
+                                        _pil = decode_muller_image_sample(_raw_imgs[k])
+                                        if _pil is not None and _coco_overlay and _is_coco:
+                                            try:
+                                                _bb = _chunk.bbox[k].numpy(aslist=True)
+                                                _cid = _chunk.category_id[k].numpy(aslist=True)
+                                                _pil = pil_overlay_coco_bboxes(
+                                                    _pil, _bb, _cid, _coco_cat_map
+                                                )
+                                            except Exception:
+                                                pass
+                                        _thumb = (
+                                            pil_square_thumbnail(_pil, 180)
+                                            if _pil is not None else None
+                                        )
+                                        if _thumb is not None:
+                                            st.image(_thumb)
+                                        else:
+                                            st.caption("_(decode failed)_")
+                                        st.caption(f"**#{lo + k}**")
+                                        if _pil is not None and _dm_fullres_dialog is not None:
+                                            _key = f"qs_view_fs_{lo + k}"
+                                            if st.button(
+                                                "Full size", key=_key,
+                                                help="Open at native resolution",
+                                            ):
+                                                st.session_state["dm_fullres_pil"] = _pil.copy()
+                                                st.session_state["dm_fullres_caption"] = (
+                                                    f"Sample index **{lo + k}** (full resolution)"
+                                                )
+                                                _dm_fullres_dialog()
+
+            # Tabular preview
+            if n_results > 0:
+                with st.expander("📊 Table preview", expanded=(not bool(img_tensors_r))):
+                    df, derr = dataset_to_dataframe(result_ds, end=min(n_results, 200))
+                    if derr:
+                        st.error(derr)
+                    elif df is not None:
+                        st.dataframe(dataframe_for_streamlit_display(df), width="stretch")
+
+            # Save as view
+            with st.expander("💾 Save result as view", expanded=False):
+                # Note on semantics: even if the active result came from a
+                # read-only borrow of another engineer's view, saving it here
+                # creates a NEW view owned by the current user (``uid`` comes
+                # from ``obtain_current_user()`` inside MULLER's save_view).
+                # This is the collaboration handoff: "I reuse Alice's query
+                # result as my starting point, and snapshot it as my own view."
+                if result_meta.get("source") == "view" and not result_meta.get("is_mine"):
+                    st.caption(
+                        f"ℹ️ This result was loaded from `{result_meta.get('owner', '-')}`'s view. "
+                        "Saving here creates a **new** view owned by "
+                        f"`{current_user()}`."
+                    )
+                _default_vid = ""
+                if result_meta.get("source") == "view" and result_meta.get("is_mine"):
+                    # Only pre-fill when the active view is already ours —
+                    # otherwise we'd invite the user to stomp on a foreign id.
+                    _default_vid = str(result_meta.get("view_id", ""))
+                new_vid = st.text_input(
+                    "View ID", value=_default_vid, key="qs_save_vid",
+                    help="Required. Letters/numbers/underscore recommended; "
+                    "must be unique within this dataset.",
+                )
+                new_msg = st.text_input(
+                    "Message (optional)", value=result_desc or "",
+                    key="qs_save_msg",
+                )
+                if st.button("Save as View", type="primary", key="qs_save_btn"):
+                    vid_clean = new_vid.strip()
+                    if not vid_clean:
+                        st.error("Please enter a non-empty view ID.")
+                    else:
+                        path, serr = save_query_view(
+                            result_ds, view_id=vid_clean, message=new_msg or None
+                        )
+                        if serr:
+                            st.error(serr)
+                        else:
+                            st.success(
+                                f"Saved view `{vid_clean}` "
+                                f"({n_results} samples). Stored at: `{path}`"
+                            )
+                            st.rerun()
 
 
 # ============================================================================
@@ -1117,201 +1592,232 @@ elif page == "🌿 Version Control":
     else:
         ds = st.session_state.dataset
 
-        tab_branch, tab_merge = st.tabs(["Branches", "Merge & Conflicts"])
-
         # --- Branches ---
-        with tab_branch:
-            st.subheader("Branch Management")
+        st.subheader("Branch Management")
 
-            branches, err = branch_ops(ds, "list")
-            if err:
-                st.error(err)
-                st.stop()
+        branches, err = branch_ops(ds, "list")
+        if err:
+            st.error(err)
+            st.stop()
 
-            branch_names = list(branches.keys()) if isinstance(branches, dict) else branches
+        branch_names = list(branches.keys()) if isinstance(branches, dict) else branches
 
-            if st.button("Refresh", key="refresh_graph"):
-                st.rerun()
+        if st.button("Refresh", key="refresh_graph"):
+            st.rerun()
 
-            # Visual commit graph
-            try:
-                _graph_data = build_commit_graph_data(ds)
-                _graph_h = 22 + _graph_data["lane_count"] * 46 + 20
-                _graph_html = render_commit_graph_html(_graph_data, height=_graph_h)
-                components.html(_graph_html, height=_graph_h, scrolling=False)
-            except Exception:
-                # Fallback to markdown
-                st.markdown("**Current branches:**")
-                for bname in branch_names:
-                    if bname == ds.branch:
-                        st.markdown(f"- **{bname}** ← current")
+        # Visual commit graph
+        try:
+            _graph_data = build_commit_graph_data(ds)
+            _graph_h = 22 + _graph_data["lane_count"] * 46 + 20
+            _graph_html = render_commit_graph_html(_graph_data, height=_graph_h)
+            components.html(_graph_html, height=_graph_h, scrolling=False)
+        except Exception:
+            # Fallback to markdown
+            st.markdown("**Current branches:**")
+            for bname in branch_names:
+                if bname == ds.branch:
+                    st.markdown(f"- **{bname}** ← current")
+                else:
+                    st.markdown(f"- {bname}")
+
+        col_create, col_switch, col_delete = st.columns(3)
+
+        with col_create:
+            st.markdown("**Create Branch**")
+            new_branch = st.text_input("New branch name", key="new_branch")
+            if st.button("Create Branch", type="primary"):
+                if not new_branch:
+                    st.error("Enter a branch name")
+                else:
+                    # Commit pending changes before branching
+                    if ds.has_head_changes:
+                        commit_dataset(ds, "Auto-commit before branch creation")
+                    res, err = branch_ops(ds, "create", branch_name=new_branch)
+                    if err:
+                        st.error(err)
                     else:
-                        st.markdown(f"- {bname}")
+                        st.session_state.current_branch = new_branch
+                        st.success(res)
+                        st.rerun()
 
-            col_create, col_switch = st.columns(2)
+        with col_switch:
+            st.markdown("**Switch Branch**")
+            other_branches = [b for b in branch_names]
+            target = st.selectbox("Target branch", other_branches, key="switch_branch")
+            if st.button("Checkout"):
+                if ds.has_head_changes:
+                    commit_dataset(ds, "Auto-commit before checkout")
+                res, err = branch_ops(ds, "checkout", branch_name=target)
+                if err:
+                    st.error(err)
+                else:
+                    st.session_state.current_branch = target
+                    st.success(res)
+                    st.rerun()
 
-            with col_create:
-                st.markdown("**Create Branch**")
-                new_branch = st.text_input("New branch name", key="new_branch")
-                if st.button("Create Branch", type="primary"):
-                    if not new_branch:
-                        st.error("Enter a branch name")
+        with col_delete:
+            st.markdown("**Delete Branch**")
+            # Pre-compute which branches are actually deletable (mirrors backend rules:
+            # not `main`, not current, no sub-branches, never merged into another branch).
+            deletable_map = classify_deletable_branches(ds)
+            deletable = [b for b in branch_names if deletable_map.get(b) is None]
+            blocked = [(b, deletable_map.get(b)) for b in branch_names
+                       if deletable_map.get(b) is not None]
+
+            if not deletable:
+                st.selectbox("Branch to delete", ["(none)"],
+                             key="delete_branch_none", disabled=True)
+                st.caption("No deletable branches.")
+            else:
+                del_target = st.selectbox("Branch to delete", deletable,
+                                          key="delete_branch_target")
+                confirm_del = st.checkbox(f"Confirm delete `{del_target}`",
+                                          key="confirm_delete_branch")
+                if st.button("Delete Branch"):
+                    if not confirm_del:
+                        st.warning("Please tick the confirmation box before deleting.")
                     else:
-                        # Commit pending changes before branching
-                        if ds.has_head_changes:
-                            commit_dataset(ds, "Auto-commit before branch creation")
-                        res, err = branch_ops(ds, "create", branch_name=new_branch)
+                        res, err = branch_ops(ds, "delete", branch_name=del_target)
                         if err:
                             st.error(err)
                         else:
-                            st.session_state.current_branch = new_branch
                             st.success(res)
                             st.rerun()
 
-            with col_switch:
-                st.markdown("**Switch Branch**")
-                other_branches = [b for b in branch_names]
-                target = st.selectbox("Target branch", other_branches, key="switch_branch")
-                if st.button("Checkout"):
-                    if ds.has_head_changes:
-                        commit_dataset(ds, "Auto-commit before checkout")
-                    res, err = branch_ops(ds, "checkout", branch_name=target)
-                    if err:
-                        st.error(err)
-                    else:
-                        st.session_state.current_branch = target
-                        st.success(res)
-                        st.rerun()
+            if blocked:
+                with st.expander(f"Non-deletable branches ({len(blocked)})", expanded=False):
+                    for bname, reason in blocked:
+                        st.markdown(f"- `{bname}` — _{reason}_")
 
         # --- Merge & Conflicts ---
-        with tab_merge:
-            st.subheader("Merge & Conflict Resolution")
+        st.markdown("---")
+        st.subheader("Merge & Conflict Resolution")
 
-            branches, _ = branch_ops(ds, "list")
-            branch_names = list(branches.keys()) if isinstance(branches, dict) else branches
-            other = [b for b in branch_names if b != ds.branch]
+        branches, _ = branch_ops(ds, "list")
+        branch_names = list(branches.keys()) if isinstance(branches, dict) else branches
+        other = [b for b in branch_names if b != ds.branch]
 
-            if not other:
-                st.info("No other branches to merge.")
-            else:
-                merge_src = st.selectbox("Merge from branch", other, key="merge_src")
+        if not other:
+            st.info("No other branches to merge.")
+        else:
+            merge_src = st.selectbox("Merge from branch", other, key="merge_src")
 
-                # Detect conflicts
-                if st.button("Detect Conflicts"):
-                    result, err = branch_ops(ds, "detect_conflict", branch_name=merge_src)
-                    if err:
-                        st.error(err)
+            # Detect conflicts
+            if st.button("Detect Conflicts"):
+                result, err = branch_ops(ds, "detect_conflict", branch_name=merge_src)
+                if err:
+                    st.error(err)
+                else:
+                    # Check tensor-level conflicts (renames/deletes)
+                    has_tensor_conflicts = bool(result["columns"])
+
+                    # Check sample-level conflicts across ALL common tensors
+                    tensors_with_sample_conflicts = []
+                    for col_name, cdata in result.get("records", {}).items():
+                        has_append = bool(cdata.get("app_ori_idx") and cdata.get("app_tar_idx"))
+                        has_update = False
+                        if cdata.get("update_values"):
+                            uv = cdata["update_values"]
+                            has_update = bool(uv.get("update_ori") or uv.get("update_tar"))
+                        has_delete = bool(cdata.get("del_ori_idx") or cdata.get("del_tar_idx"))
+                        if has_append or has_update or has_delete:
+                            tensors_with_sample_conflicts.append(col_name)
+
+                    if has_tensor_conflicts or tensors_with_sample_conflicts:
+                        conflict_summary = []
+                        if has_tensor_conflicts:
+                            conflict_summary.append(f"Tensor conflicts: {', '.join(result['columns'])}")
+                        if tensors_with_sample_conflicts:
+                            conflict_summary.append(f"Sample conflicts in: {', '.join(tensors_with_sample_conflicts)}")
+                        st.warning(" | ".join(conflict_summary))
+
+                        # Show details for all tensors that have any conflict
+                        all_conflict_tensors = set(tensors_with_sample_conflicts)
+                        if has_tensor_conflicts:
+                            all_conflict_tensors.update(result["columns"])
+
+                        with st.expander("Conflict Details", expanded=True):
+                            for col_name in sorted(all_conflict_tensors):
+                                st.markdown(f"#### `{col_name}`")
+                                cdata = result["records"].get(col_name, {})
+
+                                # Append conflicts (both branches appended)
+                                if cdata.get("app_ori_idx") and cdata.get("app_tar_idx"):
+                                    st.markdown("**Append conflicts (both branches added samples):**")
+                                    rows = []
+                                    ori_vals = cdata.get("app_ori_values", [])
+                                    tar_vals = cdata.get("app_tar_values", [])
+                                    for j, idx in enumerate(cdata["app_ori_idx"]):
+                                        rows.append({"Side": "Current (ours)", "Index": idx,
+                                                     "Value": str(ori_vals[j]) if j < len(ori_vals) else "—"})
+                                    for j, idx in enumerate(cdata["app_tar_idx"]):
+                                        rows.append({"Side": "Source (theirs)", "Index": idx,
+                                                     "Value": str(tar_vals[j]) if j < len(tar_vals) else "—"})
+                                    if rows:
+                                        st.dataframe(pd.DataFrame(rows), width="stretch")
+                                elif cdata.get("app_ori_idx"):
+                                    st.markdown(f"**Appended in current only:** {len(cdata['app_ori_idx'])} samples")
+                                elif cdata.get("app_tar_idx"):
+                                    st.markdown(f"**Appended in source only:** {len(cdata['app_tar_idx'])} samples")
+
+                                # Update conflicts
+                                if cdata.get("update_values"):
+                                    update_ori = cdata["update_values"].get("update_ori", [])
+                                    update_tar = cdata["update_values"].get("update_tar", [])
+                                    if update_ori or update_tar:
+                                        st.markdown("**Update conflicts:**")
+                                        comp = []
+                                        all_idx = set()
+                                        for d in update_ori:
+                                            all_idx.update(d.keys())
+                                        for d in update_tar:
+                                            all_idx.update(d.keys())
+                                        for idx in sorted(all_idx):
+                                            ov = next((d[idx] for d in update_ori if idx in d), "—")
+                                            tv = next((d[idx] for d in update_tar if idx in d), "—")
+                                            comp.append({"Index": idx, "Current (ours)": str(ov), "Source (theirs)": str(tv)})
+                                        if comp:
+                                            cdf = pd.DataFrame(comp)
+
+                                            def _hl(row):
+                                                if row["Current (ours)"] != "—" and row["Source (theirs)"] != "—":
+                                                    return ["background-color: #ffcccc"] * len(row)
+                                                return [""] * len(row)
+
+                                            st.dataframe(cdf.style.apply(_hl, axis=1), width="stretch")
+
+                                # Delete conflicts
+                                if cdata.get("del_ori_idx") or cdata.get("del_tar_idx"):
+                                    st.markdown("**Delete conflicts:**")
+                                    if cdata.get("del_ori_idx"):
+                                        st.markdown(f"- Current deletes: {cdata['del_ori_idx']}")
+                                    if cdata.get("del_tar_idx"):
+                                        st.markdown(f"- Source deletes: {cdata['del_tar_idx']}")
                     else:
-                        # Check tensor-level conflicts (renames/deletes)
-                        has_tensor_conflicts = bool(result["columns"])
+                        st.success("No conflicts detected — safe to merge.")
 
-                        # Check sample-level conflicts across ALL common tensors
-                        tensors_with_sample_conflicts = []
-                        for col_name, cdata in result.get("records", {}).items():
-                            has_append = bool(cdata.get("app_ori_idx") and cdata.get("app_tar_idx"))
-                            has_update = False
-                            if cdata.get("update_values"):
-                                uv = cdata["update_values"]
-                                has_update = bool(uv.get("update_ori") or uv.get("update_tar"))
-                            has_delete = bool(cdata.get("del_ori_idx") or cdata.get("del_tar_idx"))
-                            if has_append or has_update or has_delete:
-                                tensors_with_sample_conflicts.append(col_name)
+            st.markdown("---")
+            st.markdown("**Merge Strategy**")
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                append_res = st.radio("Append", ["ours", "theirs", "both"], key="m_app")
+            with c2:
+                pop_res = st.radio("Delete", ["ours", "theirs"], key="m_pop")
+            with c3:
+                update_res = st.radio("Update", ["ours", "theirs"], key="m_upd")
 
-                        if has_tensor_conflicts or tensors_with_sample_conflicts:
-                            conflict_summary = []
-                            if has_tensor_conflicts:
-                                conflict_summary.append(f"Tensor conflicts: {', '.join(result['columns'])}")
-                            if tensors_with_sample_conflicts:
-                                conflict_summary.append(f"Sample conflicts in: {', '.join(tensors_with_sample_conflicts)}")
-                            st.warning(" | ".join(conflict_summary))
-
-                            # Show details for all tensors that have any conflict
-                            all_conflict_tensors = set(tensors_with_sample_conflicts)
-                            if has_tensor_conflicts:
-                                all_conflict_tensors.update(result["columns"])
-
-                            with st.expander("Conflict Details", expanded=True):
-                                for col_name in sorted(all_conflict_tensors):
-                                    st.markdown(f"#### `{col_name}`")
-                                    cdata = result["records"].get(col_name, {})
-
-                                    # Append conflicts (both branches appended)
-                                    if cdata.get("app_ori_idx") and cdata.get("app_tar_idx"):
-                                        st.markdown("**Append conflicts (both branches added samples):**")
-                                        rows = []
-                                        ori_vals = cdata.get("app_ori_values", [])
-                                        tar_vals = cdata.get("app_tar_values", [])
-                                        for j, idx in enumerate(cdata["app_ori_idx"]):
-                                            rows.append({"Side": "Current (ours)", "Index": idx,
-                                                         "Value": str(ori_vals[j]) if j < len(ori_vals) else "—"})
-                                        for j, idx in enumerate(cdata["app_tar_idx"]):
-                                            rows.append({"Side": "Source (theirs)", "Index": idx,
-                                                         "Value": str(tar_vals[j]) if j < len(tar_vals) else "—"})
-                                        if rows:
-                                            st.dataframe(pd.DataFrame(rows), width="stretch")
-                                    elif cdata.get("app_ori_idx"):
-                                        st.markdown(f"**Appended in current only:** {len(cdata['app_ori_idx'])} samples")
-                                    elif cdata.get("app_tar_idx"):
-                                        st.markdown(f"**Appended in source only:** {len(cdata['app_tar_idx'])} samples")
-
-                                    # Update conflicts
-                                    if cdata.get("update_values"):
-                                        update_ori = cdata["update_values"].get("update_ori", [])
-                                        update_tar = cdata["update_values"].get("update_tar", [])
-                                        if update_ori or update_tar:
-                                            st.markdown("**Update conflicts:**")
-                                            comp = []
-                                            all_idx = set()
-                                            for d in update_ori:
-                                                all_idx.update(d.keys())
-                                            for d in update_tar:
-                                                all_idx.update(d.keys())
-                                            for idx in sorted(all_idx):
-                                                ov = next((d[idx] for d in update_ori if idx in d), "—")
-                                                tv = next((d[idx] for d in update_tar if idx in d), "—")
-                                                comp.append({"Index": idx, "Current (ours)": str(ov), "Source (theirs)": str(tv)})
-                                            if comp:
-                                                cdf = pd.DataFrame(comp)
-
-                                                def _hl(row):
-                                                    if row["Current (ours)"] != "—" and row["Source (theirs)"] != "—":
-                                                        return ["background-color: #ffcccc"] * len(row)
-                                                    return [""] * len(row)
-
-                                                st.dataframe(cdf.style.apply(_hl, axis=1), width="stretch")
-
-                                    # Delete conflicts
-                                    if cdata.get("del_ori_idx") or cdata.get("del_tar_idx"):
-                                        st.markdown("**Delete conflicts:**")
-                                        if cdata.get("del_ori_idx"):
-                                            st.markdown(f"- Current deletes: {cdata['del_ori_idx']}")
-                                        if cdata.get("del_tar_idx"):
-                                            st.markdown(f"- Source deletes: {cdata['del_tar_idx']}")
-                        else:
-                            st.success("No conflicts detected — safe to merge.")
-
-                st.markdown("---")
-                st.markdown("**Merge Strategy**")
-                c1, c2, c3 = st.columns(3)
-                with c1:
-                    append_res = st.radio("Append", ["ours", "theirs", "both"], key="m_app")
-                with c2:
-                    pop_res = st.radio("Delete", ["ours", "theirs"], key="m_pop")
-                with c3:
-                    update_res = st.radio("Update", ["ours", "theirs"], key="m_upd")
-
-                if st.button("Merge", type="primary"):
-                    strategy = {
-                        "append_resolution": append_res,
-                        "pop_resolution": pop_res,
-                        "update_resolution": update_res,
-                    }
-                    res, err = branch_ops(ds, "merge", branch_name=merge_src, merge_strategy=strategy)
-                    if err:
-                        st.error(err)
-                    else:
-                        st.success(res)
-                        st.rerun()
+            if st.button("Merge", type="primary"):
+                strategy = {
+                    "append_resolution": append_res,
+                    "pop_resolution": pop_res,
+                    "update_resolution": update_res,
+                }
+                res, err = branch_ops(ds, "merge", branch_name=merge_src, merge_strategy=strategy)
+                if err:
+                    st.error(err)
+                else:
+                    st.success(res)
+                    st.rerun()
 
 
 
