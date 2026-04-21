@@ -94,8 +94,19 @@ def dataset_rechunk_if_necessary(
         return
     func = partial(rechunk_one_tensor, ds)
     args_iter = [(t, avg_bps_map.get(t)) for t in tensors]
-    with mp.Pool(processes=num_workers) as pool:
-        for msg in pool.starmap(func, args_iter):
-            logging.info(msg)
-    pool.close()
-    pool.join()
+    # The parent process already holds the dataset lock. If we let the pickled
+    # ds re-acquire the file lock in each worker, all workers will fail to lock
+    # and silently degrade to read-only, which then breaks merge_regions
+    # (ReadOnlyModeError on cache __delitem__). Disable child-side locking
+    # while the pool is running; each worker handles a different tensor, so
+    # there is no intra-pool write conflict.
+    saved_locking_enabled = ds._locking_enabled
+    ds._locking_enabled = False
+    try:
+        with mp.Pool(processes=num_workers) as pool:
+            for msg in pool.starmap(func, args_iter):
+                logging.info(msg)
+        pool.close()
+        pool.join()
+    finally:
+        ds._locking_enabled = saved_locking_enabled
