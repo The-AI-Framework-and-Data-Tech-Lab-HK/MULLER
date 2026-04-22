@@ -283,6 +283,15 @@ class Tensor:
             item: Union[int, slice, List[int], Tuple[Union[int, slice, Tuple[int]]], Index],
             is_iteration: bool = False,
     ):
+        # Accept numpy scalar integers (``np.int64`` / ``np.int32`` / …) in
+        # addition to Python ``int``. This matters especially for consumers
+        # that feed in values out of ``np.where`` / ``np.argsort`` or that
+        # iterate over a ``filter_vectorized`` result whose positional
+        # indices are stored as ``np.int64``. Downstream dispatch already
+        # normalizes via ``_coerce_index_scalar`` inside ``Index``, so the
+        # actual stored ``IndexEntry.value`` is a Python int either way.
+        if isinstance(item, np.integer):
+            item = int(item)
         if not isinstance(item, (int, slice, list, tuple, type(Ellipsis), Index)):
             raise InvalidKeyTypeError(item)
         if not self.meta.hidden and not is_iteration and isinstance(item, int):

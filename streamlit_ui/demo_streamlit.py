@@ -16,6 +16,8 @@ This demo showcases MULLER's capabilities:
 - Performance benchmarking vs Parquet
 """
 import streamlit as st
+import hashlib
+import json
 import sys
 import os
 import tempfile
@@ -105,7 +107,7 @@ def _dm_fullres_dialog_body() -> None:
     cap = st.session_state.get("dm_fullres_caption", "")
     if img is None:
         return
-    st.image(img, use_container_width=False)
+    st.image(img, width="content")
     st.caption(cap)
 
 
@@ -125,27 +127,36 @@ st.sidebar.markdown("**Multimodal Data Lake with Git-like Versioning**")
 # -- Current user (for multi-user / permission demos) -----------------------
 # SensitiveConfig is a process singleton, so setting it here affects every
 # subsequent MULLER call in this Streamlit process — exactly the semantics we
-# need to act as different engineers within a single demo session.
+# need to act as different engineers within a single demo session. The demo
+# storyline only needs three personas, so we expose them as a fixed dropdown
+# rather than a free-form textbox to keep the script copy-paste-free.
+DEMO_USERS = ["public", "A", "B"]
 _cur_user = current_user()
-_user_input = st.sidebar.text_input(
+_default_idx = DEMO_USERS.index(_cur_user) if _cur_user in DEMO_USERS else 0
+_user_input = st.sidebar.selectbox(
     "👤 Current user",
-    value=_cur_user,
-    key="current_user_input",
+    options=DEMO_USERS,
+    index=_default_idx,
+    key="current_user_select",
     help="MULLER permission checks (branch ownership, delete_view, …) "
-    "compare against this uid. Change it here to impersonate another engineer "
-    "and exercise the permission model.",
+    "compare against this uid. Pick one of the three demo personas to "
+    "impersonate that engineer and exercise the permission model.",
 )
-if _user_input.strip() and _user_input.strip() != _cur_user:
+if _user_input and _user_input != _cur_user:
     new_uid = set_current_user(_user_input)
     st.sidebar.success(f"Acting as `{new_uid}`.")
-    st.rerun()
 
 st.sidebar.markdown("---")
 
+# Persist the active page across reruns. The user switcher above already
+# runs inside Streamlit's normal widget-triggered rerun, so forcing a second
+# `st.rerun()` there would short-circuit this radio's render and make the
+# app fall back to the first page on the next pass.
 page = st.sidebar.radio(
     "Navigation",
-    ["📊 Dataset Management", "🔍 Query & Search",
+    ["📊 Dataset Management", "📝 View & Edit", "🔍 Query & Search",
      "🌿 Version Control", "⚡ Benchmarks", "ℹ️ About"],
+    key="nav_page",
 )
 
 st.sidebar.markdown("---")
@@ -171,7 +182,7 @@ else:
 if page == "📊 Dataset Management":
     st.title("📊 Dataset Management")
 
-    tab_create, tab_view = st.tabs(["Create / Load", "View & Edit"])
+    tab_create = st.container()
 
     # --- Tab 1: Create / Load ---
     with tab_create:
@@ -180,7 +191,7 @@ if page == "📊 Dataset Management":
         # ---- Create New Dataset (left column) ----
         with col_left:
             st.subheader("Create New Dataset")
-            _default_create_path = str(Path.home() / "muller_datasets" / "demo_dataset")
+            _default_create_path = str(Path.home() / "research_data" / "muller_coco_demo")
             ds_path_input = st.text_input(
                 "Dataset Path",
                 value=_default_create_path,
@@ -190,11 +201,45 @@ if page == "📊 Dataset Management":
             overwrite = st.checkbox("Overwrite if exists", value=False)
 
             # --- Dynamic schema definition ---
-            HTYPE_OPTIONS = ["generic", "text", "image", "video", "audio", "embedding", "class_label", "json"]
-            DTYPE_OPTIONS = ["(auto)", "int32", "int64", "float32", "float64", "uint8", "bool", "str"]
-            COMPRESSION_OPTIONS = ["(none)", "lz4", "jpg", "png", "mp4", "mp3", "wav"]
+            # Pull htype names from MULLER's canonical configuration table so
+            # the dropdown always matches what core accepts (e.g. `bbox`,
+            # `polygon`, `keypoints_coco`, `list`, `segment_mask`, …). Any
+            # hardcoded short-list here drifts out of sync as soon as someone
+            # writes a valid schema JSON that uses one of the long-tail htypes,
+            # with a confusing "htype X not in [...]" error.
+            try:
+                from muller.core.types.htype import HTYPE_CONFIGURATIONS as _HTYPE_CFG
+                _CORE_HTYPES = list(_HTYPE_CFG.keys())
+            except Exception:
+                _CORE_HTYPES = []
 
-            st.markdown("**Define Columns (Tensors)**")
+            # Promote the htypes we touch most often in the demo to the top
+            # of the dropdown (order matters for UX); append any remaining
+            # core htypes alphabetically so nothing is hidden.
+            _PREFERRED_HTYPES = [
+                "generic", "text", "image", "video", "audio",
+                "embedding", "class_label", "bbox", "polygon",
+                "keypoints_coco", "segment_mask", "binary_mask",
+                "instance_label", "list", "json", "vector", "point",
+            ]
+            _seen = set()
+            HTYPE_OPTIONS = []
+            for h in _PREFERRED_HTYPES:
+                if h in _CORE_HTYPES or not _CORE_HTYPES:
+                    HTYPE_OPTIONS.append(h)
+                    _seen.add(h)
+            for h in sorted(_CORE_HTYPES):
+                if h not in _seen:
+                    HTYPE_OPTIONS.append(h)
+
+            DTYPE_OPTIONS = [
+                "(auto)",
+                "int8", "int16", "int32", "int64",
+                "uint8", "uint16", "uint32", "uint64",
+                "float16", "float32", "float64",
+                "bool", "str",
+            ]
+            COMPRESSION_OPTIONS = ["(none)", "lz4", "jpg", "png", "mp4", "mp3", "wav"]
 
             # Each row is tracked by a unique ID so insert/delete anywhere is safe.
             _DEFAULT_ROWS = [
@@ -207,6 +252,108 @@ if page == "📊 Dataset Management":
             if "schema_next_id" not in st.session_state:
                 st.session_state.schema_next_id = len(_DEFAULT_ROWS)
 
+            # --- Bulk-load schema from JSON ---
+            # Typing a multi-tensor schema cell-by-cell is tedious and error
+            # prone, and skipping this step is the #1 reason the demo looks
+            # "not like a COCO dataset" afterwards (you silently end up with
+            # the 3-tensor placeholder schema, and a subsequent Batch Upload
+            # of a 9-column CSV drops 8 of the 9 columns on the floor). So:
+            #   - this expander is *open by default* (file uploader visible)
+            #   - below, ``Create Dataset`` blocks on the default placeholder
+            #     rows with an amber warning-and-confirm
+            with st.expander("📥 Load schema from JSON file", expanded=True):
+                _schema_help_md = (
+                    "Accepted shapes:  \n"
+                    "• `{\"tensors\": [{\"name\": …, \"htype\": …, \"dtype\": …, "
+                    "\"sample_compression\": …}, …]}`  \n"
+                    "• a plain list of the same objects  \n"
+                    "• a `{name: {htype, dtype, sample_compression}}` dict  \n"
+                    "See `sigmod_demo_revision/coco_schema.json` for a ready-to-use "
+                    "9-tensor COCO2017 example (8 core tensors + `description` text)."
+                )
+                schema_file = st.file_uploader(
+                    "Schema JSON", type=["json"], key="schema_json_upload",
+                    help=_schema_help_md,
+                )
+
+                def _normalize_schema_entries(data):
+                    """Return (list-of-dicts, errors)."""
+                    if isinstance(data, dict) and "tensors" in data:
+                        raw = data.get("tensors") or []
+                    elif isinstance(data, list):
+                        raw = data
+                    elif isinstance(data, dict):
+                        raw = [{"name": k, **(v or {})} for k, v in data.items()]
+                    else:
+                        return [], ["Top-level JSON must be an object or an array."]
+                    norm, errs = [], []
+                    for i, e in enumerate(raw):
+                        if not isinstance(e, dict):
+                            errs.append(f"entry #{i} is not a JSON object")
+                            continue
+                        nm = (e.get("name") or "").strip()
+                        if not nm:
+                            errs.append(f"entry #{i} missing 'name'")
+                            continue
+                        ht = e.get("htype") or "generic"
+                        dt = e.get("dtype") or "(auto)"
+                        comp = e.get("sample_compression") or "(none)"
+                        # Only htype is strictly validated here — we already
+                        # pull every MULLER-recognized htype from
+                        # HTYPE_CONFIGURATIONS above, so a miss here is a real
+                        # typo. dtype / compression have many valid values
+                        # MULLER accepts (e.g. "Any", "List", "jpeg" alias)
+                        # that may not be in the shortlist dropdown, so we
+                        # pass them through and let MULLER validate at
+                        # tensor-creation time; the UI below dynamically
+                        # extends its dropdowns to show whatever we got.
+                        if ht not in HTYPE_OPTIONS:
+                            errs.append(
+                                f"entry '{nm}': htype '{ht}' is not a "
+                                f"MULLER htype. Known htypes: {HTYPE_OPTIONS}"
+                            )
+                            continue
+                        norm.append({"name": nm, "htype": ht, "dtype": dt, "comp": comp})
+                    return norm, errs
+
+                if schema_file is not None:
+                    try:
+                        _schema_data = json.load(schema_file)
+                    except Exception as _e:
+                        st.error(f"Could not parse JSON: {_e}")
+                    else:
+                        normalized, errs = _normalize_schema_entries(_schema_data)
+                        if errs:
+                            st.error("Schema JSON has problems:\n- " + "\n- ".join(errs))
+                        elif not normalized:
+                            st.error("Schema JSON has no valid tensor entries.")
+                        else:
+                            # Fingerprint the applied schema so streamlit's
+                            # auto-reruns don't re-apply on every keystroke.
+                            sig = json.dumps(normalized, sort_keys=True)
+                            if st.session_state.get("_schema_json_sig") != sig:
+                                next_id = int(st.session_state.get("schema_next_id", 0))
+                                new_rows = []
+                                for item in normalized:
+                                    new_rows.append({"id": next_id, **item})
+                                    next_id += 1
+                                st.session_state.schema_rows = new_rows
+                                st.session_state.schema_next_id = next_id
+                                st.session_state["_schema_json_sig"] = sig
+                                st.success(
+                                    f"Loaded **{len(normalized)}** tensor rows "
+                                    f"from `{schema_file.name}`."
+                                )
+                                st.rerun()
+                            else:
+                                st.caption(
+                                    f"`{schema_file.name}` already applied "
+                                    f"({len(normalized)} rows) — edit the table "
+                                    "below to tweak, or upload a different file."
+                                )
+
+            st.markdown("**Define Columns (Tensors)**")
+
             # Header row
             h_name, h_htype, h_dtype, h_comp, h_btns = st.columns([3, 2, 2, 2, 1])
             h_name.markdown("**Name**")
@@ -214,6 +361,18 @@ if page == "📊 Dataset Management":
             h_dtype.markdown("**dtype**")
             h_comp.markdown("**compress**")
             h_btns.markdown("**+/−**")
+
+            def _opts_with_value(base_opts, value):
+                """Return a dropdown-options list that always contains ``value``.
+
+                A schema loaded from JSON may carry a dtype / compression the
+                preset shortlist does not include (e.g. ``"Any"``, ``"List"``,
+                ``"jpeg"``). Without this, ``selectbox`` silently resets to
+                index 0 and the user's explicit choice is lost.
+                """
+                if value in base_opts:
+                    return base_opts
+                return list(base_opts) + [value]
 
             schema_inputs = []
             rows = st.session_state.schema_rows
@@ -224,16 +383,19 @@ if page == "📊 Dataset Management":
                     col_name = st.text_input("n", value=row["name"], key=f"col_name_{rid}",
                                              label_visibility="collapsed")
                 with c_htype:
-                    col_htype = st.selectbox("h", HTYPE_OPTIONS,
-                                             index=HTYPE_OPTIONS.index(row["htype"]) if row["htype"] in HTYPE_OPTIONS else 0,
+                    _htype_opts = _opts_with_value(HTYPE_OPTIONS, row["htype"])
+                    col_htype = st.selectbox("h", _htype_opts,
+                                             index=_htype_opts.index(row["htype"]),
                                              key=f"col_htype_{rid}", label_visibility="collapsed")
                 with c_dtype:
-                    col_dtype = st.selectbox("d", DTYPE_OPTIONS,
-                                             index=DTYPE_OPTIONS.index(row["dtype"]) if row["dtype"] in DTYPE_OPTIONS else 0,
+                    _dtype_opts = _opts_with_value(DTYPE_OPTIONS, row["dtype"])
+                    col_dtype = st.selectbox("d", _dtype_opts,
+                                             index=_dtype_opts.index(row["dtype"]),
                                              key=f"col_dtype_{rid}", label_visibility="collapsed")
                 with c_comp:
-                    col_comp = st.selectbox("c", COMPRESSION_OPTIONS,
-                                            index=COMPRESSION_OPTIONS.index(row["comp"]) if row["comp"] in COMPRESSION_OPTIONS else 0,
+                    _comp_opts = _opts_with_value(COMPRESSION_OPTIONS, row["comp"])
+                    col_comp = st.selectbox("c", _comp_opts,
+                                            index=_comp_opts.index(row["comp"]),
                                             key=f"col_comp_{rid}", label_visibility="collapsed")
                 with c_btns:
                     b1, b2 = st.columns(2)
@@ -250,6 +412,20 @@ if page == "📊 Dataset Management":
                             st.rerun()
 
                 schema_inputs.append((col_name.strip(), col_htype, col_dtype, col_comp))
+
+            # Detect that the user is about to create a dataset with the
+            # *unchanged* placeholder schema. This is almost always a
+            # mistake for demo / real data: the dataset ends up with only
+            # labels/categories/description, and a subsequent Batch Upload
+            # CSV silently drops every column not in that placeholder set.
+            _current_rows_sig = [
+                {"name": nm, "htype": ht, "dtype": dt, "comp": cm}
+                for nm, ht, dt, cm in schema_inputs if nm
+            ]
+            _default_rows_sig = [
+                {k: v for k, v in r.items() if k != "id"} for r in _DEFAULT_ROWS
+            ]
+            _is_untouched_placeholder = _current_rows_sig == _default_rows_sig
 
             if st.button("Create Dataset", type="primary"):
                 # Validate column names
@@ -326,8 +502,10 @@ if page == "📊 Dataset Management":
                             st.warning(warn)
                         st.rerun()
 
-    # --- Tab 2: View & Edit ---
-    with tab_view:
+elif page == "📝 View & Edit":
+    st.title("📝 View & Edit")
+    view_edit_container = st.container()
+    with view_edit_container:
         st.subheader("View & Edit Dataset")
         if st.session_state.dataset is None:
             st.warning("Please create or load a dataset first.")
@@ -335,6 +513,32 @@ if page == "📊 Dataset Management":
             ds = st.session_state.dataset
             tensor_names = list(ds.tensors.keys())
             n = len(ds)
+
+            # Per-action "flash" slots — each Add / Import / Delete / Update
+            # button writes its result here as a (kind, message) tuple before
+            # calling st.rerun(); the matching `_render_flash` call below the
+            # button picks it up on the next script run and renders it inline,
+            # because the original `st.success()` was wiped by the rerun.
+            # Auto-clear them whenever the user loads a different dataset to
+            # avoid stale "Deleted sample N" lines on a fresh dataset.
+            _flash_keys = ("_flash_add", "_flash_csv", "_flash_del", "_flash_upd")
+            _flash_ctx = (st.session_state.get("dataset_path"), ds.branch)
+            if st.session_state.get("_flash_ctx") != _flash_ctx:
+                st.session_state["_flash_ctx"] = _flash_ctx
+                for _k in _flash_keys:
+                    st.session_state.pop(_k, None)
+
+            def _render_flash(key: str):
+                payload = st.session_state.get(key)
+                if not payload:
+                    return
+                kind, msg = payload
+                if kind == "success":
+                    st.success(msg)
+                elif kind == "error":
+                    st.error(msg)
+                else:
+                    st.info(msg)
 
             # 1) Current Schema (collapsed by default)
             with st.expander("Current Schema", expanded=False):
@@ -404,10 +608,6 @@ if page == "📊 Dataset Management":
                     start_idx = 0
                     end_idx = n
                     show_details = False
-                    st.caption(
-                        f"**{n}** samples · COCO layout uses a fixed **5×5** thumbnail grid "
-                        "with its own paging (no table pagination here)."
-                    )
 
                 # Image strip preview (same row order as paginated rows; global # = row index in dataset)
                 if img_tensors:
@@ -426,23 +626,13 @@ if page == "📊 Dataset Management":
                         _coco_overlay = False
                         _coco_cat_map = None
                         if _coco_layout:
-                            st.caption(
-                                "COCO2017-style layout detected (8 columns: area, bbox, category_id, id, "
-                                "image_id, images, iscrowd, segmentation)."
-                            )
-                            _ann_path = st.text_input(
-                                "COCO instances JSON (for category names)",
-                                value=DEFAULT_COCO_INSTANCES_JSON,
-                                key="dm_coco_ann_json",
-                                help="Same file as pycocotools.COCO(...), e.g. instances_val2017.json.",
-                            )
                             _coco_overlay = st.checkbox(
                                 "Overlay bounding boxes & labels",
                                 value=True,
                                 key="dm_coco_overlay",
                             )
                             if _coco_overlay:
-                                _ap = (_ann_path or "").strip()
+                                _ap = DEFAULT_COCO_INSTANCES_JSON
                                 # Only load when path is non-empty; never overwrite a good map with
                                 # a failed load from a transient empty path (e.g. widget timing on rerun).
                                 if _ap and (
@@ -593,7 +783,7 @@ if page == "📊 Dataset Management":
                                                             if gi == sel_gi
                                                             else "secondary"
                                                         ),
-                                                        use_container_width=True,
+                                                        width="stretch",
                                                         on_click=_dm_on_select_coco_thumb,
                                                         args=(gi,),
                                                         help="Show this sample on the right",
@@ -656,7 +846,7 @@ if page == "📊 Dataset Management":
                                         else None
                                     )
                                     if _fitted is not None:
-                                        st.image(_fitted, use_container_width=False)
+                                        st.image(_fitted, width="content")
                                     else:
                                         st.markdown(
                                             f'<div style="width:100%;max-width:{int(pv_w)}px;'
@@ -693,14 +883,14 @@ if page == "📊 Dataset Management":
                                             with st.popover("Full resolution"):
                                                 st.image(
                                                     _pil_full,
-                                                    use_container_width=False,
+                                                    width="content",
                                                 )
                                                 st.caption(_cap)
                                         else:
                                             with st.expander("Full resolution"):
                                                 st.image(
                                                     _pil_full,
-                                                    use_container_width=False,
+                                                    width="content",
                                                 )
                                                 st.caption(_cap)
                             else:
@@ -837,14 +1027,14 @@ if page == "📊 Dataset Management":
                                                         with st.popover("Full size"):
                                                             st.image(
                                                                 _pil_full,
-                                                                use_container_width=False,
+                                                                width="content",
                                                             )
                                                             st.caption(_cap)
                                                     else:
                                                         with st.expander("Full size"):
                                                             st.image(
                                                                 _pil_full,
-                                                                use_container_width=False,
+                                                                width="content",
                                                             )
                                                             st.caption(_cap)
 
@@ -907,22 +1097,27 @@ if page == "📊 Dataset Management":
                 if st.button("Add Sample", type="primary"):
                     filtered = {k: v for k, v in sample_data.items() if v is not None}
                     if not filtered:
-                        st.error("Please fill in at least one field.")
+                        # Validation feedback can be inline (no rerun), so write
+                        # it directly to the flash slot too for consistency.
+                        st.session_state["_flash_add"] = ("error", "Please fill in at least one field.")
                     else:
                         err = add_samples(ds, filtered, auto_commit=True,
                                           commit_message=add_commit_msg)
                         if err:
-                            st.error(err)
+                            st.session_state["_flash_add"] = ("error", err)
                         else:
-                            st.success("Sample added and committed.")
+                            st.session_state["_flash_add"] = (
+                                "success",
+                                f"Sample added and committed (commit: `{add_commit_msg}`).",
+                            )
                             st.rerun()
+                _render_flash("_flash_add")
 
             # 4) Batch Upload via CSV (collapsed by default)
             with st.expander("Batch Upload via CSV", expanded=False):
                 uploaded = st.file_uploader("Choose CSV file", type=["csv"])
                 if uploaded is not None:
                     df_up = pd.read_csv(uploaded)
-                    st.dataframe(df_up.head(), width="stretch")
 
                     matched = [col for col in df_up.columns if col in tensor_names]
                     unmatched = [col for col in df_up.columns if col not in tensor_names]
@@ -931,32 +1126,91 @@ if page == "📊 Dataset Management":
                     if unmatched:
                         st.warning(f"Columns not in dataset (will be skipped): {unmatched}")
 
-                    media_cols = [
-                        col for col in matched
-                        if ds.tensors[col].htype in ("image", "video", "audio")
-                    ]
-                    path_columns = {}
-                    if media_cols:
-                        st.markdown("**Path columns** — these columns have media htypes. "
-                                    "If their CSV values are file paths, select how to handle them:")
-                        for col in media_cols:
-                            mode = st.selectbox(
-                                f"`{col}` ({ds.tensors[col].htype})",
-                                options=["read", "text", "skip"],
-                                help="read: load file via muller.read(); "
-                                     "text: store path as text; "
-                                     "skip: treat as plain value",
-                                key=f"csv_pathcol_{col}",
-                            )
-                            if mode != "skip":
-                                path_columns[col] = mode
+                    # Hard-stop warning for the specific failure mode where
+                    # the user tries to import a rich CSV (e.g. 9-column
+                    # COCO public_base_3000.csv) into a dataset that was
+                    # created with the default placeholder schema — only
+                    # a handful of columns match and the rest vanish, which
+                    # is almost never what the user wants. Make this loud
+                    # and actionable instead of a single-line warning.
+                    if matched and len(unmatched) >= 2 * len(matched):
+                        st.error(
+                            f"**CSV columns barely match the dataset schema** "
+                            f"({len(matched)} matched vs {len(unmatched)} "
+                            f"skipped). This usually means the dataset was "
+                            f"created without loading the correct schema "
+                            f"JSON (e.g. you kept the default `labels / "
+                            f"categories / description` placeholder). If you "
+                            f"import now, every column in the 'skipped' list "
+                            f"will be lost.  \n\n"
+                            f"**Fix**: go to **Create / Load → Create New "
+                            f"Dataset**, tick *Overwrite if exists*, load "
+                            f"`schema.json` in the expander, recreate, then "
+                            f"come back here and re-upload this CSV."
+                        )
+
+                    # Per-column import mode:
+                    #  - "read" for media columns (calls muller.read() on the path)
+                    #  - "json" for cells whose payload is a JSON array/object
+                    #    (per-sample arrays like bbox (N,4), segmentation polygons,
+                    #    variable-length area / category_id / id / iscrowd)
+                    #  - "skip" (i.e. not in path_columns) for plain scalars
+                    #
+                    # Why sniff the CSV content instead of the tensor metadata:
+                    # at Batch Upload time the target tensor was just created
+                    # and holds no samples, so tensor.shape is (0,) and we
+                    # cannot tell from the schema alone whether a `generic`
+                    # column will hold one number or a length-N array. The
+                    # CSV cell itself is the source of truth — a leading `[`
+                    # or `{` unambiguously means JSON. We peek a handful of
+                    # rows to be robust to blank leading cells.
+                    def _first_non_null(series, n=8):
+                        try:
+                            return [v for v in series.dropna().head(n).tolist()]
+                        except Exception:
+                            return []
+
+                    def _looks_json(values):
+                        for v in values:
+                            s = str(v).strip()
+                            if not s:
+                                continue
+                            if s.startswith("[") or s.startswith("{"):
+                                return True
+                        return False
+
+                    def _infer_mode(col_name, tensor):
+                        h = (tensor.htype or "").lower()
+                        if h in ("image", "video", "audio"):
+                            return "read"
+                        # Some htypes are inherently non-scalar regardless of
+                        # what the CSV looks like; catch them explicitly so a
+                        # malformed / empty first few cells don't regress to
+                        # skip and then break on append.
+                        if h in ("bbox", "list", "polygon", "keypoints_coco",
+                                 "segment_mask", "binary_mask", "embedding",
+                                 "json", "vector", "point"):
+                            return "json"
+                        if _looks_json(_first_non_null(df_up[col_name])):
+                            return "json"
+                        return "skip"
+
+                    inferred = {col: _infer_mode(col, ds.tensors[col]) for col in matched}
+
+                    # Apply inferred import modes silently so the demo UI stays
+                    # compact after a CSV is uploaded.
+                    path_columns = {
+                        col: mode for col, mode in inferred.items() if mode != "skip"
+                    }
 
                     csv_commit_msg = st.text_input(
                         "Commit Message", value="Import CSV data via Streamlit UI",
                         key="csv_commit_msg")
                     if st.button("Import CSV Data"):
                         if not matched:
-                            st.error(f"CSV columns must match tensors: {tensor_names}")
+                            st.session_state["_flash_csv"] = (
+                                "error", f"CSV columns must match tensors: {tensor_names}"
+                            )
                         else:
                             tmp_path = None
                             try:
@@ -972,13 +1226,17 @@ if page == "📊 Dataset Management":
                                     workers=0,
                                 )
                                 commit_dataset(ds, message=csv_commit_msg)
-                                st.success(f"Imported {len(df_up)} samples.")
+                                st.session_state["_flash_csv"] = (
+                                    "success",
+                                    f"Imported {len(df_up)} samples (commit: `{csv_commit_msg}`).",
+                                )
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"Failed to import CSV: {e}")
+                                st.session_state["_flash_csv"] = ("error", f"Failed to import CSV: {e}")
                             finally:
                                 if tmp_path and os.path.exists(tmp_path):
                                     os.unlink(tmp_path)
+                _render_flash("_flash_csv")
 
             # 5) Delete Sample (collapsed by default)
             with st.expander("Delete Sample", expanded=False):
@@ -992,11 +1250,15 @@ if page == "📊 Dataset Management":
                     if st.button("Delete", type="secondary"):
                         err = delete_sample(ds, del_idx)
                         if err:
-                            st.error(err)
+                            st.session_state["_flash_del"] = ("error", err)
                         else:
                             commit_dataset(ds, message=del_commit_msg)
-                            st.success(f"Deleted sample {del_idx}")
+                            st.session_state["_flash_del"] = (
+                                "success",
+                                f"Deleted sample {del_idx} (commit: `{del_commit_msg}`).",
+                            )
                             st.rerun()
+                _render_flash("_flash_del")
 
             # 6) Update Sample (collapsed by default)
             with st.expander("Update Sample", expanded=False):
@@ -1010,20 +1272,37 @@ if page == "📊 Dataset Management":
                         "Commit Message", value="Update sample via Streamlit UI",
                         key="upd_commit_msg")
                     if st.button("Update", type="secondary"):
-                        try:
-                            parsed = int(upd_val)
-                        except ValueError:
+                        # Try JSON first so users can paste array literals like
+                        # "[1]" or "[[1,2,3,4]]" (matches the CSV-import "json"
+                        # mode for non-scalar tensors); fall back to int / float
+                        # / raw string for scalar tensors.
+                        parsed = None
+                        _stripped = (upd_val or "").strip()
+                        if _stripped and _stripped[0] in "[{":
                             try:
-                                parsed = float(upd_val)
+                                import json as _json
+                                parsed = _json.loads(_stripped)
                             except ValueError:
-                                parsed = upd_val
+                                parsed = None
+                        if parsed is None:
+                            try:
+                                parsed = int(upd_val)
+                            except ValueError:
+                                try:
+                                    parsed = float(upd_val)
+                                except ValueError:
+                                    parsed = upd_val
                         err = update_sample(ds, upd_tensor, upd_idx, parsed)
                         if err:
-                            st.error(err)
+                            st.session_state["_flash_upd"] = ("error", err)
                         else:
                             commit_dataset(ds, message=upd_commit_msg)
-                            st.success(f"Updated {upd_tensor}[{upd_idx}]")
+                            st.session_state["_flash_upd"] = (
+                                "success",
+                                f"Updated `{upd_tensor}[{upd_idx}]` -> `{parsed}` (commit: `{upd_commit_msg}`).",
+                            )
                             st.rerun()
+                _render_flash("_flash_upd")
 
 
 # ============================================================================
@@ -1457,15 +1736,11 @@ elif page == "🔍 Query & Search":
                                 value=True, key="qs_view_coco_overlay",
                             )
                             if _coco_overlay:
-                                _ann = st.text_input(
-                                    "COCO instances JSON (for category names)",
-                                    value=DEFAULT_COCO_INSTANCES_JSON,
-                                    key="qs_view_coco_ann",
+                                _coco_cat_map, _cerr = load_coco_category_id_to_name(
+                                    DEFAULT_COCO_INSTANCES_JSON
                                 )
-                                if _ann.strip():
-                                    _coco_cat_map, _cerr = load_coco_category_id_to_name(_ann.strip())
-                                    if _cerr:
-                                        st.warning(_cerr)
+                                if _cerr:
+                                    st.warning(_cerr)
 
                         per_page = 12
                         total_pages = max(1, (n_results + per_page - 1) // per_page)
@@ -1479,12 +1754,32 @@ elif page == "🔍 Query & Search":
                             f"Showing samples **{lo + 1}–{hi}** of **{n_results}** · "
                             f"page **{int(grid_page)}** / **{total_pages}**"
                         )
+                        # Bulk-fetch per-page: this is the ONLY access pattern
+                        # that works on a filter-view sub-dataset. Accessing
+                        # `_chunk.bbox[k]` one-by-one returns an empty [] on
+                        # filter views for non-image tensors (only the bulk
+                        # `.numpy(aslist=True)` path respects the filter's
+                        # sample-uuid remap), so the overlay used to silently
+                        # render every image without boxes.
                         try:
                             _chunk = result_ds[lo:hi]
                             _raw_imgs = list(_chunk[preview_col].numpy(aslist=True))
                         except Exception as _e:
                             st.warning(f"Could not load images: {_e}")
                             _raw_imgs = []
+                            _chunk = None
+
+                        _chunk_bboxes = None
+                        _chunk_cats = None
+                        if _chunk is not None and _coco_overlay and _is_coco:
+                            try:
+                                _chunk_bboxes = list(_chunk.bbox.numpy(aslist=True))
+                                _chunk_cats = list(_chunk.category_id.numpy(aslist=True))
+                            except Exception as _e:
+                                st.warning(
+                                    "Could not load bbox/category_id for overlay: "
+                                    f"{_e}"
+                                )
 
                         if _raw_imgs:
                             cols_per_row = 4
@@ -1496,15 +1791,21 @@ elif page == "🔍 Query & Search":
                                         continue
                                     with cell:
                                         _pil = decode_muller_image_sample(_raw_imgs[k])
-                                        if _pil is not None and _coco_overlay and _is_coco:
-                                            try:
-                                                _bb = _chunk.bbox[k].numpy(aslist=True)
-                                                _cid = _chunk.category_id[k].numpy(aslist=True)
-                                                _pil = pil_overlay_coco_bboxes(
-                                                    _pil, _bb, _cid, _coco_cat_map
-                                                )
-                                            except Exception:
-                                                pass
+                                        if (
+                                            _pil is not None
+                                            and _coco_overlay
+                                            and _is_coco
+                                            and _chunk_bboxes is not None
+                                            and _chunk_cats is not None
+                                            and k < len(_chunk_bboxes)
+                                            and k < len(_chunk_cats)
+                                        ):
+                                            _pil = pil_overlay_coco_bboxes(
+                                                _pil,
+                                                _chunk_bboxes[k],
+                                                _chunk_cats[k],
+                                                _coco_cat_map,
+                                            )
                                         _thumb = (
                                             pil_square_thumbnail(_pil, 180)
                                             if _pil is not None else None
@@ -1559,9 +1860,20 @@ elif page == "🔍 Query & Search":
                     help="Required. Letters/numbers/underscore recommended; "
                     "must be unique within this dataset.",
                 )
+                # Tie the widget's key to a short hash of ``result_desc`` so
+                # that when the user runs a new query (producing a different
+                # description like "Conditional filter → 59 matching samples")
+                # Streamlit treats this as a *new* text_input and picks up the
+                # new default. A stable ``key="qs_save_msg"`` would stay pinned
+                # to the first query's value forever — Streamlit's ``value=``
+                # is only consulted on the widget's first render.
+                _rd = result_desc or ""
+                _msg_key = "qs_save_msg::" + hashlib.md5(
+                    _rd.encode("utf-8")
+                ).hexdigest()[:12]
                 new_msg = st.text_input(
-                    "Message (optional)", value=result_desc or "",
-                    key="qs_save_msg",
+                    "Message (optional)", value=_rd,
+                    key=_msg_key,
                 )
                 if st.button("Save as View", type="primary", key="qs_save_btn"):
                     vid_clean = new_vid.strip()
@@ -1701,17 +2013,41 @@ elif page == "🌿 Version Control":
             st.info("No other branches to merge.")
         else:
             merge_src = st.selectbox("Merge from branch", other, key="merge_src")
+            _merge_detect_ctx = (
+                st.session_state.get("dataset_path"),
+                ds.branch,
+                getattr(ds, "commit_id", None),
+                merge_src,
+            )
+            _merge_detect_state = st.session_state.get("_merge_detect_state")
+            if _merge_detect_state and _merge_detect_state.get("ctx") != _merge_detect_ctx:
+                _merge_detect_state = None
+                st.session_state.pop("_merge_detect_state", None)
 
             # Detect conflicts
             if st.button("Detect Conflicts"):
                 result, err = branch_ops(ds, "detect_conflict", branch_name=merge_src)
                 if err:
+                    st.session_state.pop("_merge_detect_state", None)
                     st.error(err)
                 else:
                     # Check tensor-level conflicts (renames/deletes)
                     has_tensor_conflicts = bool(result["columns"])
 
-                    # Check sample-level conflicts across ALL common tensors
+                    # Check sample-level conflicts across ALL common tensors.
+                    # MULLER's `detect_merge_conflict` returns *differences vs. LCA*
+                    # in `del_ori_idx / del_tar_idx / app_ori_idx / app_tar_idx`,
+                    # NOT conflicts. A real conflict requires divergence on the
+                    # same uuid:
+                    #   - append: both branches added new uuids → both append-lists
+                    #     non-empty (new uuids are always disjoint, so any double
+                    #     append needs an `append_resolution`).
+                    #   - update: MULLER pre-filters `update_values` to only carry
+                    #     true update-vs-update (or update-vs-pop) divergence, so
+                    #     "either side non-empty" is the right test here.
+                    #   - delete: only a conflict when both sides popped the SAME
+                    #     LCA index (`pop_resolution` is needed). One-sided deletes
+                    #     merge cleanly without a strategy.
                     tensors_with_sample_conflicts = []
                     for col_name, cdata in result.get("records", {}).items():
                         has_append = bool(cdata.get("app_ori_idx") and cdata.get("app_tar_idx"))
@@ -1719,105 +2055,197 @@ elif page == "🌿 Version Control":
                         if cdata.get("update_values"):
                             uv = cdata["update_values"]
                             has_update = bool(uv.get("update_ori") or uv.get("update_tar"))
-                        has_delete = bool(cdata.get("del_ori_idx") or cdata.get("del_tar_idx"))
+                        ori_del = set(cdata.get("del_ori_idx") or [])
+                        tar_del = set(cdata.get("del_tar_idx") or [])
+                        has_delete = bool(ori_del & tar_del)
                         if has_append or has_update or has_delete:
                             tensors_with_sample_conflicts.append(col_name)
+                    tensors_with_delete_diffs = [
+                        col_name
+                        for col_name, cdata in result.get("records", {}).items()
+                        if (cdata.get("del_ori_idx") or cdata.get("del_tar_idx"))
+                    ]
+                    _merge_detect_state = {
+                        "ctx": _merge_detect_ctx,
+                        "has_conflicts": bool(has_tensor_conflicts or tensors_with_sample_conflicts),
+                        "result": result,
+                        "tensors_with_sample_conflicts": tensors_with_sample_conflicts,
+                        "tensors_with_delete_diffs": tensors_with_delete_diffs,
+                    }
+                    st.session_state["_merge_detect_state"] = _merge_detect_state
 
-                    if has_tensor_conflicts or tensors_with_sample_conflicts:
-                        conflict_summary = []
-                        if has_tensor_conflicts:
-                            conflict_summary.append(f"Tensor conflicts: {', '.join(result['columns'])}")
-                        if tensors_with_sample_conflicts:
-                            conflict_summary.append(f"Sample conflicts in: {', '.join(tensors_with_sample_conflicts)}")
-                        st.warning(" | ".join(conflict_summary))
+            if _merge_detect_state:
+                result = _merge_detect_state["result"]
+                tensors_with_sample_conflicts = _merge_detect_state["tensors_with_sample_conflicts"]
+                tensors_with_delete_diffs = _merge_detect_state.get("tensors_with_delete_diffs", [])
+                has_tensor_conflicts = bool(result["columns"])
 
-                        # Show details for all tensors that have any conflict
-                        all_conflict_tensors = set(tensors_with_sample_conflicts)
-                        if has_tensor_conflicts:
-                            all_conflict_tensors.update(result["columns"])
+                if _merge_detect_state["has_conflicts"]:
+                    conflict_summary = []
+                    if has_tensor_conflicts:
+                        conflict_summary.append(f"Tensor conflicts: {', '.join(result['columns'])}")
+                    if tensors_with_sample_conflicts:
+                        conflict_summary.append(f"Sample conflicts in: {', '.join(tensors_with_sample_conflicts)}")
+                    st.warning(" | ".join(conflict_summary))
 
-                        with st.expander("Conflict Details", expanded=True):
-                            for col_name in sorted(all_conflict_tensors):
-                                st.markdown(f"#### `{col_name}`")
-                                cdata = result["records"].get(col_name, {})
+                    # Show details for all tensors that have any conflict
+                    all_conflict_tensors = set(tensors_with_sample_conflicts)
+                    if has_tensor_conflicts:
+                        all_conflict_tensors.update(result["columns"])
 
-                                # Append conflicts (both branches appended)
-                                if cdata.get("app_ori_idx") and cdata.get("app_tar_idx"):
-                                    st.markdown("**Append conflicts (both branches added samples):**")
-                                    rows = []
-                                    ori_vals = cdata.get("app_ori_values", [])
-                                    tar_vals = cdata.get("app_tar_values", [])
-                                    for j, idx in enumerate(cdata["app_ori_idx"]):
-                                        rows.append({"Side": "Current (ours)", "Index": idx,
-                                                     "Value": str(ori_vals[j]) if j < len(ori_vals) else "—"})
-                                    for j, idx in enumerate(cdata["app_tar_idx"]):
-                                        rows.append({"Side": "Source (theirs)", "Index": idx,
-                                                     "Value": str(tar_vals[j]) if j < len(tar_vals) else "—"})
-                                    if rows:
-                                        st.dataframe(pd.DataFrame(rows), width="stretch")
-                                elif cdata.get("app_ori_idx"):
-                                    st.markdown(f"**Appended in current only:** {len(cdata['app_ori_idx'])} samples")
-                                elif cdata.get("app_tar_idx"):
-                                    st.markdown(f"**Appended in source only:** {len(cdata['app_tar_idx'])} samples")
+                    summary_rows = []
+                    for col_name in sorted(all_conflict_tensors):
+                        cdata = result["records"].get(col_name, {})
+                        update_ori = (cdata.get("update_values") or {}).get("update_ori", [])
+                        update_tar = (cdata.get("update_values") or {}).get("update_tar", [])
+                        update_idx = set()
+                        for d in update_ori:
+                            update_idx.update(d.keys())
+                        for d in update_tar:
+                            update_idx.update(d.keys())
+                        del_ori = set(cdata.get("del_ori_idx") or [])
+                        del_tar = set(cdata.get("del_tar_idx") or [])
+                        summary_rows.append({
+                            "Tensor": col_name,
+                            "Tensor conflict": "yes" if col_name in result.get("columns", []) else "",
+                            "Append rows (ours/theirs)": (
+                                f"{len(cdata.get('app_ori_idx') or [])} / "
+                                f"{len(cdata.get('app_tar_idx') or [])}"
+                            ),
+                            "Update rows": len(update_idx),
+                            "Delete rows (ours/theirs)": (
+                                f"{len(del_ori)} / {len(del_tar)}"
+                            ),
+                        })
+                    if summary_rows:
+                        st.dataframe(pd.DataFrame(summary_rows), width="stretch", hide_index=True)
 
-                                # Update conflicts
-                                if cdata.get("update_values"):
-                                    update_ori = cdata["update_values"].get("update_ori", [])
-                                    update_tar = cdata["update_values"].get("update_tar", [])
-                                    if update_ori or update_tar:
-                                        st.markdown("**Update conflicts:**")
-                                        comp = []
-                                        all_idx = set()
-                                        for d in update_ori:
-                                            all_idx.update(d.keys())
-                                        for d in update_tar:
-                                            all_idx.update(d.keys())
-                                        for idx in sorted(all_idx):
-                                            ov = next((d[idx] for d in update_ori if idx in d), "—")
-                                            tv = next((d[idx] for d in update_tar if idx in d), "—")
-                                            comp.append({"Index": idx, "Current (ours)": str(ov), "Source (theirs)": str(tv)})
-                                        if comp:
-                                            cdf = pd.DataFrame(comp)
+                    with st.expander("Show conflict details (optional)", expanded=False):
+                        for col_name in sorted(all_conflict_tensors):
+                            st.markdown(f"#### `{col_name}`")
+                            cdata = result["records"].get(col_name, {})
 
-                                            def _hl(row):
-                                                if row["Current (ours)"] != "—" and row["Source (theirs)"] != "—":
-                                                    return ["background-color: #ffcccc"] * len(row)
-                                                return [""] * len(row)
+                            # Append conflicts (both branches appended)
+                            if cdata.get("app_ori_idx") and cdata.get("app_tar_idx"):
+                                st.markdown("**Append conflicts (both branches added samples):**")
+                                rows = []
+                                ori_vals = cdata.get("app_ori_values", [])
+                                tar_vals = cdata.get("app_tar_values", [])
+                                for j, idx in enumerate(cdata["app_ori_idx"]):
+                                    rows.append({"Side": "Current (ours)", "Index": idx,
+                                                 "Value": str(ori_vals[j]) if j < len(ori_vals) else "—"})
+                                for j, idx in enumerate(cdata["app_tar_idx"]):
+                                    rows.append({"Side": "Source (theirs)", "Index": idx,
+                                                 "Value": str(tar_vals[j]) if j < len(tar_vals) else "—"})
+                                if rows:
+                                    st.dataframe(pd.DataFrame(rows), width="stretch")
+                            elif cdata.get("app_ori_idx"):
+                                st.markdown(f"**Appended in current only:** {len(cdata['app_ori_idx'])} samples")
+                            elif cdata.get("app_tar_idx"):
+                                st.markdown(f"**Appended in source only:** {len(cdata['app_tar_idx'])} samples")
 
-                                            st.dataframe(cdf.style.apply(_hl, axis=1), width="stretch")
+                            # Update conflicts
+                            if cdata.get("update_values"):
+                                update_ori = cdata["update_values"].get("update_ori", [])
+                                update_tar = cdata["update_values"].get("update_tar", [])
+                                if update_ori or update_tar:
+                                    st.markdown("**Update conflicts:**")
+                                    comp = []
+                                    all_idx = set()
+                                    for d in update_ori:
+                                        all_idx.update(d.keys())
+                                    for d in update_tar:
+                                        all_idx.update(d.keys())
+                                    for idx in sorted(all_idx):
+                                        ov = next((d[idx] for d in update_ori if idx in d), "—")
+                                        tv = next((d[idx] for d in update_tar if idx in d), "—")
+                                        comp.append({"Index": idx, "Current (ours)": str(ov), "Source (theirs)": str(tv)})
+                                    if comp:
+                                        cdf = pd.DataFrame(comp)
 
-                                # Delete conflicts
-                                if cdata.get("del_ori_idx") or cdata.get("del_tar_idx"):
-                                    st.markdown("**Delete conflicts:**")
-                                    if cdata.get("del_ori_idx"):
-                                        st.markdown(f"- Current deletes: {cdata['del_ori_idx']}")
-                                    if cdata.get("del_tar_idx"):
-                                        st.markdown(f"- Source deletes: {cdata['del_tar_idx']}")
-                    else:
-                        st.success("No conflicts detected — safe to merge.")
+                                        def _hl(row):
+                                            if row["Current (ours)"] != "—" and row["Source (theirs)"] != "—":
+                                                return ["background-color: #ffcccc"] * len(row)
+                                            return [""] * len(row)
 
-            st.markdown("---")
-            st.markdown("**Merge Strategy**")
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                append_res = st.radio("Append", ["ours", "theirs", "both"], key="m_app")
-            with c2:
-                pop_res = st.radio("Delete", ["ours", "theirs"], key="m_pop")
-            with c3:
-                update_res = st.radio("Update", ["ours", "theirs"], key="m_upd")
+                                        st.dataframe(cdf.style.apply(_hl, axis=1), width="stretch")
 
-            if st.button("Merge", type="primary"):
-                strategy = {
-                    "append_resolution": append_res,
-                    "pop_resolution": pop_res,
-                    "update_resolution": update_res,
-                }
-                res, err = branch_ops(ds, "merge", branch_name=merge_src, merge_strategy=strategy)
-                if err:
-                    st.error(err)
+                            # Delete conflicts
+                            if cdata.get("del_ori_idx") or cdata.get("del_tar_idx"):
+                                st.markdown("**Delete conflicts:**")
+                                if cdata.get("del_ori_idx"):
+                                    st.markdown(f"- Current deletes: {cdata['del_ori_idx']}")
+                                if cdata.get("del_tar_idx"):
+                                    st.markdown(f"- Source deletes: {cdata['del_tar_idx']}")
+
+                    st.markdown("---")
+                    st.markdown("**Merge Strategy**")
+                    c1, c2, c3 = st.columns(3)
+                    with c1:
+                        append_res = st.radio("Append", ["ours", "theirs", "both"], key="m_app")
+                    with c2:
+                        pop_res = st.radio("Delete", ["ours", "theirs"], key="m_pop")
+                    with c3:
+                        update_res = st.radio("Update", ["ours", "theirs"], key="m_upd")
+
+                    if st.button("Merge", type="primary", key="merge_with_strategy"):
+                        strategy = {
+                            "append_resolution": append_res,
+                            "pop_resolution": pop_res,
+                            "update_resolution": update_res,
+                        }
+                        res, err = branch_ops(ds, "merge", branch_name=merge_src, merge_strategy=strategy)
+                        if err:
+                            st.error(err)
+                        else:
+                            st.session_state.pop("_merge_detect_state", None)
+                            st.success(res)
+                            st.rerun()
                 else:
-                    st.success(res)
-                    st.rerun()
+                    st.success("No conflicts detected — safe to merge.")
+                    if tensors_with_delete_diffs:
+                        st.caption(
+                            "This merge still includes one-sided deletes. Choose how delete records should apply."
+                        )
+                        delete_rows = []
+                        for col_name in sorted(tensors_with_delete_diffs):
+                            cdata = result["records"].get(col_name, {})
+                            delete_rows.append({
+                                "Tensor": col_name,
+                                "Current-only deletes": len(set(cdata.get("del_ori_idx") or [])),
+                                "Source-only deletes": len(set(cdata.get("del_tar_idx") or [])),
+                            })
+                        if delete_rows:
+                            st.dataframe(pd.DataFrame(delete_rows), width="stretch", hide_index=True)
+                        pop_res = st.radio(
+                            "Delete handling",
+                            ["ours", "theirs", "both"],
+                            key="m_pop_no_conflict",
+                        )
+                        if st.button("Merge", type="primary", key="merge_no_conflict_delete_choice"):
+                            res, err = branch_ops(
+                                ds,
+                                "merge",
+                                branch_name=merge_src,
+                                merge_strategy={"pop_resolution": pop_res},
+                            )
+                            if err:
+                                st.error(err)
+                            else:
+                                st.session_state.pop("_merge_detect_state", None)
+                                st.success(res)
+                                st.rerun()
+                    else:
+                        if st.button("Merge", type="primary", key="merge_without_strategy"):
+                            res, err = branch_ops(ds, "merge", branch_name=merge_src, merge_strategy={})
+                            if err:
+                                st.error(err)
+                            else:
+                                st.session_state.pop("_merge_detect_state", None)
+                                st.success(res)
+                                st.rerun()
+            else:
+                st.caption("Click `Detect Conflicts` first. Merge options appear only when needed.")
 
 
 

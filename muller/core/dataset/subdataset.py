@@ -30,7 +30,16 @@ def sub_ds(
     if empty:
         sub_storage.clear()
 
-    path = sub_storage
+    # IMPORTANT: do NOT pass ``sub_storage`` as the ``path=`` kwarg to
+    # ``Dataset(...)``. The constructor expects a ``str | pathlib.Path``
+    # and stores it on ``self.path``; assigning a ``StorageProvider`` there
+    # makes any downstream call site that treats ``ds.path`` as a string
+    # (``ds.path.startswith("mem://")``, ``os.path.join(ds.path, ...)``,
+    # the view-entry reload chain that funnels through
+    # ``storage_factory(path)``, …) raise
+    # ``AttributeError: 'LocalProvider' object has no attribute 'startswith'``.
+    # Leaving ``path=None`` lets ``Dataset.__init__`` derive a real string
+    # path from the storage via ``get_path_from_storage``.
     cls = muller.core.dataset.Dataset
 
     ret = cls(
@@ -39,7 +48,6 @@ def sub_ds(
             memory_cache_size * MB,
             local_cache_size * MB,
         ),
-        path=path,
         read_only=read_only,
         verbose=verbose,
     )
