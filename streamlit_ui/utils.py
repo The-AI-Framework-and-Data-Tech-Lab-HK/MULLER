@@ -127,7 +127,12 @@ except ImportError:
     ImageDraw = None  # type: ignore
     ImageFont = None  # type: ignore
 
-# COCO2017 layout produced by official_demo.ipynb (muller_datasetcoco-style).
+# Canonical COCO2017 tensors (as produced by official_demo.ipynb and the
+# muller_datasetcoco export). The SIGMOD demo schema extends this with
+# `description` (text, derived from category_id), and downstream code paths
+# may want to attach even more derived columns — so we treat the set below
+# as the *required* core and check via superset rather than strict equality
+# in `is_coco2017_muller_schema` below.
 COCO2017_MULLER_SCHEMA = frozenset(
     {
         "area",
@@ -307,10 +312,16 @@ def pil_fit_inside(
 
 
 def is_coco2017_muller_schema(ds: Any) -> bool:
-    """True if public tensors match the 8-column COCO2017 MULLER layout (ignores _uuid)."""
+    """True if the dataset carries the 8 canonical COCO2017 tensors.
+
+    We use a *superset* check (not equality) so datasets with extra derived
+    columns — e.g. the SIGMOD demo adds a ``description`` text tensor — are
+    still recognised as COCO-style and get the bbox-overlay / thumbnail-grid
+    UI treatment. The ``_uuid`` bookkeeping tensor is ignored either way.
+    """
     names = set(ds.tensors.keys())
     names.discard("_uuid")
-    return names == COCO2017_MULLER_SCHEMA
+    return COCO2017_MULLER_SCHEMA.issubset(names)
 
 
 def load_coco_category_id_to_name(instances_json: str) -> Tuple[Optional[Dict[int, str]], Optional[str]]:

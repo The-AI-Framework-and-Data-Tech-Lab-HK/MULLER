@@ -16,6 +16,7 @@ This demo showcases MULLER's capabilities:
 - Performance benchmarking vs Parquet
 """
 import streamlit as st
+import hashlib
 import json
 import sys
 import os
@@ -148,10 +149,15 @@ if _user_input and _user_input != _cur_user:
 
 st.sidebar.markdown("---")
 
+# Persist the active page across reruns (e.g. after switching the current
+# user, which calls st.rerun()). Without an explicit key the radio loses
+# its selection on rerun and falls back to the first option, which is
+# annoying mid-demo when the operator is on Version Control / Query.
 page = st.sidebar.radio(
     "Navigation",
     ["📊 Dataset Management", "🔍 Query & Search",
      "🌿 Version Control", "⚡ Benchmarks", "ℹ️ About"],
+    key="nav_page",
 )
 
 st.sidebar.markdown("---")
@@ -186,7 +192,7 @@ if page == "📊 Dataset Management":
         # ---- Create New Dataset (left column) ----
         with col_left:
             st.subheader("Create New Dataset")
-            _default_create_path = str(Path.home() / "muller_datasets" / "demo_dataset")
+            _default_create_path = str(Path.home() / "research_data" / "muller_coco_demo")
             ds_path_input = st.text_input(
                 "Dataset Path",
                 value=_default_create_path,
@@ -247,12 +253,16 @@ if page == "📊 Dataset Management":
             if "schema_next_id" not in st.session_state:
                 st.session_state.schema_next_id = len(_DEFAULT_ROWS)
 
-            # --- Optional: bulk-load schema from JSON ---
-            # Typing a 8-tensor COCO schema cell-by-cell is tedious and error
-            # prone. Users can upload a small JSON once and get the rows
-            # below pre-populated. The editor stays live — they can still
-            # tweak, add, or delete rows before hitting Create Dataset.
-            with st.expander("📥 Load schema from JSON file (optional)", expanded=False):
+            # --- Bulk-load schema from JSON ---
+            # Typing a multi-tensor schema cell-by-cell is tedious and error
+            # prone, and skipping this step is the #1 reason the demo looks
+            # "not like a COCO dataset" afterwards (you silently end up with
+            # the 3-tensor placeholder schema, and a subsequent Batch Upload
+            # of a 9-column CSV drops 8 of the 9 columns on the floor). So:
+            #   - this expander is *open by default* (file uploader visible)
+            #   - below, ``Create Dataset`` blocks on the default placeholder
+            #     rows with an amber warning-and-confirm
+            with st.expander("📥 Load schema from JSON file", expanded=True):
                 st.caption(
                     "Upload a JSON describing the tensors. Accepted shapes:  \n"
                     "• `{\"tensors\": [{\"name\": …, \"htype\": …, \"dtype\": …, "
@@ -260,7 +270,7 @@ if page == "📊 Dataset Management":
                     "• a plain list of the same objects  \n"
                     "• a `{name: {htype, dtype, sample_compression}}` dict  \n"
                     "See `sigmod_demo_revision/coco_schema.json` for a ready-to-use "
-                    "8-tensor COCO2017 example."
+                    "9-tensor COCO2017 example (8 core tensors + `description` text)."
                 )
                 schema_file = st.file_uploader(
                     "Schema JSON", type=["json"], key="schema_json_upload",
@@ -411,7 +421,45 @@ if page == "📊 Dataset Management":
 
                 schema_inputs.append((col_name.strip(), col_htype, col_dtype, col_comp))
 
-            if st.button("Create Dataset", type="primary"):
+            # Detect that the user is about to create a dataset with the
+            # *unchanged* placeholder schema. This is almost always a
+            # mistake for demo / real data: the dataset ends up with only
+            # labels/categories/description, and a subsequent Batch Upload
+            # CSV silently drops every column not in that placeholder set.
+            _current_rows_sig = [
+                {"name": nm, "htype": ht, "dtype": dt, "comp": cm}
+                for nm, ht, dt, cm in schema_inputs if nm
+            ]
+            _default_rows_sig = [
+                {k: v for k, v in r.items() if k != "id"} for r in _DEFAULT_ROWS
+            ]
+            _is_untouched_placeholder = _current_rows_sig == _default_rows_sig
+
+            if _is_untouched_placeholder:
+                st.warning(
+                    "⚠️ The schema editor below still shows the **default "
+                    "placeholder** (`labels`, `categories`, `description`). "
+                    "This is just a demo skeleton — it is **not** the COCO "
+                    "layout. If you create the dataset now and then Batch "
+                    "Upload `public_base_3000.csv`, every column except "
+                    "`description` will be silently dropped (no bbox, no "
+                    "category_id, no images → the dataset will not be "
+                    "recognized as COCO and the 5×5 thumbnail + bbox "
+                    "overlay UI will not appear).  \n\n"
+                    "**Load `schema.json` in the expander above first**, or "
+                    "tick the confirmation below if you really intended the "
+                    "placeholder schema."
+                )
+                _confirm_placeholder = st.checkbox(
+                    "I know this is the placeholder schema — create it anyway",
+                    value=False,
+                    key="create_ds_confirm_placeholder",
+                )
+            else:
+                _confirm_placeholder = True
+
+            if st.button("Create Dataset", type="primary",
+                         disabled=_is_untouched_placeholder and not _confirm_placeholder):
                 # Validate column names
                 col_names = [s[0] for s in schema_inputs if s[0]]
                 if not col_names:
@@ -495,6 +543,32 @@ if page == "📊 Dataset Management":
             ds = st.session_state.dataset
             tensor_names = list(ds.tensors.keys())
             n = len(ds)
+
+            # Per-action "flash" slots — each Add / Import / Delete / Update
+            # button writes its result here as a (kind, message) tuple before
+            # calling st.rerun(); the matching `_render_flash` call below the
+            # button picks it up on the next script run and renders it inline,
+            # because the original `st.success()` was wiped by the rerun.
+            # Auto-clear them whenever the user loads a different dataset to
+            # avoid stale "Deleted sample N" lines on a fresh dataset.
+            _flash_keys = ("_flash_add", "_flash_csv", "_flash_del", "_flash_upd")
+            _flash_ctx = (st.session_state.get("dataset_path"), ds.branch)
+            if st.session_state.get("_flash_ctx") != _flash_ctx:
+                st.session_state["_flash_ctx"] = _flash_ctx
+                for _k in _flash_keys:
+                    st.session_state.pop(_k, None)
+
+            def _render_flash(key: str):
+                payload = st.session_state.get(key)
+                if not payload:
+                    return
+                kind, msg = payload
+                if kind == "success":
+                    st.success(msg)
+                elif kind == "error":
+                    st.error(msg)
+                else:
+                    st.info(msg)
 
             # 1) Current Schema (collapsed by default)
             with st.expander("Current Schema", expanded=False):
@@ -587,8 +661,9 @@ if page == "📊 Dataset Management":
                         _coco_cat_map = None
                         if _coco_layout:
                             st.caption(
-                                "COCO2017-style layout detected (8 columns: area, bbox, category_id, id, "
-                                "image_id, images, iscrowd, segmentation)."
+                                "COCO2017-style layout detected — the 8 core tensors "
+                                "(area, bbox, category_id, id, image_id, images, iscrowd, segmentation) "
+                                "are all present; any extra columns (e.g. `description`) are allowed."
                             )
                             _ann_path = st.text_input(
                                 "COCO instances JSON (for category names)",
@@ -1067,15 +1142,21 @@ if page == "📊 Dataset Management":
                 if st.button("Add Sample", type="primary"):
                     filtered = {k: v for k, v in sample_data.items() if v is not None}
                     if not filtered:
-                        st.error("Please fill in at least one field.")
+                        # Validation feedback can be inline (no rerun), so write
+                        # it directly to the flash slot too for consistency.
+                        st.session_state["_flash_add"] = ("error", "Please fill in at least one field.")
                     else:
                         err = add_samples(ds, filtered, auto_commit=True,
                                           commit_message=add_commit_msg)
                         if err:
-                            st.error(err)
+                            st.session_state["_flash_add"] = ("error", err)
                         else:
-                            st.success("Sample added and committed.")
+                            st.session_state["_flash_add"] = (
+                                "success",
+                                f"Sample added and committed (commit: `{add_commit_msg}`).",
+                            )
                             st.rerun()
+                _render_flash("_flash_add")
 
             # 4) Batch Upload via CSV (collapsed by default)
             with st.expander("Batch Upload via CSV", expanded=False):
@@ -1090,6 +1171,29 @@ if page == "📊 Dataset Management":
                         st.info(f"Matched columns: {matched}")
                     if unmatched:
                         st.warning(f"Columns not in dataset (will be skipped): {unmatched}")
+
+                    # Hard-stop warning for the specific failure mode where
+                    # the user tries to import a rich CSV (e.g. 9-column
+                    # COCO public_base_3000.csv) into a dataset that was
+                    # created with the default placeholder schema — only
+                    # a handful of columns match and the rest vanish, which
+                    # is almost never what the user wants. Make this loud
+                    # and actionable instead of a single-line warning.
+                    if matched and len(unmatched) >= 2 * len(matched):
+                        st.error(
+                            f"**CSV columns barely match the dataset schema** "
+                            f"({len(matched)} matched vs {len(unmatched)} "
+                            f"skipped). This usually means the dataset was "
+                            f"created without loading the correct schema "
+                            f"JSON (e.g. you kept the default `labels / "
+                            f"categories / description` placeholder). If you "
+                            f"import now, every column in the 'skipped' list "
+                            f"will be lost.  \n\n"
+                            f"**Fix**: go to **Create / Load → Create New "
+                            f"Dataset**, tick *Overwrite if exists*, load "
+                            f"`schema.json` in the expander, recreate, then "
+                            f"come back here and re-upload this CSV."
+                        )
 
                     # Per-column import mode:
                     #  - "read" for media columns (calls muller.read() on the path)
@@ -1183,7 +1287,9 @@ if page == "📊 Dataset Management":
                         key="csv_commit_msg")
                     if st.button("Import CSV Data"):
                         if not matched:
-                            st.error(f"CSV columns must match tensors: {tensor_names}")
+                            st.session_state["_flash_csv"] = (
+                                "error", f"CSV columns must match tensors: {tensor_names}"
+                            )
                         else:
                             tmp_path = None
                             try:
@@ -1199,13 +1305,17 @@ if page == "📊 Dataset Management":
                                     workers=0,
                                 )
                                 commit_dataset(ds, message=csv_commit_msg)
-                                st.success(f"Imported {len(df_up)} samples.")
+                                st.session_state["_flash_csv"] = (
+                                    "success",
+                                    f"Imported {len(df_up)} samples (commit: `{csv_commit_msg}`).",
+                                )
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"Failed to import CSV: {e}")
+                                st.session_state["_flash_csv"] = ("error", f"Failed to import CSV: {e}")
                             finally:
                                 if tmp_path and os.path.exists(tmp_path):
                                     os.unlink(tmp_path)
+                _render_flash("_flash_csv")
 
             # 5) Delete Sample (collapsed by default)
             with st.expander("Delete Sample", expanded=False):
@@ -1219,11 +1329,15 @@ if page == "📊 Dataset Management":
                     if st.button("Delete", type="secondary"):
                         err = delete_sample(ds, del_idx)
                         if err:
-                            st.error(err)
+                            st.session_state["_flash_del"] = ("error", err)
                         else:
                             commit_dataset(ds, message=del_commit_msg)
-                            st.success(f"Deleted sample {del_idx}")
+                            st.session_state["_flash_del"] = (
+                                "success",
+                                f"Deleted sample {del_idx} (commit: `{del_commit_msg}`).",
+                            )
                             st.rerun()
+                _render_flash("_flash_del")
 
             # 6) Update Sample (collapsed by default)
             with st.expander("Update Sample", expanded=False):
@@ -1259,11 +1373,15 @@ if page == "📊 Dataset Management":
                                     parsed = upd_val
                         err = update_sample(ds, upd_tensor, upd_idx, parsed)
                         if err:
-                            st.error(err)
+                            st.session_state["_flash_upd"] = ("error", err)
                         else:
                             commit_dataset(ds, message=upd_commit_msg)
-                            st.success(f"Updated {upd_tensor}[{upd_idx}]")
+                            st.session_state["_flash_upd"] = (
+                                "success",
+                                f"Updated `{upd_tensor}[{upd_idx}]` -> `{parsed}` (commit: `{upd_commit_msg}`).",
+                            )
                             st.rerun()
+                _render_flash("_flash_upd")
 
 
 # ============================================================================
@@ -1825,9 +1943,20 @@ elif page == "🔍 Query & Search":
                     help="Required. Letters/numbers/underscore recommended; "
                     "must be unique within this dataset.",
                 )
+                # Tie the widget's key to a short hash of ``result_desc`` so
+                # that when the user runs a new query (producing a different
+                # description like "Conditional filter → 59 matching samples")
+                # Streamlit treats this as a *new* text_input and picks up the
+                # new default. A stable ``key="qs_save_msg"`` would stay pinned
+                # to the first query's value forever — Streamlit's ``value=``
+                # is only consulted on the widget's first render.
+                _rd = result_desc or ""
+                _msg_key = "qs_save_msg::" + hashlib.md5(
+                    _rd.encode("utf-8")
+                ).hexdigest()[:12]
                 new_msg = st.text_input(
-                    "Message (optional)", value=result_desc or "",
-                    key="qs_save_msg",
+                    "Message (optional)", value=_rd,
+                    key=_msg_key,
                 )
                 if st.button("Save as View", type="primary", key="qs_save_btn"):
                     vid_clean = new_vid.strip()
