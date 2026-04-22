@@ -107,7 +107,7 @@ def _dm_fullres_dialog_body() -> None:
     cap = st.session_state.get("dm_fullres_caption", "")
     if img is None:
         return
-    st.image(img, use_container_width=False)
+    st.image(img, width="content")
     st.caption(cap)
 
 
@@ -145,17 +145,16 @@ _user_input = st.sidebar.selectbox(
 if _user_input and _user_input != _cur_user:
     new_uid = set_current_user(_user_input)
     st.sidebar.success(f"Acting as `{new_uid}`.")
-    st.rerun()
 
 st.sidebar.markdown("---")
 
-# Persist the active page across reruns (e.g. after switching the current
-# user, which calls st.rerun()). Without an explicit key the radio loses
-# its selection on rerun and falls back to the first option, which is
-# annoying mid-demo when the operator is on Version Control / Query.
+# Persist the active page across reruns. The user switcher above already
+# runs inside Streamlit's normal widget-triggered rerun, so forcing a second
+# `st.rerun()` there would short-circuit this radio's render and make the
+# app fall back to the first page on the next pass.
 page = st.sidebar.radio(
     "Navigation",
-    ["📊 Dataset Management", "🔍 Query & Search",
+    ["📊 Dataset Management", "📝 View & Edit", "🔍 Query & Search",
      "🌿 Version Control", "⚡ Benchmarks", "ℹ️ About"],
     key="nav_page",
 )
@@ -183,7 +182,7 @@ else:
 if page == "📊 Dataset Management":
     st.title("📊 Dataset Management")
 
-    tab_create, tab_view = st.tabs(["Create / Load", "View & Edit"])
+    tab_create = st.container()
 
     # --- Tab 1: Create / Load ---
     with tab_create:
@@ -263,8 +262,8 @@ if page == "📊 Dataset Management":
             #   - below, ``Create Dataset`` blocks on the default placeholder
             #     rows with an amber warning-and-confirm
             with st.expander("📥 Load schema from JSON file", expanded=True):
-                st.caption(
-                    "Upload a JSON describing the tensors. Accepted shapes:  \n"
+                _schema_help_md = (
+                    "Accepted shapes:  \n"
                     "• `{\"tensors\": [{\"name\": …, \"htype\": …, \"dtype\": …, "
                     "\"sample_compression\": …}, …]}`  \n"
                     "• a plain list of the same objects  \n"
@@ -274,6 +273,7 @@ if page == "📊 Dataset Management":
                 )
                 schema_file = st.file_uploader(
                     "Schema JSON", type=["json"], key="schema_json_upload",
+                    help=_schema_help_md,
                 )
 
                 def _normalize_schema_entries(data):
@@ -352,14 +352,6 @@ if page == "📊 Dataset Management":
                                     "below to tweak, or upload a different file."
                                 )
 
-                col_reset, _ = st.columns([1, 3])
-                with col_reset:
-                    if st.button("Reset schema to UI defaults", key="schema_reset_btn"):
-                        st.session_state.schema_rows = list(_DEFAULT_ROWS)
-                        st.session_state.schema_next_id = len(_DEFAULT_ROWS)
-                        st.session_state.pop("_schema_json_sig", None)
-                        st.rerun()
-
             st.markdown("**Define Columns (Tensors)**")
 
             # Header row
@@ -435,31 +427,7 @@ if page == "📊 Dataset Management":
             ]
             _is_untouched_placeholder = _current_rows_sig == _default_rows_sig
 
-            if _is_untouched_placeholder:
-                st.warning(
-                    "⚠️ The schema editor below still shows the **default "
-                    "placeholder** (`labels`, `categories`, `description`). "
-                    "This is just a demo skeleton — it is **not** the COCO "
-                    "layout. If you create the dataset now and then Batch "
-                    "Upload `public_base_3000.csv`, every column except "
-                    "`description` will be silently dropped (no bbox, no "
-                    "category_id, no images → the dataset will not be "
-                    "recognized as COCO and the 5×5 thumbnail + bbox "
-                    "overlay UI will not appear).  \n\n"
-                    "**Load `schema.json` in the expander above first**, or "
-                    "tick the confirmation below if you really intended the "
-                    "placeholder schema."
-                )
-                _confirm_placeholder = st.checkbox(
-                    "I know this is the placeholder schema — create it anyway",
-                    value=False,
-                    key="create_ds_confirm_placeholder",
-                )
-            else:
-                _confirm_placeholder = True
-
-            if st.button("Create Dataset", type="primary",
-                         disabled=_is_untouched_placeholder and not _confirm_placeholder):
+            if st.button("Create Dataset", type="primary"):
                 # Validate column names
                 col_names = [s[0] for s in schema_inputs if s[0]]
                 if not col_names:
@@ -534,8 +502,10 @@ if page == "📊 Dataset Management":
                             st.warning(warn)
                         st.rerun()
 
-    # --- Tab 2: View & Edit ---
-    with tab_view:
+elif page == "📝 View & Edit":
+    st.title("📝 View & Edit")
+    view_edit_container = st.container()
+    with view_edit_container:
         st.subheader("View & Edit Dataset")
         if st.session_state.dataset is None:
             st.warning("Please create or load a dataset first.")
@@ -638,10 +608,6 @@ if page == "📊 Dataset Management":
                     start_idx = 0
                     end_idx = n
                     show_details = False
-                    st.caption(
-                        f"**{n}** samples · COCO layout uses a fixed **5×5** thumbnail grid "
-                        "with its own paging (no table pagination here)."
-                    )
 
                 # Image strip preview (same row order as paginated rows; global # = row index in dataset)
                 if img_tensors:
@@ -660,24 +626,13 @@ if page == "📊 Dataset Management":
                         _coco_overlay = False
                         _coco_cat_map = None
                         if _coco_layout:
-                            st.caption(
-                                "COCO2017-style layout detected — the 8 core tensors "
-                                "(area, bbox, category_id, id, image_id, images, iscrowd, segmentation) "
-                                "are all present; any extra columns (e.g. `description`) are allowed."
-                            )
-                            _ann_path = st.text_input(
-                                "COCO instances JSON (for category names)",
-                                value=DEFAULT_COCO_INSTANCES_JSON,
-                                key="dm_coco_ann_json",
-                                help="Same file as pycocotools.COCO(...), e.g. instances_val2017.json.",
-                            )
                             _coco_overlay = st.checkbox(
                                 "Overlay bounding boxes & labels",
                                 value=True,
                                 key="dm_coco_overlay",
                             )
                             if _coco_overlay:
-                                _ap = (_ann_path or "").strip()
+                                _ap = DEFAULT_COCO_INSTANCES_JSON
                                 # Only load when path is non-empty; never overwrite a good map with
                                 # a failed load from a transient empty path (e.g. widget timing on rerun).
                                 if _ap and (
@@ -828,7 +783,7 @@ if page == "📊 Dataset Management":
                                                             if gi == sel_gi
                                                             else "secondary"
                                                         ),
-                                                        use_container_width=True,
+                                                        width="stretch",
                                                         on_click=_dm_on_select_coco_thumb,
                                                         args=(gi,),
                                                         help="Show this sample on the right",
@@ -891,7 +846,7 @@ if page == "📊 Dataset Management":
                                         else None
                                     )
                                     if _fitted is not None:
-                                        st.image(_fitted, use_container_width=False)
+                                        st.image(_fitted, width="content")
                                     else:
                                         st.markdown(
                                             f'<div style="width:100%;max-width:{int(pv_w)}px;'
@@ -928,14 +883,14 @@ if page == "📊 Dataset Management":
                                             with st.popover("Full resolution"):
                                                 st.image(
                                                     _pil_full,
-                                                    use_container_width=False,
+                                                    width="content",
                                                 )
                                                 st.caption(_cap)
                                         else:
                                             with st.expander("Full resolution"):
                                                 st.image(
                                                     _pil_full,
-                                                    use_container_width=False,
+                                                    width="content",
                                                 )
                                                 st.caption(_cap)
                             else:
@@ -1072,14 +1027,14 @@ if page == "📊 Dataset Management":
                                                         with st.popover("Full size"):
                                                             st.image(
                                                                 _pil_full,
-                                                                use_container_width=False,
+                                                                width="content",
                                                             )
                                                             st.caption(_cap)
                                                     else:
                                                         with st.expander("Full size"):
                                                             st.image(
                                                                 _pil_full,
-                                                                use_container_width=False,
+                                                                width="content",
                                                             )
                                                             st.caption(_cap)
 
@@ -1163,7 +1118,6 @@ if page == "📊 Dataset Management":
                 uploaded = st.file_uploader("Choose CSV file", type=["csv"])
                 if uploaded is not None:
                     df_up = pd.read_csv(uploaded)
-                    st.dataframe(df_up.head(), width="stretch")
 
                     matched = [col for col in df_up.columns if col in tensor_names]
                     unmatched = [col for col in df_up.columns if col not in tensor_names]
@@ -1242,45 +1196,12 @@ if page == "📊 Dataset Management":
                         return "skip"
 
                     inferred = {col: _infer_mode(col, ds.tensors[col]) for col in matched}
-                    media_cols = [c for c in matched if inferred[c] == "read"]
-                    array_cols = [c for c in matched if inferred[c] == "json"]
-                    needs_selector = media_cols + array_cols
 
-                    path_columns = {}
-                    if needs_selector:
-                        st.markdown(
-                            "**Path / array columns** — the UI inferred these "
-                            "from each column's CSV content; override if needed:"
-                        )
-                        for col in needs_selector:
-                            t = ds.tensors[col]
-                            is_media = col in media_cols
-                            if is_media:
-                                opts = ["read", "text", "skip"]
-                                col_help = (
-                                    "read: load file via muller.read(); "
-                                    "text: store path as text; "
-                                    "skip: treat as plain value"
-                                )
-                            else:
-                                opts = ["json", "text", "skip"]
-                                col_help = (
-                                    "json: parse cell with json.loads (use this "
-                                    "for per-sample arrays like bbox / "
-                                    "segmentation / variable-length labels); "
-                                    "text: store as plain string; "
-                                    "skip: pass through unchanged"
-                                )
-                            default_idx = opts.index(inferred[col]) if inferred[col] in opts else 0
-                            mode = st.selectbox(
-                                f"`{col}` ({t.htype})",
-                                options=opts,
-                                index=default_idx,
-                                help=col_help,
-                                key=f"csv_pathcol_{col}",
-                            )
-                            if mode != "skip":
-                                path_columns[col] = mode
+                    # Apply inferred import modes silently so the demo UI stays
+                    # compact after a CSV is uploaded.
+                    path_columns = {
+                        col: mode for col, mode in inferred.items() if mode != "skip"
+                    }
 
                     csv_commit_msg = st.text_input(
                         "Commit Message", value="Import CSV data via Streamlit UI",
@@ -1815,15 +1736,11 @@ elif page == "🔍 Query & Search":
                                 value=True, key="qs_view_coco_overlay",
                             )
                             if _coco_overlay:
-                                _ann = st.text_input(
-                                    "COCO instances JSON (for category names)",
-                                    value=DEFAULT_COCO_INSTANCES_JSON,
-                                    key="qs_view_coco_ann",
+                                _coco_cat_map, _cerr = load_coco_category_id_to_name(
+                                    DEFAULT_COCO_INSTANCES_JSON
                                 )
-                                if _ann.strip():
-                                    _coco_cat_map, _cerr = load_coco_category_id_to_name(_ann.strip())
-                                    if _cerr:
-                                        st.warning(_cerr)
+                                if _cerr:
+                                    st.warning(_cerr)
 
                         per_page = 12
                         total_pages = max(1, (n_results + per_page - 1) // per_page)
@@ -2096,11 +2013,22 @@ elif page == "🌿 Version Control":
             st.info("No other branches to merge.")
         else:
             merge_src = st.selectbox("Merge from branch", other, key="merge_src")
+            _merge_detect_ctx = (
+                st.session_state.get("dataset_path"),
+                ds.branch,
+                getattr(ds, "commit_id", None),
+                merge_src,
+            )
+            _merge_detect_state = st.session_state.get("_merge_detect_state")
+            if _merge_detect_state and _merge_detect_state.get("ctx") != _merge_detect_ctx:
+                _merge_detect_state = None
+                st.session_state.pop("_merge_detect_state", None)
 
             # Detect conflicts
             if st.button("Detect Conflicts"):
                 result, err = branch_ops(ds, "detect_conflict", branch_name=merge_src)
                 if err:
+                    st.session_state.pop("_merge_detect_state", None)
                     st.error(err)
                 else:
                     # Check tensor-level conflicts (renames/deletes)
@@ -2132,102 +2060,192 @@ elif page == "🌿 Version Control":
                         has_delete = bool(ori_del & tar_del)
                         if has_append or has_update or has_delete:
                             tensors_with_sample_conflicts.append(col_name)
+                    tensors_with_delete_diffs = [
+                        col_name
+                        for col_name, cdata in result.get("records", {}).items()
+                        if (cdata.get("del_ori_idx") or cdata.get("del_tar_idx"))
+                    ]
+                    _merge_detect_state = {
+                        "ctx": _merge_detect_ctx,
+                        "has_conflicts": bool(has_tensor_conflicts or tensors_with_sample_conflicts),
+                        "result": result,
+                        "tensors_with_sample_conflicts": tensors_with_sample_conflicts,
+                        "tensors_with_delete_diffs": tensors_with_delete_diffs,
+                    }
+                    st.session_state["_merge_detect_state"] = _merge_detect_state
 
-                    if has_tensor_conflicts or tensors_with_sample_conflicts:
-                        conflict_summary = []
-                        if has_tensor_conflicts:
-                            conflict_summary.append(f"Tensor conflicts: {', '.join(result['columns'])}")
-                        if tensors_with_sample_conflicts:
-                            conflict_summary.append(f"Sample conflicts in: {', '.join(tensors_with_sample_conflicts)}")
-                        st.warning(" | ".join(conflict_summary))
+            if _merge_detect_state:
+                result = _merge_detect_state["result"]
+                tensors_with_sample_conflicts = _merge_detect_state["tensors_with_sample_conflicts"]
+                tensors_with_delete_diffs = _merge_detect_state.get("tensors_with_delete_diffs", [])
+                has_tensor_conflicts = bool(result["columns"])
 
-                        # Show details for all tensors that have any conflict
-                        all_conflict_tensors = set(tensors_with_sample_conflicts)
-                        if has_tensor_conflicts:
-                            all_conflict_tensors.update(result["columns"])
+                if _merge_detect_state["has_conflicts"]:
+                    conflict_summary = []
+                    if has_tensor_conflicts:
+                        conflict_summary.append(f"Tensor conflicts: {', '.join(result['columns'])}")
+                    if tensors_with_sample_conflicts:
+                        conflict_summary.append(f"Sample conflicts in: {', '.join(tensors_with_sample_conflicts)}")
+                    st.warning(" | ".join(conflict_summary))
 
-                        with st.expander("Conflict Details", expanded=True):
-                            for col_name in sorted(all_conflict_tensors):
-                                st.markdown(f"#### `{col_name}`")
-                                cdata = result["records"].get(col_name, {})
+                    # Show details for all tensors that have any conflict
+                    all_conflict_tensors = set(tensors_with_sample_conflicts)
+                    if has_tensor_conflicts:
+                        all_conflict_tensors.update(result["columns"])
 
-                                # Append conflicts (both branches appended)
-                                if cdata.get("app_ori_idx") and cdata.get("app_tar_idx"):
-                                    st.markdown("**Append conflicts (both branches added samples):**")
-                                    rows = []
-                                    ori_vals = cdata.get("app_ori_values", [])
-                                    tar_vals = cdata.get("app_tar_values", [])
-                                    for j, idx in enumerate(cdata["app_ori_idx"]):
-                                        rows.append({"Side": "Current (ours)", "Index": idx,
-                                                     "Value": str(ori_vals[j]) if j < len(ori_vals) else "—"})
-                                    for j, idx in enumerate(cdata["app_tar_idx"]):
-                                        rows.append({"Side": "Source (theirs)", "Index": idx,
-                                                     "Value": str(tar_vals[j]) if j < len(tar_vals) else "—"})
-                                    if rows:
-                                        st.dataframe(pd.DataFrame(rows), width="stretch")
-                                elif cdata.get("app_ori_idx"):
-                                    st.markdown(f"**Appended in current only:** {len(cdata['app_ori_idx'])} samples")
-                                elif cdata.get("app_tar_idx"):
-                                    st.markdown(f"**Appended in source only:** {len(cdata['app_tar_idx'])} samples")
+                    summary_rows = []
+                    for col_name in sorted(all_conflict_tensors):
+                        cdata = result["records"].get(col_name, {})
+                        update_ori = (cdata.get("update_values") or {}).get("update_ori", [])
+                        update_tar = (cdata.get("update_values") or {}).get("update_tar", [])
+                        update_idx = set()
+                        for d in update_ori:
+                            update_idx.update(d.keys())
+                        for d in update_tar:
+                            update_idx.update(d.keys())
+                        del_ori = set(cdata.get("del_ori_idx") or [])
+                        del_tar = set(cdata.get("del_tar_idx") or [])
+                        summary_rows.append({
+                            "Tensor": col_name,
+                            "Tensor conflict": "yes" if col_name in result.get("columns", []) else "",
+                            "Append rows (ours/theirs)": (
+                                f"{len(cdata.get('app_ori_idx') or [])} / "
+                                f"{len(cdata.get('app_tar_idx') or [])}"
+                            ),
+                            "Update rows": len(update_idx),
+                            "Delete rows (ours/theirs)": (
+                                f"{len(del_ori)} / {len(del_tar)}"
+                            ),
+                        })
+                    if summary_rows:
+                        st.dataframe(pd.DataFrame(summary_rows), width="stretch", hide_index=True)
 
-                                # Update conflicts
-                                if cdata.get("update_values"):
-                                    update_ori = cdata["update_values"].get("update_ori", [])
-                                    update_tar = cdata["update_values"].get("update_tar", [])
-                                    if update_ori or update_tar:
-                                        st.markdown("**Update conflicts:**")
-                                        comp = []
-                                        all_idx = set()
-                                        for d in update_ori:
-                                            all_idx.update(d.keys())
-                                        for d in update_tar:
-                                            all_idx.update(d.keys())
-                                        for idx in sorted(all_idx):
-                                            ov = next((d[idx] for d in update_ori if idx in d), "—")
-                                            tv = next((d[idx] for d in update_tar if idx in d), "—")
-                                            comp.append({"Index": idx, "Current (ours)": str(ov), "Source (theirs)": str(tv)})
-                                        if comp:
-                                            cdf = pd.DataFrame(comp)
+                    with st.expander("Show conflict details (optional)", expanded=False):
+                        for col_name in sorted(all_conflict_tensors):
+                            st.markdown(f"#### `{col_name}`")
+                            cdata = result["records"].get(col_name, {})
 
-                                            def _hl(row):
-                                                if row["Current (ours)"] != "—" and row["Source (theirs)"] != "—":
-                                                    return ["background-color: #ffcccc"] * len(row)
-                                                return [""] * len(row)
+                            # Append conflicts (both branches appended)
+                            if cdata.get("app_ori_idx") and cdata.get("app_tar_idx"):
+                                st.markdown("**Append conflicts (both branches added samples):**")
+                                rows = []
+                                ori_vals = cdata.get("app_ori_values", [])
+                                tar_vals = cdata.get("app_tar_values", [])
+                                for j, idx in enumerate(cdata["app_ori_idx"]):
+                                    rows.append({"Side": "Current (ours)", "Index": idx,
+                                                 "Value": str(ori_vals[j]) if j < len(ori_vals) else "—"})
+                                for j, idx in enumerate(cdata["app_tar_idx"]):
+                                    rows.append({"Side": "Source (theirs)", "Index": idx,
+                                                 "Value": str(tar_vals[j]) if j < len(tar_vals) else "—"})
+                                if rows:
+                                    st.dataframe(pd.DataFrame(rows), width="stretch")
+                            elif cdata.get("app_ori_idx"):
+                                st.markdown(f"**Appended in current only:** {len(cdata['app_ori_idx'])} samples")
+                            elif cdata.get("app_tar_idx"):
+                                st.markdown(f"**Appended in source only:** {len(cdata['app_tar_idx'])} samples")
 
-                                            st.dataframe(cdf.style.apply(_hl, axis=1), width="stretch")
+                            # Update conflicts
+                            if cdata.get("update_values"):
+                                update_ori = cdata["update_values"].get("update_ori", [])
+                                update_tar = cdata["update_values"].get("update_tar", [])
+                                if update_ori or update_tar:
+                                    st.markdown("**Update conflicts:**")
+                                    comp = []
+                                    all_idx = set()
+                                    for d in update_ori:
+                                        all_idx.update(d.keys())
+                                    for d in update_tar:
+                                        all_idx.update(d.keys())
+                                    for idx in sorted(all_idx):
+                                        ov = next((d[idx] for d in update_ori if idx in d), "—")
+                                        tv = next((d[idx] for d in update_tar if idx in d), "—")
+                                        comp.append({"Index": idx, "Current (ours)": str(ov), "Source (theirs)": str(tv)})
+                                    if comp:
+                                        cdf = pd.DataFrame(comp)
 
-                                # Delete conflicts
-                                if cdata.get("del_ori_idx") or cdata.get("del_tar_idx"):
-                                    st.markdown("**Delete conflicts:**")
-                                    if cdata.get("del_ori_idx"):
-                                        st.markdown(f"- Current deletes: {cdata['del_ori_idx']}")
-                                    if cdata.get("del_tar_idx"):
-                                        st.markdown(f"- Source deletes: {cdata['del_tar_idx']}")
-                    else:
-                        st.success("No conflicts detected — safe to merge.")
+                                        def _hl(row):
+                                            if row["Current (ours)"] != "—" and row["Source (theirs)"] != "—":
+                                                return ["background-color: #ffcccc"] * len(row)
+                                            return [""] * len(row)
 
-            st.markdown("---")
-            st.markdown("**Merge Strategy**")
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                append_res = st.radio("Append", ["ours", "theirs", "both"], key="m_app")
-            with c2:
-                pop_res = st.radio("Delete", ["ours", "theirs"], key="m_pop")
-            with c3:
-                update_res = st.radio("Update", ["ours", "theirs"], key="m_upd")
+                                        st.dataframe(cdf.style.apply(_hl, axis=1), width="stretch")
 
-            if st.button("Merge", type="primary"):
-                strategy = {
-                    "append_resolution": append_res,
-                    "pop_resolution": pop_res,
-                    "update_resolution": update_res,
-                }
-                res, err = branch_ops(ds, "merge", branch_name=merge_src, merge_strategy=strategy)
-                if err:
-                    st.error(err)
+                            # Delete conflicts
+                            if cdata.get("del_ori_idx") or cdata.get("del_tar_idx"):
+                                st.markdown("**Delete conflicts:**")
+                                if cdata.get("del_ori_idx"):
+                                    st.markdown(f"- Current deletes: {cdata['del_ori_idx']}")
+                                if cdata.get("del_tar_idx"):
+                                    st.markdown(f"- Source deletes: {cdata['del_tar_idx']}")
+
+                    st.markdown("---")
+                    st.markdown("**Merge Strategy**")
+                    c1, c2, c3 = st.columns(3)
+                    with c1:
+                        append_res = st.radio("Append", ["ours", "theirs", "both"], key="m_app")
+                    with c2:
+                        pop_res = st.radio("Delete", ["ours", "theirs"], key="m_pop")
+                    with c3:
+                        update_res = st.radio("Update", ["ours", "theirs"], key="m_upd")
+
+                    if st.button("Merge", type="primary", key="merge_with_strategy"):
+                        strategy = {
+                            "append_resolution": append_res,
+                            "pop_resolution": pop_res,
+                            "update_resolution": update_res,
+                        }
+                        res, err = branch_ops(ds, "merge", branch_name=merge_src, merge_strategy=strategy)
+                        if err:
+                            st.error(err)
+                        else:
+                            st.session_state.pop("_merge_detect_state", None)
+                            st.success(res)
+                            st.rerun()
                 else:
-                    st.success(res)
-                    st.rerun()
+                    st.success("No conflicts detected — safe to merge.")
+                    if tensors_with_delete_diffs:
+                        st.caption(
+                            "This merge still includes one-sided deletes. Choose how delete records should apply."
+                        )
+                        delete_rows = []
+                        for col_name in sorted(tensors_with_delete_diffs):
+                            cdata = result["records"].get(col_name, {})
+                            delete_rows.append({
+                                "Tensor": col_name,
+                                "Current-only deletes": len(set(cdata.get("del_ori_idx") or [])),
+                                "Source-only deletes": len(set(cdata.get("del_tar_idx") or [])),
+                            })
+                        if delete_rows:
+                            st.dataframe(pd.DataFrame(delete_rows), width="stretch", hide_index=True)
+                        pop_res = st.radio(
+                            "Delete handling",
+                            ["ours", "theirs", "both"],
+                            key="m_pop_no_conflict",
+                        )
+                        if st.button("Merge", type="primary", key="merge_no_conflict_delete_choice"):
+                            res, err = branch_ops(
+                                ds,
+                                "merge",
+                                branch_name=merge_src,
+                                merge_strategy={"pop_resolution": pop_res},
+                            )
+                            if err:
+                                st.error(err)
+                            else:
+                                st.session_state.pop("_merge_detect_state", None)
+                                st.success(res)
+                                st.rerun()
+                    else:
+                        if st.button("Merge", type="primary", key="merge_without_strategy"):
+                            res, err = branch_ops(ds, "merge", branch_name=merge_src, merge_strategy={})
+                            if err:
+                                st.error(err)
+                            else:
+                                st.session_state.pop("_merge_detect_state", None)
+                                st.success(res)
+                                st.rerun()
+            else:
+                st.caption("Click `Detect Conflicts` first. Merge options appear only when needed.")
 
 
 
