@@ -26,18 +26,22 @@ Modern AI datasets require collaborative workflows where multiple engineers work
 
 ### Choose Your Interface
 
-MULLER offers two ways to work with your data:
+MULLER offers three interfaces so you can pick the shortest path for your task:
 
-**🤖 Natural Language** (via Agent Skills)
-- Use Claude Code or compatible AI assistants
-- Describe operations in plain English
-- Best for: Interactive exploration, rapid prototyping
-- [Jump to Natural Language guide →](#natural-language-interface)
+**🌐 Web GUI** (Streamlit)
+- Browser-based interface for interactive demos and hands-on exploration
+- Best for: Visual walkthroughs, dataset inspection, demo scenarios
+- [Jump to Web GUI guide →](#web-gui-streamlit)
+
+**🤖 Agent Skills**
+- Use Cursor, Claude Code, or other compatible AI coding assistants
+- Describe dataset operations in natural language
+- Best for: Interactive exploration, rapid prototyping, AI-assisted workflows
+- [Jump to Agent Skills guide →](#agent-skills-natural-language)
 
 **🐍 Python API**
-- Direct programmatic control
-- Full feature access
-- Best for: Production pipelines, automation
+- Direct programmatic control with the full MULLER feature set
+- Best for: Production pipelines, scripting, automation
 - [Jump to Python API guide →](#python-api)
 
 ### Installation
@@ -75,11 +79,34 @@ print(muller.__version__)
 - Development mode: `pip install -e .`
 - Skip C++ modules: `BUILD_CPP=false pip install .`
 
-## Natural Language Interface
+## Web GUI (Streamlit)
 
-MULLER includes [Agent Skills](https://agentskills.io) that let you manage datasets through natural language when using **Claude Code** or compatible AI assistants.
+MULLER includes a Streamlit-based web GUI for interactive demos, visual dataset inspection, and guided exploration of core features such as querying, version control, and benchmarking.
 
-**Compatibility note:** Skills are located in `.claude/skills/` and optimized for Claude Code. Other IDEs (Cursor, Windsurf) may require different integration approaches.
+### Launch the Web GUI
+
+Install the demo dependencies:
+
+```bash
+pip install -e .[demo]
+```
+
+Then start the app:
+
+```bash
+cd streamlit_ui
+python3 -m streamlit run demo_streamlit.py --server.headless true
+```
+
+Open `http://localhost:8501` in your browser after Streamlit starts.
+
+For the full UI guide, troubleshooting steps, and demo workflow, see [`streamlit_ui/README.md`](streamlit_ui/README.md).
+
+## Agent Skills (Natural Language)
+
+MULLER includes [Agent Skills](https://agentskills.io) that let you manage datasets through natural language when using Cursor or other compatible AI assistants.
+
+**Compatibility note:** This repo keeps a neutral source copy in `ai-skills/` and a Cursor-discoverable copy in `.agents/skills/`. Compatible tools can use whichever recognized skill directory they support.
 
 ### Available Operations
 
@@ -106,7 +133,7 @@ MULLER includes [Agent Skills](https://agentskills.io) that let you manage datas
 - "Convert the embeddings tensor to NumPy array"
 - "Export dataset to JSON for my web API"
 
-For detailed skill documentation, see [.claude/skills/](.claude/skills/).
+For detailed skill documentation, see [`ai-skills/`](ai-skills/) or [`.agents/skills/`](.agents/skills/).
 
 ### Using Skills in Other AI Coding Agents
 
@@ -116,24 +143,30 @@ The MULLER skills are **platform-agnostic** and can be used with other AI coding
 
 1. Copy the skills directory to your project:
    ```bash
-   cp -r .claude/skills /path/to/your/project/.claude/skills
+   cp -r ai-skills /path/to/your/project/ai-skills
    ```
 
-2. Ensure your AI coding agent can:
-   - Discover and read SKILL.md files in `.claude/skills/*/SKILL.md`
+2. If you want automatic skill discovery, mirror the skills into a directory your agent scans:
+   ```bash
+   # Cursor / agents-compatible discovery
+   cp -r ai-skills /path/to/your/project/.agents/skills
+   ```
+
+3. Ensure your AI coding agent can:
+   - Discover and read `SKILL.md` files in its supported skill directory
    - Execute Python scripts via command line
    - Parse JSON output from the scripts
 
-3. (Optional) Adapt the path if your agent uses a different convention:
+4. (Optional) Adapt the path if your agent uses a different convention:
    ```bash
-   # For Cursor
-   cp -r .claude/skills /path/to/your/project/.cursor/skills
+   # Cursor compatibility
+   cp -r ai-skills /path/to/your/project/.cursor/skills
 
-   # For a platform-agnostic location
-   cp -r .claude/skills ~/.ai-skills/muller/
+   # User-level neutral location
+   cp -r ai-skills ~/.ai-skills/muller/
    ```
 
-The skills will work as long as your AI agent can execute the documented Python commands and parse the JSON responses.
+The skills will work as long as your AI agent can discover the `SKILL.md` files, execute the documented Python commands, and parse the JSON responses.
 
 ## Python API
 
