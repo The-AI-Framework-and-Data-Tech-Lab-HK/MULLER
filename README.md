@@ -104,9 +104,9 @@ For the full UI guide, troubleshooting steps, and demo workflow, see [`streamlit
 
 ## Agent Skills (Natural Language)
 
-MULLER includes [Agent Skills](https://agentskills.io) that let you manage datasets through natural language when using Cursor or other compatible AI assistants.
+MULLER includes [Agent Skills](https://agentskills.io) that let you manage datasets through natural language when using Cursor, Claude Code, or other compatible AI assistants.
 
-**Compatibility note:** This repo keeps a neutral source copy in `ai-skills/` and a Cursor-discoverable copy in `.agents/skills/`. Compatible tools can use whichever recognized skill directory they support.
+**Compatibility note:** This repo keeps its skills in `.claude/skills/`. Compatible tools can use that directory directly, or you can copy the skills into another recognized skill directory if your agent expects a different convention.
 
 ### Available Operations
 
@@ -133,7 +133,7 @@ MULLER includes [Agent Skills](https://agentskills.io) that let you manage datas
 - "Convert the embeddings tensor to NumPy array"
 - "Export dataset to JSON for my web API"
 
-For detailed skill documentation, see [`ai-skills/`](ai-skills/) or [`.agents/skills/`](.agents/skills/).
+For detailed skill documentation, see [`.claude/skills/`](.claude/skills/).
 
 ### Using Skills in Other AI Coding Agents
 
@@ -143,13 +143,13 @@ The MULLER skills are **platform-agnostic** and can be used with other AI coding
 
 1. Copy the skills directory to your project:
    ```bash
-   cp -r ai-skills /path/to/your/project/ai-skills
+   cp -r .claude/skills /path/to/your/project/.claude/skills
    ```
 
-2. If you want automatic skill discovery, mirror the skills into a directory your agent scans:
+2. If your agent scans a different directory, mirror the skills there:
    ```bash
-   # Cursor / agents-compatible discovery
-   cp -r ai-skills /path/to/your/project/.agents/skills
+   # Cursor project-level skills
+   cp -r .claude/skills /path/to/your/project/.cursor/skills
    ```
 
 3. Ensure your AI coding agent can:
@@ -159,11 +159,8 @@ The MULLER skills are **platform-agnostic** and can be used with other AI coding
 
 4. (Optional) Adapt the path if your agent uses a different convention:
    ```bash
-   # Cursor compatibility
-   cp -r ai-skills /path/to/your/project/.cursor/skills
-
    # User-level neutral location
-   cp -r ai-skills ~/.ai-skills/muller/
+   cp -r .claude/skills ~/.ai-skills/muller/
    ```
 
 The skills will work as long as your AI agent can discover the `SKILL.md` files, execute the documented Python commands, and parse the JSON responses.
