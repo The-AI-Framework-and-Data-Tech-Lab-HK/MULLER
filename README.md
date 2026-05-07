@@ -27,7 +27,7 @@ Modern AI datasets require collaborative workflows where multiple engineers work
 ### Choose Your Interface
 
 <div align="center">
-    <img src="docs/figures/interfaces.png" width="800">
+    <img src="docs/figures/interfaces.png" width="1000">
 </div>
 
 MULLER offers three interfaces so you can pick the shortest path for your task:
