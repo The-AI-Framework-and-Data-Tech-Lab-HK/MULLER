@@ -299,7 +299,8 @@ class InvertedIndexVectorized(object):
             except Exception as e:
                 raise ExecuteError from e
         else:
-            pool = multiprocessing.Pool(num_process)
+            mp_context = multiprocessing.get_context("fork") if hasattr(os, "fork") else multiprocessing
+            pool = mp_context.Pool(num_process)
             # Collect AsyncResults so worker exceptions propagate to the
             # main process via ``.get()`` below, instead of being silently
             # swallowed by ``close() + join()``.
@@ -713,7 +714,8 @@ class InvertedIndexVectorized(object):
             self._obtain_existing_batches()
         )
 
-        pool = multiprocessing.Pool(
+        mp_context = multiprocessing.get_context("fork") if hasattr(os, "fork") else multiprocessing
+        pool = mp_context.Pool(
             processes=min(len(ranges[0]), max_workers),
             maxtasksperchild=1
         )
@@ -838,7 +840,8 @@ class InvertedIndexVectorized(object):
         )
 
         # Initialize process pool
-        pool = multiprocessing.Pool(
+        mp_context = multiprocessing.get_context("fork") if hasattr(os, "fork") else multiprocessing
+        pool = mp_context.Pool(
             processes=min(len(ranges[0]), max_workers),
             maxtasksperchild=1
         )

@@ -6,6 +6,10 @@
 #
 # Copyright (c) 2026 Xueling Lin
 
+import os
+
+os.environ.setdefault("MULLER_PYTEST_ENABLED", "true")
+
 import pytest
 
 

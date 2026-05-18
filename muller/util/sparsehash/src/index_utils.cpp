@@ -10,13 +10,19 @@
 #include "custom_hash_map.h"
 #include "gil_manager.h"
 #include "logger.h"
+#if __has_include(<filesystem>)
+#include <filesystem>
+namespace fs = std::filesystem;
+#elif __has_include(<experimental/filesystem>)
 #include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#error "No filesystem support found"
+#endif
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <iostream>
-
-namespace fs = std::experimental::filesystem;
 
 namespace hashmap {
 namespace index_utils {

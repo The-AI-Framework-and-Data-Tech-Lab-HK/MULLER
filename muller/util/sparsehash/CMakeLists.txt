@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.5...4.0)
 project(CustomHashMapPybind)
 
 # Set the C++ standard
@@ -14,17 +14,18 @@ set(VENDOR_DIR "${THIRDPARTY_DIR}/vendor")
 # Set the dependency paths
 set(PYBIND11_INCLUDE_DIR "${VENDOR_DIR}/pybind11/include")
 set(CPPJIEBA_ROOT_DIR "${VENDOR_DIR}/cppjieba")
-set(SPARSEHASH_INCLUDE_DIR "${VENDOR_DIR}/sparsehash/install/include")
-set(BOOST_INCLUDE_DIR "${VENDOR_DIR}/boost/install/include")
-set(BOOST_LIBRARY_DIR "${VENDOR_DIR}/boost/install/lib")
+set(SPARSEHASH_INCLUDE_DIR "${VENDOR_DIR}/sparsehash/sparsehash-install/include")
+set(BOOST_INCLUDE_DIR "${VENDOR_DIR}/boost/boost-install/include")
+set(BOOST_LIBRARY_DIR "${VENDOR_DIR}/boost/boost-install/lib")
 set(MURMURHASH_INCLUDE_DIR "${VENDOR_DIR}/murmurhash/murmurhash/include")
 set(JIEBA_DICT_DIR "${CPPJIEBA_ROOT_DIR}/dict/")
 
 # Set the jiaba dictionary path
 add_definitions(-DJIEBA_DICT_DIR="${JIEBA_DICT_DIR}")
 
-# Search for Python
-find_package(Python3 3.11 EXACT REQUIRED COMPONENTS Development)
+# Search for the Python interpreter selected by the build script, so editable
+# installs inside a conda environment build against the same Python.
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 
 # The source files
 set(SOURCES
@@ -77,10 +78,12 @@ target_compile_definitions(custom_hash_map PRIVATE
 # Link Libraries
 target_link_libraries(custom_hash_map PRIVATE
     ${BOOST_LIBRARY_DIR}/libboost_system.a
-    ${Python3_LIBRARIES}
-    uuid
-    stdc++fs
+    Python3::Module
 )
+
+if(NOT APPLE)
+    target_link_libraries(custom_hash_map PRIVATE uuid stdc++fs)
+endif()
 
 # Release
 target_compile_options(custom_hash_map PRIVATE -O3 -DNDEBUG)

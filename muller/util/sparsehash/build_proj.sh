@@ -3,13 +3,15 @@
 
 set -e
 
-# Obtain the directory of the scripts
-SCRIPT_DIR=$(dirname $(readlink -f "$0"))
+# Obtain the directory of the script. Avoid ``readlink -f`` because it is not
+# available on a default macOS installation.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SPARSEHASH_DIR="${SCRIPT_DIR}"  # MULLER/muller/util/sparsehash
 PROJECT_ROOT=$(cd "${SCRIPT_DIR}/../../.." && pwd) # MULLER
 BUILD_DIR="${SPARSEHASH_DIR}/build"
 THIRDPARTY_DIR="${PROJECT_ROOT}/thirdparty"
 OUTPUT_DIR="${BUILD_DIR}"  # MULLER/muller/util/sparsehash/build
+PYTHON_BIN="${PYTHON:-$(command -v python || command -v python3)}"
 
 # Default args
 CPU_NUM=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
@@ -116,7 +118,7 @@ cd "${BUILD_DIR}"
 echo "Configuring CMake..."
 cmake .. \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-    -DPYTHON_EXECUTABLE=$(which python3)
+    -DPython3_EXECUTABLE="${PYTHON_BIN}"
 
 # Building
 echo "Building..."
