@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copyright (c) 2026 Bingyu Liu. All rights reserved.
 
-CUR_DIR=$(dirname $(readlink -f "$0"))
+CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 set -e
 
 export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
@@ -13,7 +13,8 @@ echo -e "Starting dependency download..."
 while getopts 'T:F:' opt; do
     case "$opt" in
     T)
-        THIRD_PARTY_DIR=$(readlink -f "${OPTARG}")
+        mkdir -p "${OPTARG}"
+        THIRD_PARTY_DIR="$(cd "${OPTARG}" && pwd)"
         ;;
     F)
         DEPS_CSV="${OPTARG}"
@@ -28,6 +29,8 @@ done
 if [ ! -d "${THIRD_PARTY_DIR}" ]; then
   mkdir -p "${THIRD_PARTY_DIR}"
 fi
+GIT_TEMPLATE_DIR="${THIRD_PARTY_DIR}/.git-template-empty"
+mkdir -p "${GIT_TEMPLATE_DIR}"
 
 function git_clone_open_src() {
     local name="$1"
@@ -46,7 +49,7 @@ function git_clone_open_src() {
     mkdir "$name" && cd "$name"
 
     # Try to git clone using tag
-    if git lfs clone --depth 1 -b $tag --recursive $repo . 2>/dev/null; then
+    if git clone --template="${GIT_TEMPLATE_DIR}" --depth 1 -b "$tag" --recursive "$repo" . 2>/dev/null; then
         echo "Successfully cloned ${name} with tag ${tag}"
     else
         # If the tag does not exist, use the default branch
@@ -54,7 +57,7 @@ function git_clone_open_src() {
         cd ..
         rm -rf "$name"
         mkdir "$name" && cd "$name"
-        git lfs clone --depth 1 --recursive $repo .
+        git clone --template="${GIT_TEMPLATE_DIR}" --depth 1 --recursive "$repo" .
     fi
 
     if [ -f ".gitmodules" ]; then

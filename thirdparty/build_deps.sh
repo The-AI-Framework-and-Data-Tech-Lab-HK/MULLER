@@ -3,11 +3,13 @@
 
 set -e
 
-CUR_DIR=$(dirname $(readlink -f "$0"))
+CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 THIRDPARTY_DIR="${CUR_DIR}"  # MULLER/thirdparty
 VENDOR_DIR="${THIRDPARTY_DIR}/vendor"
 BUILD_OUT_DIR="${VENDOR_DIR}/lib"
 DEPS_SCRIPT="${CUR_DIR}/download_opensource.sh"
+SPARSEHASH_INSTALL_DIR="${VENDOR_DIR}/sparsehash/sparsehash-install"
+BOOST_INSTALL_DIR="${VENDOR_DIR}/boost/boost-install"
 
 # Default number of parallel compilation jobs.
 CPU_NUM=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
@@ -105,7 +107,7 @@ build_sparsehash() {
 
     # Perform the standard three-step build process.
     echo "Running ./configure..."
-    ./configure --prefix="${VENDOR_DIR}/sparsehash/install"
+    ./configure --prefix="${SPARSEHASH_INSTALL_DIR}"
 
     echo "Running make..."
     make -j${JOB_NUM}
@@ -129,7 +131,7 @@ build_boost() {
     cd "${boost_dir}"
 
     # Bootstrap
-    ./bootstrap.sh --prefix="${boost_dir}/install"
+    ./bootstrap.sh --prefix="${BOOST_INSTALL_DIR}"
 
     # Compile only the required libraries.
     ./b2 -j${JOB_NUM} \

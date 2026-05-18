@@ -20,6 +20,28 @@ from tests.constants import TEST_INDEX_PATH
 from tests.utils import official_path, official_creds
 
 
+TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data"))
+
+
+def _test_data_path(*parts):
+    return os.path.join(TEST_DATA_DIR, *parts)
+
+
+def _stop_words_list():
+    return [
+        _test_data_path("stop_words", "baidu_stopwords.txt"),
+        _test_data_path("stop_words", "cn_stopwords.txt"),
+        _test_data_path("stop_words", "hit_stopwords.txt"),
+        _test_data_path("stop_words", "scu_stopwords.txt"),
+        _test_data_path("stop_words", "common_stopwords.txt"),
+        _test_data_path("stop_words", "stopwords-en.txt"),
+    ]
+
+
+def _compulsory_words_path():
+    return _test_data_path("compulsory_words", "compulsory_words.txt")
+
+
 def is_ci_environment():
     """Check if it is running in CI online."""
     return os.getenv('JENKINS_URL') is not None or os.getenv('CI') == 'true'
@@ -36,13 +58,8 @@ def get_test_params():
 def test_cpp_python_mix(storage):
     ds = muller.empty(official_path(storage, TEST_INDEX_PATH), creds=official_creds(storage), overwrite=True)
 
-    stop_words_list = ["data/stop_words/baidu_stopwords.txt",
-                       "data/stop_words/cn_stopwords.txt",
-                       "data/stop_words/hit_stopwords.txt",
-                       "data/stop_words/scu_stopwords.txt",
-                       "data/stop_words/common_stopwords.txt",
-                       "data/stop_words/stopwords-en.txt", ]
-    compulsory_words = "data/compulsory_words/compulsory_words.txt"
+    stop_words_list = _stop_words_list()
+    compulsory_words = _compulsory_words_path()
     values = ["白日依山尽，黄河入海流，欲穷千里目，更上一层楼",
               "床前明月光，疑是地上霜，举头邀明月，低头思故乡",
               "京口瓜洲一水间，钟山只隔数重山。 春风又绿江南岸，明月何时照我还？",
@@ -160,13 +177,8 @@ def test_inverted_index(storage, use_cpp):
 
     ds.create_index_vectorized = patched_create_index_vec
 
-    stop_words_list = ["data/stop_words/baidu_stopwords.txt",
-                       "data/stop_words/cn_stopwords.txt",
-                       "data/stop_words/hit_stopwords.txt",
-                       "data/stop_words/scu_stopwords.txt",
-                       "data/stop_words/common_stopwords.txt",
-                       "data/stop_words/stopwords-en.txt", ]
-    compulsory_words = "data/compulsory_words/compulsory_words.txt"
+    stop_words_list = _stop_words_list()
+    compulsory_words = _compulsory_words_path()
     values = ["白日依山尽，黄河入海流，欲穷千里目，更上一层楼",
               "床前明月光，疑是地上霜，举头邀明月，低头思故乡",
               "京口瓜洲一水间，钟山只隔数重山。 春风又绿江南岸，明月何时照我还？",

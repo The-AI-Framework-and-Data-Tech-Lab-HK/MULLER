@@ -339,6 +339,11 @@ temp/
 # Project-specific
 # ======================
 
+# C++ build dependencies and generated files
+thirdparty/vendor/
+thirdparty/MurmurHash3.cpp
+tests/data/compulsory_words/*.unix
+
 # Python virtual environments
 venv/
 .env/
