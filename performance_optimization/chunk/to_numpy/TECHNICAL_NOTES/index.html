@@ -1,0 +1,1351 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER/performance_optimization/chunk/to_numpy/TECHNICAL_NOTES/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Technical Notes: Why Optimization Only Works with UncompressedChunk - MULLER</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#technical-notes-why-optimization-only-works-with-uncompressedchunk" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../.." title="MULLER" class="md-header__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MULLER
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Technical Notes: Why Optimization Only Works with UncompressedChunk
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the bright mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Change to the bright mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Change to the dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../getting_started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../api/top-level-functions/" class="md-tabs__link">
+          
+  
+  
+  API Documents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../faq.md" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="MULLER" class="md-nav__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MULLER
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting_started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting_started/1_read_muller_object/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read as MULLER object
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting_started/2_create_muller_dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construct a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting_started/3_muller_dataset_operations%28load%2Cappend%2Cupdate%2Cdelete%2Cquery%29/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting_started/4_muller_version_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting_started/5_advanced_operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Documents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Documents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api/top-level-functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Top-Level Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api/dataset-creation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api/dataset-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api/dataset-query/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Query
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api/dataset-version-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api/dataset-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api/advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api/htypes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Htypes Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../faq.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chunk-types-in-muller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chunk Types in MULLER
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Chunk Types in MULLER">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-uncompressedchunk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. UncompressedChunk
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-chunkcompressedchunk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. ChunkCompressedChunk
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-samplecompressedchunk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. SampleCompressedChunk
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-optimization-methods-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Optimization Methods Work
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How Optimization Methods Work">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_get_chunk_numpy_continuous" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _get_chunk_numpy_continuous()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_get_chunk_numpy_full" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _get_chunk_numpy_full()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-the-check-is-necessary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the Check is Necessary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why the Check is Necessary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#without-the-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Without the Check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#with-the-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With the Check
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-implications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Implications
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Implications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#uncompressedchunk-optimization-enabled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UncompressedChunk (Optimization Enabled)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compressed-chunks-fallback-to-get_samples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compressed Chunks (Fallback to get_samples())
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation Details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validation-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#properties-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Properties Used
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fallback-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fallback Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="technical-notes-why-optimization-only-works-with-uncompressedchunk">Technical Notes: Why Optimization Only Works with UncompressedChunk</h1>
+<h2 id="background">Background</h2>
+<p>The three optimization methods (<code>get_samples_continuous</code>, <code>get_samples_full</code>, <code>get_samples_batch_random_access</code>) use byte-level access to directly read data from chunks. This approach provides significant performance improvements but has specific requirements.</p>
+<h2 id="chunk-types-in-muller">Chunk Types in MULLER</h2>
+<h3 id="1-uncompressedchunk">1. UncompressedChunk</h3>
+<ul>
+<li><strong>Data Storage</strong>: Raw, uncompressed bytes stored sequentially</li>
+<li><strong>Access Method</strong>: Direct byte offset calculation</li>
+<li><strong><code>data_bytes</code> Property</strong>: Returns raw bytes directly from memory</li>
+<li><strong>Example</strong>:
+  <div class="highlight"><pre><span></span><code>Sample 0: bytes[0:100]
+Sample 1: bytes[100:200]
+Sample 2: bytes[200:300]
+</code></pre></div></li>
+</ul>
+<h3 id="2-chunkcompressedchunk">2. ChunkCompressedChunk</h3>
+<ul>
+<li><strong>Data Storage</strong>: Entire chunk is compressed as a single unit</li>
+<li><strong>Access Method</strong>: Must decompress entire chunk first</li>
+<li><strong><code>data_bytes</code> Property</strong>: Returns <strong>compressed</strong> bytes</li>
+<li><strong>Decompression</strong>: Uses <code>decompressed_bytes</code> or <code>decompressed_samples</code> after initialization</li>
+<li><strong>Why Optimization Fails</strong>:</li>
+<li><code>chunk.data_bytes[start:end]</code> returns compressed bytes, not raw data</li>
+<li>Cannot use <code>np.frombuffer()</code> on compressed data</li>
+<li>Must decompress entire chunk before accessing individual samples</li>
+</ul>
+<h3 id="3-samplecompressedchunk">3. SampleCompressedChunk</h3>
+<ul>
+<li><strong>Data Storage</strong>: Each sample is independently compressed</li>
+<li><strong>Access Method</strong>: Must decompress each sample individually</li>
+<li><strong><code>data_bytes</code> Property</strong>: Returns concatenated compressed samples</li>
+<li><strong>Why Optimization Fails</strong>:</li>
+<li>Byte positions don't correspond to sample boundaries</li>
+<li>Each sample has variable compressed size</li>
+<li>Cannot calculate byte offset without decompressing</li>
+</ul>
+<h2 id="how-optimization-methods-work">How Optimization Methods Work</h2>
+<h3 id="_get_chunk_numpy_continuous"><code>_get_chunk_numpy_continuous()</code></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_get_chunk_numpy_continuous</span><span class="p">(</span><span class="n">chunk_engine</span><span class="p">,</span> <span class="n">chunk_name</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span><span class="p">):</span>
+    <span class="n">sample_dtype</span> <span class="o">=</span> <span class="n">chunk_engine</span><span class="o">.</span><span class="n">tensor_meta</span><span class="o">.</span><span class="n">dtype</span>
+    <span class="n">sample_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">sample_dtype</span><span class="p">)</span><span class="o">.</span><span class="n">itemsize</span>
+    <span class="n">chunk_key</span> <span class="o">=</span> <span class="n">get_chunk_key</span><span class="p">(</span><span class="n">chunk_engine</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">chunk_name</span><span class="p">)</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk_engine</span><span class="o">.</span><span class="n">get_chunk</span><span class="p">(</span><span class="n">chunk_key</span><span class="p">)</span>
+
+    <span class="c1"># Direct byte-level access - ONLY works with uncompressed data</span>
+    <span class="n">np_bytes</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">data_bytes</span><span class="p">[</span><span class="n">start_idx</span><span class="o">*</span><span class="n">sample_size</span><span class="p">:</span> <span class="n">end_idx</span><span class="o">*</span><span class="n">sample_size</span> <span class="o">+</span> <span class="n">sample_size</span><span class="p">]</span>
+    <span class="n">final_results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">np_bytes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">sample_dtype</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">final_results</span>
+</code></pre></div>
+<p><strong>Key Assumptions</strong>:
+1. <code>chunk.data_bytes</code> returns <strong>uncompressed</strong> raw bytes
+2. Sample size is fixed and known (<code>sample_size = dtype.itemsize</code>)
+3. Byte offset can be calculated as <code>index * sample_size</code>
+4. <code>np.frombuffer()</code> can directly interpret bytes as numpy array</p>
+<h3 id="_get_chunk_numpy_full"><code>_get_chunk_numpy_full()</code></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_get_chunk_numpy_full</span><span class="p">(</span><span class="n">chunk_engine</span><span class="p">,</span> <span class="n">chunk_name</span><span class="p">):</span>
+    <span class="n">sample_dtype</span> <span class="o">=</span> <span class="n">chunk_engine</span><span class="o">.</span><span class="n">tensor_meta</span><span class="o">.</span><span class="n">dtype</span>
+    <span class="n">chunk_key</span> <span class="o">=</span> <span class="n">get_chunk_key</span><span class="p">(</span><span class="n">chunk_engine</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">chunk_name</span><span class="p">)</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk_engine</span><span class="o">.</span><span class="n">get_chunk</span><span class="p">(</span><span class="n">chunk_key</span><span class="p">)</span>
+
+    <span class="c1"># Direct access to all bytes - ONLY works with uncompressed data</span>
+    <span class="n">np_bytes</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">data_bytes</span>
+    <span class="n">final_results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">np_bytes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">sample_dtype</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">final_results</span>
+</code></pre></div>
+<p><strong>Key Assumptions</strong>:
+1. <code>chunk.data_bytes</code> contains all samples in uncompressed form
+2. All samples are stored sequentially without gaps
+3. Can directly convert entire byte array to numpy array</p>
+<h2 id="why-the-check-is-necessary">Why the Check is Necessary</h2>
+<h3 id="without-the-check">Without the Check</h3>
+<p>If we allow compressed chunks to use these optimization methods:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># ChunkCompressedChunk example</span>
+<span class="n">chunk</span> <span class="o">=</span> <span class="n">ChunkCompressedChunk</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">np_bytes</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">data_bytes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">]</span>  <span class="c1"># Returns compressed bytes!</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">np_bytes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>  <span class="c1"># WRONG: interpreting compressed data as floats</span>
+</code></pre></div>
+<p><strong>Result</strong>: Garbage data, incorrect values, potential crashes</p>
+<h3 id="with-the-check">With the Check</h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_validate_batch_samples</span><span class="p">(</span><span class="n">chunk_engine</span><span class="p">,</span> <span class="n">fetch_chunks</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">fetch_chunks</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">chunk_engine</span><span class="o">.</span><span class="n">is_video</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk_engine</span><span class="o">.</span><span class="n">base_storage</span><span class="p">,</span> <span class="n">MemoryProvider</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">chunk_engine</span><span class="o">.</span><span class="n">chunk_compression</span> <span class="ow">is</span> <span class="kc">None</span>  <span class="c1"># Critical check</span>
+        <span class="ow">and</span> <span class="n">chunk_engine</span><span class="o">.</span><span class="n">sample_compression</span> <span class="ow">is</span> <span class="kc">None</span>  <span class="c1"># Critical check</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p><strong>Result</strong>: Compressed chunks automatically fall back to <code>get_samples()</code>, which properly handles decompression</p>
+<h2 id="performance-implications">Performance Implications</h2>
+<h3 id="uncompressedchunk-optimization-enabled">UncompressedChunk (Optimization Enabled)</h3>
+<ul>
+<li><strong>Full Access</strong>: 6.5x faster</li>
+<li><strong>Continuous Slice</strong>: 5x faster</li>
+<li><strong>Batch Random</strong>: 4x faster</li>
+</ul>
+<h3 id="compressed-chunks-fallback-to-get_samples">Compressed Chunks (Fallback to get_samples())</h3>
+<ul>
+<li>No performance degradation compared to original implementation</li>
+<li>Proper decompression ensures data correctness</li>
+<li>Still benefits from parallel chunk loading when applicable</li>
+</ul>
+<h2 id="implementation-details">Implementation Details</h2>
+<h3 id="validation-location">Validation Location</h3>
+<p><a href="muller/core/chunk/interface/chunk_engine_to_numpy_interface.py#L214-L228">chunk_engine_to_numpy_interface.py:214-228</a></p>
+<h3 id="properties-used">Properties Used</h3>
+<ul>
+<li><code>chunk_engine.chunk_compression</code>: Returns compression algorithm if chunk-wise compressed, else <code>None</code></li>
+<li><code>chunk_engine.sample_compression</code>: Returns compression algorithm if sample-wise compressed, else <code>None</code></li>
+</ul>
+<h3 id="fallback-behavior">Fallback Behavior</h3>
+<p>When validation fails, the system uses <code>get_samples()</code> which:
+1. Properly handles all chunk types
+2. Decompresses data as needed
+3. Maintains data integrity
+4. Provides correct results for all compression types</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>The restriction to UncompressedChunk is not a limitation but a <strong>correctness requirement</strong>. The optimization methods rely on direct byte-level access, which is only valid for uncompressed data. The validation check ensures:</p>
+<ol>
+<li><strong>Correctness</strong>: Compressed data is never misinterpreted as raw data</li>
+<li><strong>Performance</strong>: Uncompressed chunks get maximum optimization</li>
+<li><strong>Compatibility</strong>: Compressed chunks still work correctly via fallback</li>
+<li><strong>Safety</strong>: No risk of data corruption or incorrect results</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.tracking", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
