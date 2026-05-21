@@ -594,6 +594,11 @@ class Dataset(
         return self.get_tensors(include_hidden=False, include_disabled=False)
 
     @property
+    def columns(self) -> Dict[str, Tensor]:
+        """All user-visible columns belonging to this dataset."""
+        return self.tensors
+
+    @property
     def branches(self):
         """Lists all the branches of the dataset. """
         return self.version_state.get("branch_info", "Not Supported")
@@ -627,6 +632,11 @@ class Dataset(
         return indexed
 
     @property
+    def indexed_columns(self) -> List[str]:
+        """Returns the columns with inverted indexes built."""
+        return self.indexed_tensors
+
+    @property
     def indexed_tensors_vec(self) -> Set[str]:
         """Returns the tensor column with inverted index (vectorized version) built as a list."""
         indexed = set()
@@ -640,6 +650,11 @@ class Dataset(
         except KeyError:
             pass
         return indexed
+
+    @property
+    def indexed_columns_vec(self) -> Set[str]:
+        """Returns the columns with vectorized inverted indexes built."""
+        return self.indexed_tensors_vec
 
     @property
     def pending_commit_id(self) -> str:
@@ -820,6 +835,10 @@ class Dataset(
         from muller.core.dataset.tensor_access import resolve_tensor_list
         return resolve_tensor_list(self, keys)
 
+    def resolve_column_list(self, keys: List[str]) -> List[str]:
+        """Resolve a column list."""
+        return self.resolve_tensor_list(keys)
+
     @user_permission_check
     def create_tensor(
             self,
@@ -836,6 +855,20 @@ class Dataset(
                                                                   chunk_compression, hidden,
                                                                   **kwargs)
 
+    @user_permission_check
+    def create_column(
+            self,
+            name: str,
+            htype: str = UNSPECIFIED,
+            dtype: Union[str, np.dtype] = UNSPECIFIED,
+            sample_compression: Union[str, None] = UNSPECIFIED,
+            chunk_compression: str = UNSPECIFIED,
+            hidden: bool = False,
+            **kwargs,
+    ):
+        """Create a column. Alias for ``create_tensor``."""
+        return self.create_tensor(name, htype, dtype, sample_compression, chunk_compression, hidden, **kwargs)
+
     @invalid_view_op
     @user_permission_check
     def create_tensor_like(
@@ -849,9 +882,26 @@ class Dataset(
 
     @invalid_view_op
     @user_permission_check
+    def create_column_like(
+            self, name: str, source: "Tensor",
+    ) -> "Tensor":
+        """
+        Copies the ``source`` column's meta information and creates a new column with it.
+        No samples are copied, only the meta/info for the column is.
+        """
+        return self.create_tensor_like(name, source)
+
+    @invalid_view_op
+    @user_permission_check
     def delete_tensor(self, name: str, large_ok: bool = False):
         """Delete a tensor."""
         return muller.core.dataset.delete_tensor(self, name, large_ok)
+
+    @invalid_view_op
+    @user_permission_check
+    def delete_column(self, name: str, large_ok: bool = False):
+        """Delete a column. Alias for ``delete_tensor``."""
+        return self.delete_tensor(name, large_ok)
 
     @user_permission_check
     def extend(
@@ -904,11 +954,21 @@ class Dataset(
         """Function to handle rename tensor"""
         muller.core.dataset.handle_rename_tensor(self, name, new_name)
 
+    def handle_rename_column(self, name, new_name):
+        """Function to handle rename column."""
+        self.handle_rename_tensor(name, new_name)
+
     @invalid_view_op
     @user_permission_check
     def rename_tensor(self, name: str, new_name: str):
         """Renames tensor with name ``name`` to ``new_name``"""
         return muller.core.dataset.rename_tensor(self, name, new_name)
+
+    @invalid_view_op
+    @user_permission_check
+    def rename_column(self, name: str, new_name: str):
+        """Renames column with name ``name`` to ``new_name``."""
+        return self.rename_tensor(name, new_name)
 
     @user_permission_check
     def add_data_from_file(self, ori_path="", schema=None, workers=0, scheduler="processed", disable_rechunk=True,
@@ -971,21 +1031,28 @@ class Dataset(
     @user_permission_check
     def rechunk(
             self,
-            tensors: Optional[Union[str, List[str]]] = None,
+            columns: Optional[Union[str, List[str]]] = None,
             num_workers: int = 0,
             scheduler: str = "threaded",
             progressbar: bool = True,
+            tensors: Optional[Union[str, List[str]]] = None,
     ):
         """Rechunk the dataset."""
+        if columns is None:
+            columns = tensors
+        tensors = columns
         return muller.core.dataset.dataset_rechunk(self, tensors, num_workers, scheduler, progressbar)
 
     def rechunk_if_necessary(
             self,
+            column_spec: Optional[Union[List[str], Dict[str, Optional[int]]]] = None,
+            num_workers: int = 1,
             tensor_spec: Optional[Union[List[str], Dict[str, Optional[int]]]] = None,
-            num_workers: int = 1
     ) -> None:
-        """ Rechunk the data chunks on several tensors. """
-        return muller.core.dataset.dataset_rechunk_if_necessary(self, tensor_spec, num_workers)
+        """Rechunk the data chunks on several columns."""
+        if column_spec is None:
+            column_spec = tensor_spec
+        return muller.core.dataset.dataset_rechunk_if_necessary(self, column_spec, num_workers)
 
     def check_uuid(self):
         """Check uuids"""
@@ -1275,10 +1342,12 @@ class Dataset(
         from muller.core.query.inverted_index_muller import InvertedIndex
         return InvertedIndex(self.storage, tensor, branch, use_uuid, optimize)
 
-    def query(self, tensor_name, query):
-        """Query the target tensor column based on inverted index."""
+    def query(self, column_name=None, query=None, tensor_name=None):
+        """Query the target column based on inverted index."""
+        if column_name is None:
+            column_name = tensor_name
         from muller.core.query.filter import query_with_inverted_index
-        return query_with_inverted_index(self, tensor_name, query)
+        return query_with_inverted_index(self, column_name, query)
 
     def filter(
             self,
@@ -1295,18 +1364,30 @@ class Dataset(
 
     def aggregate(
             self,
-            group_by_tensors: List[str],
-            selected_tensors: List[str],
-            order_by_tensors: Optional[list] = None,
-            aggregate_tensors: Optional[list] = None,
+            group_by_columns: Optional[List[str]] = None,
+            selected_columns: Optional[List[str]] = None,
+            order_by_columns: Optional[list] = None,
+            aggregate_columns: Optional[list] = None,
             function: Optional[Callable] = None,
             order_direction: str = 'DESC',
             num_workers: int = 0,
             scheduler: str = "processed",
             progressbar: bool = True,
             method: str = "count",
+            group_by_tensors: Optional[List[str]] = None,
+            selected_tensors: Optional[List[str]] = None,
+            order_by_tensors: Optional[list] = None,
+            aggregate_tensors: Optional[list] = None,
     ):
         """Conduct aggregation query on the dataset."""
+        if group_by_columns is None:
+            group_by_columns = group_by_tensors
+        if selected_columns is None:
+            selected_columns = selected_tensors
+        if order_by_columns is None:
+            order_by_columns = order_by_tensors
+        if aggregate_columns is None:
+            aggregate_columns = aggregate_tensors
         from muller.core.query import aggregate_dataset
         return aggregate_dataset(
             self,
@@ -1314,32 +1395,44 @@ class Dataset(
             num_workers=num_workers,
             scheduler=scheduler,
             progressbar=progressbar,
-            group_by_tensors=group_by_tensors,
-            selected_tensors=selected_tensors,
-            order_by_tensors=order_by_tensors,
-            aggregate_tensors=aggregate_tensors,
+            group_by_tensors=group_by_columns,
+            selected_tensors=selected_columns,
+            order_by_tensors=order_by_columns,
+            aggregate_tensors=aggregate_columns,
             order_direction=order_direction,
             method=method
         )
 
     def aggregate_vectorized(
             self,
-            group_by_tensors: List[str],
-            selected_tensors: List[str],
+            group_by_columns: Optional[List[str]] = None,
+            selected_columns: Optional[List[str]] = None,
+            order_by_columns: Optional[list] = None,
+            aggregate_columns: Optional[list] = None,
+            order_direction: Optional[str] = 'DESC',
+            method: str = 'count',
+            group_by_tensors: Optional[List[str]] = None,
+            selected_tensors: Optional[List[str]] = None,
             order_by_tensors: Optional[list] = None,
             aggregate_tensors: Optional[list] = None,
-            order_direction: Optional[str] = 'DESC',
-            method: str = 'count'
     ):
         """ A vectorized aggregate function accelerated by the parallel computing supported by numpy. """
 
+        if group_by_columns is None:
+            group_by_columns = group_by_tensors
+        if selected_columns is None:
+            selected_columns = selected_tensors
+        if order_by_columns is None:
+            order_by_columns = order_by_tensors
+        if aggregate_columns is None:
+            aggregate_columns = aggregate_tensors
         from muller.core.query import aggregate_vectorized_dataset
         return aggregate_vectorized_dataset(
             dataset=self,
-            group_by_tensors=group_by_tensors,
-            selected_tensors=selected_tensors,
-            order_by_tensors=order_by_tensors,
-            aggregate_tensors=aggregate_tensors,
+            group_by_tensors=group_by_columns,
+            selected_tensors=selected_columns,
+            order_by_tensors=order_by_columns,
+            aggregate_tensors=aggregate_columns,
             order_direction=order_direction,
             method=method
         )
@@ -1381,55 +1474,74 @@ class Dataset(
 
     @invalid_view_op
     @user_permission_check
-    def create_vector_index(self, tensor_name: str, index_name: str, index_type: str = 'FLAT', metric: str = 'l2',
-                            **kwargs: Union[int, float, str]):
-        """Create index for tensor in vector type. """
+    def create_vector_index(self, column_name: Optional[str] = None, index_name: Optional[str] = None,
+                            index_type: str = 'FLAT', metric: str = 'l2',
+                            tensor_name: Optional[str] = None, **kwargs: Union[int, float, str]):
+        """Create an index for a vector column."""
+        if column_name is None:
+            column_name = tensor_name
         from muller.core.query import create_vector_index
-        create_vector_index(self, tensor_name, index_name, index_type, metric, **kwargs)
+        create_vector_index(self, column_name, index_name, index_type, metric, **kwargs)
 
-    def update_vector_index(self, tensor_name: str, index_name: str) -> None:
-        """Update vector index after add some samples into dataset and commit. """
+    def update_vector_index(self, column_name: Optional[str] = None, index_name: Optional[str] = None,
+                            tensor_name: Optional[str] = None) -> None:
+        """Update vector index after adding samples into dataset and committing."""
+        if column_name is None:
+            column_name = tensor_name
         from muller.core.query import update_vector_index
-        update_vector_index(self, tensor_name, index_name)
+        update_vector_index(self, column_name, index_name)
 
-    def vector_search(self, query_vector: Union[NDArray, Tensor], tensor_name: str, index_name: str, **kwargs):
-        """KNN Search on vector index. """
+    def vector_search(self, query_vector: Union[NDArray, Tensor], column_name: Optional[str] = None,
+                      index_name: Optional[str] = None, tensor_name: Optional[str] = None, **kwargs):
+        """KNN search on vector index."""
+        if column_name is None:
+            column_name = tensor_name
         from muller.core.query import vector_search
-        return vector_search(self, query_vector, tensor_name, index_name, **kwargs)
+        return vector_search(self, query_vector, column_name, index_name, **kwargs)
 
-    def load_vector_index(self, tensor_name: str, index_name: str, **kwargs):
-        """Load vector index into memory when index is unloaded. """
+    def load_vector_index(self, column_name: Optional[str] = None, index_name: Optional[str] = None,
+                          tensor_name: Optional[str] = None, **kwargs):
+        """Load vector index into memory when index is unloaded."""
+        if column_name is None:
+            column_name = tensor_name
         from muller.core.query import load_vector_index
-        load_vector_index(self, tensor_name, index_name, **kwargs)
+        load_vector_index(self, column_name, index_name, **kwargs)
 
-    def unload_vector_index(self, tensor_name: str, index_name: str):
-        """ Unload vector index from memory when index is loaded. """
+    def unload_vector_index(self, column_name: Optional[str] = None, index_name: Optional[str] = None,
+                            tensor_name: Optional[str] = None):
+        """Unload vector index from memory when index is loaded."""
+        if column_name is None:
+            column_name = tensor_name
         from muller.core.query import unload_vector_index
-        unload_vector_index(self, tensor_name, index_name)
+        unload_vector_index(self, column_name, index_name)
 
-    def drop_vector_index(self, tensor_name: str, index_name: str):
-        """ Drop vector index permanently. """
+    def drop_vector_index(self, column_name: Optional[str] = None, index_name: Optional[str] = None,
+                          tensor_name: Optional[str] = None):
+        """Drop vector index permanently."""
+        if column_name is None:
+            column_name = tensor_name
         from muller.core.query import drop_vector_index
-        drop_vector_index(self, tensor_name, index_name)
+        drop_vector_index(self, column_name, index_name)
 
     def summary(self, force: bool = False):
         """Print out a summarization of the schema and statistic information of the dataset."""
         from muller.core.dataset.statistics.summary import summary_dataset
         summary_dataset(self, force)
 
-    def to_dataframe(self, tensor_list: Optional[List[str]] = None,
+    def to_dataframe(self, columns: Optional[List[str]] = None,
                      index_list: Optional[List] = None,
-                     force: bool = False):
+                     force: bool = False,
+                     tensor_list: Optional[List[str]] = None):
         """ Returns a pandas dataframe of the dataset.
         Example:
 
             >>> ds.to_dataframe()
             >>> ds.to_dataframe(index_list=[-1, -2])
-            >>> ds.to_dataframe(tensor_list=["categories"], index_list=[1, 2, 4])
+            >>> ds.to_dataframe(columns=["categories"], index_list=[1, 2, 4])
 
         Args:
-            tensor_list (List of str, Optional) - The tensor columns selected to be exported as pandas dataframe.
-                        If not provided, we will export all the tensor columns.
+            columns (List of str, Optional) - The columns selected to be exported as pandas dataframe.
+                        If not provided, we will export all columns.
             index_list (List of int, Optional) - The indices of the rows selected to be exported as pandas dataframe.
                         If not provided, we will export all the row.
             force (bool, Optional) - Dataset with more than TO_DATAFRAME_SAFE_LIMIT samples might take a long time to
@@ -1437,11 +1549,13 @@ class Dataset(
                         An error will be raised otherwise.
 
         Raises:
-            InvalidTensorList: If ``tensor_list`` contains tensors that are not in the current columns.
+            InvalidTensorList: If ``columns`` contains names that are not in the current columns.
             ToDataFrameLimit: If the length of ``index_list`` exceeds the TO_DATAFRAME_SAFE_LIMIT.
         """
+        if columns is None:
+            columns = tensor_list
         from muller.core.dataset.export_data.to_dataframe import to_dataframe
-        return to_dataframe(self, tensor_list, index_list, force)
+        return to_dataframe(self, columns, index_list, force)
 
     def to_arrow(self):
         """Returns an arrow object of the dataset."""
@@ -1465,8 +1579,9 @@ class Dataset(
     def to_json(
             self,
             path,
-            tensors: Optional[List[str]] = None,
+            columns: Optional[List[str]] = None,
             num_workers: Optional[int] = 1,
+            tensors: Optional[List[str]] = None,
     ):
         """Write MULLER data by row to a jsonl or json file.
 
@@ -1475,11 +1590,13 @@ class Dataset(
 
         Args:
             path (str): The jsonl or json file name to save MULLER data.
-            tensors (List of str, Optional): The tensor columns selected to be exported to the jsonl or json file.
+            columns (List of str, Optional): The columns selected to be exported to the jsonl or json file.
             num_workers (int, Optional): The number of workers that can be used to dump to the path.
         """
+        if columns is None:
+            columns = tensors
         from muller.core.dataset.export_data.to_json import to_json
-        to_json(self, path, tensors, num_workers)
+        to_json(self, path, columns, num_workers)
 
     def to_mindrecord(
             self,
@@ -1515,6 +1632,10 @@ class Dataset(
         from muller.core.dataset.tensor_access import get_tensors
         return get_tensors(self, include_hidden, include_disabled)
 
+    def get_columns(self, include_hidden: bool = True, include_disabled=True) -> Dict[str, Tensor]:
+        """All columns belonging to this group, including those within sub groups."""
+        return self.get_tensors(include_hidden, include_disabled)
+
     def populate_meta(self, address: Optional[str] = None, verbose=True):
         """Populates the meta information for the dataset."""
         from muller.core.dataset.metadata import populate_meta
@@ -1524,6 +1645,10 @@ class Dataset(
         """Names of all tensors belonging to this group, including those within sub groups"""
         from muller.core.dataset.tensor_access import all_tensors_filtered
         return all_tensors_filtered(self, include_hidden, include_disabled)
+
+    def all_columns_filtered(self, include_hidden: bool = True, include_disabled=True) -> List[str]:
+        """Names of all columns belonging to this group, including those within sub groups."""
+        return self.all_tensors_filtered(include_hidden, include_disabled)
 
     def get_sample_indices(self, maxlen: int):
         """Get sample indices"""
@@ -1554,6 +1679,10 @@ class Dataset(
         """Displays the differences between commits (in the same branch) for certain tensor."""
         # Delegated to VersionControlMixin
         return super().tensor_diff(id_1, id_2, tensors)
+
+    def column_diff(self, id_1, id_2, columns: List[str] = None):
+        """Displays the differences between commits for selected columns."""
+        return self.tensor_diff(id_1, id_2, columns)
 
     def sub_ds(
             self,

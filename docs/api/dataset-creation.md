@@ -146,10 +146,10 @@ ds = muller.empty("./datasets/new_dataset", overwrite=True)
 # Create empty dataset on remote storage
 ds = muller.empty("s3://mybucket/new_dataset", creds={"aws_access_key_id": "...", "aws_secret_access_key": "..."})
 
-# Add tensors to the empty dataset
+# Add columns to the empty dataset
 with ds:
-    ds.create_tensor("images")
-    ds.create_tensor("labels")
+    ds.create_column("images")
+    ds.create_column("labels")
 ```
 
 #### Warning
@@ -162,13 +162,13 @@ Setting `overwrite=True` will delete all of your data if it exists!
 
 #### Overview
 
-Copies the source dataset's structure to a new location. No samples are copied, only the meta/info for the dataset and its tensors. This is useful for creating a new dataset with the same schema as an existing one.
+Copies the source dataset's structure to a new location. No samples are copied, only the meta/info for the dataset and its columns. This is useful for creating a new dataset with the same schema as an existing one.
 
 #### Parameters
 
 - **dest** (`str` or `Dataset`): Empty Dataset or Path where the new dataset will be created.
 - **src** (`str` or `Dataset`): Path or dataset object that will be used as the template for the new dataset.
-- **tensors** (`List[str]`, optional): Names of tensors (and groups) to be replicated. If not specified, all tensors in source dataset are considered. Defaults to `None`.
+- **columns** (`List[str]`, optional): Names of columns (and groups) to be replicated. If not specified, all columns in source dataset are considered. The legacy `tensors` keyword remains supported.
 - **overwrite** (`bool`, optional): If `True` and a dataset exists at `dest`, it will be overwritten. Defaults to `False`.
 - **verbose** (`bool`, optional): If `True`, logs will be printed. Defaults to `True`.
 
@@ -188,11 +188,11 @@ new_ds = muller.like(dest="./datasets/new_dataset", src=source_ds)
 # Copy structure from path
 new_ds = muller.like(dest="./datasets/new_dataset", src="./datasets/source_dataset")
 
-# Copy only specific tensors
+# Copy only specific columns
 new_ds = muller.like(
     dest="./datasets/new_dataset",
     src="./datasets/source_dataset",
-    tensors=["images", "labels"]
+    columns=["images", "labels"]
 )
 
 # Overwrite if destination exists
@@ -246,12 +246,12 @@ This operation is irreversible. All data will be permanently deleted.
 
 #### Overview
 
-Get column (tensor) information from a dataset without loading the entire dataset. This is useful for quickly inspecting dataset metadata.
+Get column information from a dataset without loading the entire dataset. This is useful for quickly inspecting dataset metadata.
 
 #### Parameters
 
 - **path** (`str` or `pathlib.Path`): The full path to the dataset.
-- **col_name** (`str`, optional): Name of the column (tensor) to get info for. If `None` or empty string, returns dataset-level info. Defaults to `None`.
+- **col_name** (`str`, optional): Name of the column to get info for. If `None` or empty string, returns dataset-level info. Defaults to `None`.
 
 #### Returns
 
@@ -265,8 +265,8 @@ import muller
 # Get dataset-level info
 info = muller.get_col_info("./datasets/my_dataset")
 
-# Get specific tensor info
-tensor_info = muller.get_col_info("./datasets/my_dataset", col_name="images")
+# Get specific column info
+column_info = muller.get_col_info("./datasets/my_dataset", col_name="images")
 
 # Parse the info (it's in JSON format)
 import json
@@ -448,15 +448,15 @@ ds = muller.from_dataframes(
 
 #### Overview
 
-Create a new dataset from a CSV file. Each CSV column becomes a tensor in the dataset. Columns containing file paths (e.g., image or video files) can be loaded automatically via `muller.read()` using the `path_columns` parameter.
+Create a new dataset from a CSV file. Each CSV column becomes a MULLER column in the dataset. Columns containing file paths (e.g., image or video files) can be loaded automatically via `muller.read()` using the `path_columns` parameter.
 
 #### Parameters
 
 - **csv_path** (`str`): Path to the source CSV file.
 - **muller_path** (`str`): Path where the MULLER dataset will be created.
-- **schema** (`dict`, optional): Schema definition for the dataset. Format: `{column_name: (htype, dtype, sample_compression)}`. If not provided, all columns are created as `generic` tensors. Defaults to `None`.
+- **schema** (`dict`, optional): Schema definition for the dataset. Format: `{column_name: (htype, dtype, sample_compression)}`. If not provided, all columns are created as `generic` columns. Defaults to `None`.
 - **path_columns** (`dict`, optional): Dict mapping column names to their handling mode for file path values. Defaults to `None`.
-  - `"read"`: Calls `muller.read(path)` to load the file as a Sample (for image/video/audio tensors).
+  - `"read"`: Calls `muller.read(path)` to load the file as a Sample (for image/video/audio columns).
   - `"text"`: Stores the file path as a plain text string.
 - **workers** (`int`, optional): Number of workers for parallel processing. Defaults to `0`.
 - **scheduler** (`str`, optional): Scheduler type for compute operations. Defaults to `"processed"`.
@@ -526,7 +526,7 @@ ds = muller.from_csv(
 
 #### Notes
 
-- The CSV file must have a header row. Column names in the header are used as tensor names.
+- The CSV file must have a header row. Column names in the header are used as MULLER column names.
 - All CSV values are read as strings. Use `schema` to specify the correct `htype` and `dtype` for each column.
 - Columns not listed in `path_columns` are appended directly as their raw CSV string values.
 - The `path_columns` parameter is only needed when a CSV column contains file paths that should be loaded as binary data (images, videos, etc.) or explicitly stored as path strings.
@@ -537,7 +537,7 @@ ds = muller.from_csv(
 
 #### Overview
 
-Append data from a CSV file into an existing dataset. Tensors must already be created before calling this method. This is useful for incrementally adding data from CSV files to a dataset that was created manually or from another source.
+Append data from a CSV file into an existing dataset. Columns must already be created before calling this method. This is useful for incrementally adding data from CSV files to a dataset that was created manually or from another source.
 
 #### Parameters
 
@@ -558,17 +558,17 @@ Append data from a CSV file into an existing dataset. Tensors must already be cr
 
 #### Raises
 
-- **ValueError**: If `csv_path` is empty, the CSV file cannot be read, or CSV column names do not match existing tensor names.
+- **ValueError**: If `csv_path` is empty, the CSV file cannot be read, or CSV column names do not match existing column names.
 
 #### Examples
 
 ```python
 import muller
 
-# Create a dataset and define tensors manually
+# Create a dataset and define columns manually
 ds = muller.dataset(path="./datasets/my_dataset", overwrite=True)
-ds.create_tensor("image_path", htype="image", sample_compression="jpeg")
-ds.create_tensor("label", htype="text", sample_compression="lz4")
+ds.create_column("image_path", htype="image", sample_compression="jpeg")
+ds.create_column("label", htype="text", sample_compression="lz4")
 
 # Append data from a CSV file
 ds.add_data_from_csv(
@@ -589,6 +589,6 @@ print(len(ds))  # accumulated samples from both CSV files
 
 #### Notes
 
-- The CSV column names must match the existing tensor names in the dataset. A `ValueError` is raised if they do not match.
+- The CSV column names must match the existing column names in the dataset. A `ValueError` is raised if they do not match.
 - This method can be called multiple times to incrementally append data from different CSV files.
 - The `path_columns` parameter works identically to `muller.from_csv()`.

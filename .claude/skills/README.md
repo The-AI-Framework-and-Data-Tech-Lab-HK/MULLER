@@ -9,7 +9,7 @@ This directory contains Agent Skills for managing MULLER datasets through natura
 
 **Capabilities:**
 - Create and load datasets
-- Manage tensors (create, delete, rename)
+- Manage columns (create, delete, rename)
 - Add, update, delete data
 - Query and filter samples
 - Import data from files
@@ -59,13 +59,13 @@ This directory contains Agent Skills for managing MULLER datasets through natura
 - Export to Apache Arrow format
 - Export to Parquet files
 - Export to JSON format
-- Convert tensors to NumPy arrays
+- Convert columns to NumPy arrays
 - Export to MindRecord format (MindSpore)
 - Integrate with PyTorch, TensorFlow, and other frameworks
 
 **Example Commands:**
 - "Export dataset to Parquet format"
-- "Convert embeddings tensor to NumPy"
+- "Convert embeddings column to NumPy"
 - "Export to JSON for web API"
 - "Export to Arrow for data sharing"
 
@@ -131,7 +131,7 @@ Each skill is designed to stay within reasonable token limits:
 User: "Create an image dataset, add photos, commit changes, and export to Parquet"
 
 Agent uses:
-1. muller-dataset: Create dataset with image tensors
+1. muller-dataset: Create dataset with image columns
 2. muller-dataset: Import images from directory
 3. muller-version-control: Commit changes
 4. muller-export: Export to Parquet format

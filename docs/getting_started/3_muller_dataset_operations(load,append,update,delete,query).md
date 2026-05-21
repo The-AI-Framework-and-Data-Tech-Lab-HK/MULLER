@@ -66,8 +66,8 @@ APIs for inspecting detailed tensor (column) metadata include:
 
 ## 3. Adding Data
 
-Data can be appended to tensor columns using the same APIs and workflows
-described in Section 3.1 (Step 3: Adding Data to Tensor Columns).
+Data can be appended to columns using the same APIs and workflows
+described in Section 3.1 (Step 3: Adding Data to Columns).
 
 ## 4. Deleting Samples or Datasets
 
@@ -83,15 +83,15 @@ described in Section 3.1 (Step 3: Adding Data to Tensor Columns).
 >>> ds.pop([1, 2, 4, 5])  # Removes samples at indices [1, 2, 4, 5]
 ```
 
-#### Deleting a tensor column and all of its data:
+#### Deleting a column and all of its data:
 
 ```python
->>> ds.delete_tensor(<tensor_name>)
+>>> ds.delete_column(<column_name>)
 # Note: `large_ok` defaults to False. When deleting a column with a large
 # number of samples, set `large_ok=True` to explicitly confirm the operation
 # and prevent accidental data loss.
 ```
-- For detailed usage, see [`pop()`](../api/dataset-methods/#pop) and [`delete_tensor()`](../api/dataset-methods/#delete_tensor).
+- For detailed usage, see [`pop()`](../api/dataset-methods/#pop) and [`delete_column()`](../api/dataset-methods/#dsdelete_column). The legacy `delete_tensor()` name is still supported.
 - **Note:** To ensure dataset integrity, data can only be deleted **by entire rows or entire columns**.
 
 #### Deleting a dataset (Method 1):
@@ -109,10 +109,10 @@ For a dataset that is not currently loaded, you can delete it using the `muller`
 
 ## 5. Inspecting Data by random access (via row id and column name) and full scan
 
-#### Access the i-th row in a tensor column (first access the column, then the row):
+#### Access the i-th row in a column (first access the column, then the row):
 
 ```python
->>> ds.tensors
+>>> ds.columns
 {'my_label': Tensor(key='my_label'),
  'my_photos': Tensor(key='my_photos'),
  'my_text': Tensor(key='my_text')}
@@ -127,7 +127,7 @@ array([1], dtype=int32)
 b'\x01\x00\x00\x00'
 ```
 
-#### Access multiple rows of in tensor column (first access the column, then the row):
+#### Access multiple rows in a column (first access the column, then the row):
 ```python
 >>> ds.my_label[1:4].numpy()   # Returns the sample as a NumPy array
 array([[2],

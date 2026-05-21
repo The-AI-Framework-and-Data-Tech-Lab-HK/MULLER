@@ -8,11 +8,11 @@ Below are several key commands.
 
 After performing write operations (add/delete/update), call `ds.commit()` to create a new version (commit ID).
 
-Example: load a dataset, create a tensor column, and commit.
+Example: load a dataset, create a column, and commit.
 
 ```python
 >>> ds = muller.dataset("/data/muller_exp/", overwrite=True)
->>> ds.create_tensor(name="labels", htype="generic", dtype="int")
+>>> ds.create_column(name="labels", htype="generic", dtype="int")
 >>> first_commit_id = ds.commit(message="first commit.")
 >>> first_commit_id
 'firstdbf9474d461a19e9333c2fd19b46115348f'
@@ -37,11 +37,11 @@ Create a new branch with `create=True`:
 
 ```python
 >>> ds.checkout("dev", create=True)
->>> ds.create_tensor("categories", htype="text")
+>>> ds.create_column("categories", htype="text")
 >>> ds.categories.extend(["agent", "emotion", "generation", "writing", "emotion"])
->>> ds.commit("created categories tensor column and add values.")
->>> ds.summary()  # Now dev has two tensor columns (categories and labels).
-tensor     htype    shape    dtype  compression
+>>> ds.commit("created categories column and add values.")
+>>> ds.summary()  # Now dev has two columns (categories and labels).
+column     htype    shape    dtype  compression
  -------    -------  -------  -------  -------
 categories   text    (5, 1)     str     None
   labels    generic  (5, 1)    int64    None
@@ -53,8 +53,8 @@ Switch to an existing branch:
 >>> ds.checkout("main")  # Switch back to main.
 >>> ds.branch            # Check the current branch name.
 'main'
->>> ds.summary()         # This branch has only one tensor column (labels).
-tensor    htype    shape    dtype  compression
+>>> ds.summary()         # This branch has only one column (labels).
+column    htype    shape    dtype  compression
 -------  -------  -------  -------  -------
 labels   generic  (5, 1)    int64    None
 ```
@@ -97,7 +97,7 @@ Current Branch: dev
 Commit : 476be1766915dfe652f39e39f5370f9c04528df9 (dev)
 Author : public
 Time   : 2025-02-28 08:07:48
-Message: created categories tensor column and add values.
+Message: created categories column and add values.
 
 Commit : 637adeb5232f0152b866c9a2a49e8da19f00c1da (main)
 Author : public
@@ -123,7 +123,7 @@ Message: first commit.
 
 ### 4. Direct Diff (available in v0.6.10+)
 
-Understanding changes between versions is critical. MULLER provides `ds.direct_diff(id_1, id_2)` to compute the *direct* per-tensor, per-row differences between `id_1` and `id_2` (in the direction “from `id_1` to `id_2`”). It can optionally return a pandas DataFrame for inspection.
+Understanding changes between versions is critical. MULLER provides `ds.direct_diff(id_1, id_2)` to compute the *direct* per-column, per-row differences between `id_1` and `id_2` (in the direction “from `id_1` to `id_2`”). It can optionally return a pandas DataFrame for inspection.
 
 Parameters (note that the order matters):
 
@@ -139,9 +139,9 @@ import muller
 
 ds = muller.dataset(path="temp_test", overwrite=True)
 
-ds.create_tensor(name="labels", htype="generic", dtype="int")
-ds.create_tensor(name="categories", htype="text")
-ds.create_tensor(name="test1", htype="generic", dtype="int")
+ds.create_column(name="labels", htype="generic", dtype="int")
+ds.create_column(name="categories", htype="text")
+ds.create_column(name="test1", htype="generic", dtype="int")
 ds.labels.extend([0, 1, 2, 3, 4])
 ds.categories.extend(["a", "b", "c", "d", "e"])
 ds.test1.extend([100, 101, 102, 103, 104])
@@ -157,13 +157,13 @@ dev_1 = ds.commit("first on dev")
 
 ds.checkout("main", create=False)
 ds.checkout("dev_2", create=True)
-ds.delete_tensor("test1")
+ds.delete_column("test1")
 ds.labels.extend([5, 6])
 ds.categories.extend(["f", "g"])
 ds.commit("first on dev_2")
 ds.labels[1] = 111
 ds.categories[1] = "xixixi"
-ds.create_tensor(name="test2", htype="generic", dtype="int")
+ds.create_column(name="test2", htype="generic", dtype="int")
 ds.test2.extend([100, 101, 102, 103, 104, 105, 106])
 dev_2 = ds.commit("sec on dev_2")
 
@@ -175,7 +175,7 @@ In a Jupyter environment, you can view the changes visually.
 
 ### 5. Diff
 
-`ds.diff()` computes differences across versions for each tensor column and each sample (row). This API primarily supports merge computation, so its output is **not** a simple “absolute diff”; it returns diffs **per commit** relative to the most recent common ancestor (a version-tree style output, similar to `log()`).
+`ds.diff()` computes differences across versions for each column and each sample (row). This API primarily supports merge computation, so its output is **not** a simple “absolute diff”; it returns diffs **per commit** relative to the most recent common ancestor (a version-tree style output, similar to `log()`).
 
 Notes:
 
@@ -213,7 +213,7 @@ Key parameters:
 - **show_value (bool)**: if `True`, return actual values for append/update/pop.
 - **offset (int)**: number of items to skip (effective only when `show_value=True`).
 - **limit (int)**: maximum number of items to show (effective only when `show_value=True`, default 1000).
-- **asrow (bool)**: return values row-wise (list of dicts) when `show_value=True`. This is only applicable when tensor-count and row-count changes are exactly aligned between the two versions; otherwise it may raise an error. In general, prefer `asrow=False` for flexibility.
+- **asrow (bool)**: return values row-wise (list of dicts) when `show_value=True`. This is only applicable when column-count and row-count changes are exactly aligned between the two versions; otherwise it may raise an error. In general, prefer `asrow=False` for flexibility.
 
 Example (based on the dataset created in Section 5.2): show indices only.
 
@@ -235,10 +235,10 @@ No changes were made in this commit.
 commit 476be1766915dfe652f39e39f5370f9c04528df9
 Author: public
 Date: 2025-02-28 08:07:48
-Message: created categories tensor column and add values.
+Message: created categories column and add values.
 
 categories
-* Created tensor
+* Created column
 * Added 5 samples: [0-5]
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -269,10 +269,10 @@ Diff in 51f5bb41c4a1d74d881269366e3718285b8145db (target id 1):
 commit 51f5bb41c4a1d74d881269366e3718285b8145db
 Author: public
 Date: 2025-03-03 04:03:13
-Message: created categories tensor column and add values.
+Message: created categories column and add values.
 
 categories
-* Created tensor
+* Created column
 * Added 5 samples: [0-5],
 The appended data values are {'created': True, 'cleared': False, 'info_updated': False, 'data_added': [0, 5], 'data_updated': set(), 'data_deleted': SortedSet([]), 'data_deleted_ids': [], 'data_transformed_in_place': False, 'add_value': [array(['agent'], dtype='<U5'), array(['emotion'], dtype='<U7'), array(['generation'], dtype='<U10'), array(['writing'], dtype='<U7'), array(['emotion'], dtype='<U7')], 'updated_values': [], 'data_deleted_values': []}
 
@@ -301,7 +301,7 @@ Example: return values as a dict.
 >>> ds.diff(id_1=third_commit_id, id_2=first_commit_id, as_dict=True, show_value=True)
 {'dataset': ([{'commit_id': '51f5bb41c4a1d74d881269366e3718285b8145db',
     'author': 'public',
-    'message': 'created categories tensor column and add values.',
+    'message': 'created categories column and add values.',
     'date': '2025-03-03 04:03:13',
     'info_updated': False,
     'renamed': OrderedDict(),
@@ -362,12 +362,12 @@ Example: return values as a dict.
 
 Unlike Git, MULLER version control has **no local staging area**. All changes are immediately synced to the persistent storage location (local or remote). As a result, any dataset change updates the current branch HEAD node immediately. Uncommitted changes do not appear on other branches, but they remain accessible on the current branch until reverted.
 
-In the example below, we return to `main`, which has a `labels` tensor with 5 samples. We then append one sample and use `ds.has_head_changes` to confirm there are HEAD changes.
+In the example below, we return to `main`, which has a `labels` column with 5 samples. We then append one sample and use `ds.has_head_changes` to confirm there are HEAD changes.
 
 ```python
 >>> ds = muller.dataset(path="temp_dataset/", overwrite=True)
 >>> with ds:
-...     ds.create_tensor("labels", htype="generic")
+...     ds.create_column("labels", htype="generic")
 ...     ds.labels.extend([1, 2, 3, 4, 5])
 >>> ds.commit()
 >>> ds.checkout("dev", create=True)
@@ -378,20 +378,20 @@ In the example below, we return to `main`, which has a `labels` tensor with 5 sa
 True
 ```
 
-On the `dev` branch, the `labels` tensor still has 5 samples.
+On the `dev` branch, the `labels` column still has 5 samples.
 
 ```python
 >>> ds.checkout("dev")
->>> print("Dataset in {} branch has {} samples in the labels tensor".format(ds.branch, len(ds.labels)))
-Dataset in dev branch has 5 samples in the labels tensor
+>>> print("Dataset in {} branch has {} samples in the labels column".format(ds.branch, len(ds.labels)))
+Dataset in dev branch has 5 samples in the labels column
 ```
 
 Switch back to `main`, and the uncommitted change is still present (6 samples).
 
 ```python
 >>> ds.checkout("main")
->>> print("Dataset in {} branch has {} samples in the labels tensor".format(ds.branch, len(ds.labels)))
-Dataset in main branch has 6 samples in the labels tensor
+>>> print("Dataset in {} branch has {} samples in the labels column".format(ds.branch, len(ds.labels)))
+Dataset in main branch has 6 samples in the labels column
 >>> ds.has_head_changes
 True
 ```
@@ -402,8 +402,8 @@ Use `ds.reset()` to revert uncommitted changes on the current branch.
 >>> ds.reset()
 >>> ds.has_head_changes
 False
->>> print("Dataset in {} branch has {} samples in the labels tensor".format(ds.branch, len(ds.labels)))
-Dataset in main branch has 5 samples in the labels tensor
+>>> print("Dataset in {} branch has {} samples in the labels column".format(ds.branch, len(ds.labels)))
+Dataset in main branch has 5 samples in the labels column
 ```
 
 - For details, see [`dataset.reset()`](../api/dataset-version-control/#datasetreset).
@@ -429,7 +429,7 @@ MULLER currently follows the merge workflow below:
 
 - Find the most recent common ancestor (e.g., `M1`) between the current branch HEAD (e.g., `M3`) and the target branch head (e.g., `D4`).
 - Compute diffs `D4` vs `M1` and `M3` vs `M1`.
-- For tensors common to both branches, compare each sample by its UUID to detect conflicts. If conflicts exist, they are printed and also cached (in-memory) for subsequent merge steps.
+- For columns common to both branches, compare each sample by its UUID to detect conflicts. If conflicts exist, they are printed and also cached (in-memory) for subsequent merge steps.
 
 Conflict types recorded:
 
@@ -445,8 +445,8 @@ Conflict types recorded:
 
 Additional merge parameters:
 
-- **delete_removed_tensors (bool, default False)**: if `True`, tensors deleted in the current-branch diff are discarded.
-- **force (bool, default False)**: relaxes certain rename-related constraints; for example, it may register a renamed tensor as a new tensor if the counterpart tensor is missing on the other side, or merge tensors under certain rename collisions.
+- **delete_removed_tensors (bool, default False)**: legacy option name; if `True`, columns deleted in the current-branch diff are discarded.
+- **force (bool, default False)**: relaxes certain rename-related constraints; for example, it may register a renamed column as a new column if the counterpart column is missing on the other side, or merge columns under certain rename collisions.
 
 Important notes:
 
@@ -459,9 +459,9 @@ Example:
 ```python
 # Create a dataset and add data on main
 >>> ds = muller.dataset(path="temp_test", overwrite=True)
->>> ds.create_tensor(name="labels", htype="generic", dtype="int")
+>>> ds.create_column(name="labels", htype="generic", dtype="int")
 >>> ds.labels.extend([0, 1, 2, 3, 4])
->>> ds.create_tensor(name="categories", htype="text")
+>>> ds.create_column(name="categories", htype="text")
 >>> ds.categories.extend(["a", "b", "c", "d", "e"])
 
 # Create dev-1 and perform add/update/delete operations
@@ -511,7 +511,7 @@ Example:
  [70]]
 
 # Detect conflicts between main and dev-2
->>> conflict_tensors, conflict_records = ds.detect_merge_conflict("dev-2", show_value=True)
+>>> conflict_columns, conflict_records = ds.detect_merge_conflict("dev-2", show_value=True)
 >>> pprint(conflict_records)
 {'categories': {'app_ori_idx': [4, 5, 6],
                 'app_ori_values': [array(['ff'], dtype='<U2'),
@@ -576,23 +576,23 @@ ds.rename()
 
 ```python
 ds.reset()
-ds.create_tensor()
-ds.create_tensor_like()
+ds.create_column()
+ds.create_column_like()
 ds.commit()
 ds.extend([dataset_object])
-ds.<tensor>.extend()
+ds.<column>.extend()
 ds.delete_branch()
 ds.rechunk()
 ds.append([dataset_object])
-ds.<tensor>.append
+ds.<column>.append
 ds.update()  # there are two update methods
 ds.merge()
-ds.delete_tensor()
+ds.delete_column()
 ds.pop()
 ds.rename()
 muller.api_dataset.create_dataset_from_dataframes()
 muller.api_dataset.create_dataset_from_file()
-ds.<tensor>.clear()
+ds.<column>.clear()
 ds.create_index()
 ```
 

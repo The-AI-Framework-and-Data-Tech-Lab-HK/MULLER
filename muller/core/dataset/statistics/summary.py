@@ -50,7 +50,7 @@ def summary_dataset(dataset, force=False):
     ):
         raise SummaryLimit(dataset.max_len, VIEW_SUMMARY_SAFE_LIMIT)
 
-    head = ["tensor", "htype", "shape", "dtype", "compression"]
+    head = ["column", "htype", "shape", "dtype", "compression"]
     divider = ["-------"] * 5
     tensor_dict = dataset.tensors
     max_column_length = [7, 7, 7, 7, 7]

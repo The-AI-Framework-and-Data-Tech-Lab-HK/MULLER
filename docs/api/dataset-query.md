@@ -89,11 +89,11 @@ for sample in filtered_ds:
 
 #### Overview
 
-Filter the dataset using vectorized operations for better performance. This method is optimized for large datasets and uses indexed tensors.
+Filter the dataset using vectorized operations for better performance. This method is optimized for large datasets and uses indexed columns.
 
 #### Parameters
 
-- **expression** (`str`): Filter expression using tensor names.
+- **expression** (`str`): Filter expression using column names.
 - **scheduler** (`str`, optional): Scheduler type for parallel processing. Defaults to `"threaded"`.
 - **num_workers** (`int`, optional): Number of workers for parallel processing. Defaults to `0`.
 
@@ -117,7 +117,7 @@ filtered_ds = ds.filter_vectorized("score > 80", num_workers=4)
 # Complex expressions
 filtered_ds = ds.filter_vectorized("(age >= 18) & (age <= 65)")
 
-# Filter on indexed tensors for best performance
+# Filter on indexed columns for best performance
 ds.create_index("labels")
 filtered_ds = ds.filter_vectorized("labels == 3")
 ```
@@ -128,11 +128,11 @@ filtered_ds = ds.filter_vectorized("labels == 3")
 
 #### Overview
 
-Query a specific tensor using a query expression. This is useful for searching within a single tensor.
+Query a specific column using a query expression. This is useful for searching within a single column.
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor to query.
+- **column_name** (`str`): Name of the column to query. The legacy `tensor_name` keyword remains supported.
 - **query** (`str`): Query expression.
 
 #### Returns
@@ -146,13 +146,13 @@ import muller
 
 ds = muller.load("./my_dataset")
 
-# Query a specific tensor
+# Query a specific column
 result = ds.query("labels", "value == 5")
 
 # Query with range
 result = ds.query("age", "value >= 18 and value <= 65")
 
-# Query text tensor
+# Query text column
 result = ds.query("description", "value.contains('important')")
 
 # Access query results
@@ -166,12 +166,12 @@ for sample in result:
 
 #### Overview
 
-Perform vector similarity search on a tensor with a vector index. This is useful for finding similar embeddings or features.
+Perform vector similarity search on a column with a vector index. This is useful for finding similar embeddings or features.
 
 #### Parameters
 
 - **query_vector** (`np.ndarray` or `Tensor`): The query vector to search for.
-- **tensor_name** (`str`): Name of the tensor to search in.
+- **column_name** (`str`): Name of the column to search in. The legacy `tensor_name` keyword remains supported.
 - **index_name** (`str`): Name of the vector index to use.
 - **k** (`int`, optional): Number of nearest neighbors to return. Defaults to `10`.
 - **kwargs**: Additional arguments passed to the vector search backend.
@@ -195,7 +195,7 @@ ds.create_vector_index("embeddings", index_name="emb_idx")
 query_vec = np.random.rand(512)
 results = ds.vector_search(
     query_vector=query_vec,
-    tensor_name="embeddings",
+    column_name="embeddings",
     index_name="emb_idx",
     k=10
 )
@@ -208,7 +208,7 @@ for i, sample in enumerate(results):
 # Search with additional parameters
 results = ds.vector_search(
     query_vector=query_vec,
-    tensor_name="embeddings",
+    column_name="embeddings",
     index_name="emb_idx",
     k=20,
     metric="cosine"
@@ -223,11 +223,11 @@ results = ds.vector_search(
 
 #### Overview
 
-Create an index on a tensor to speed up filtering and querying operations.
+Create an index on a column to speed up filtering and querying operations.
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor to index.
+- **column_name** (`str`): Name of the column to index.
 - **index_type** (`str`, optional): Type of index to create. Defaults to `"hash"`.
 
 #### Returns
@@ -241,17 +241,17 @@ import muller
 
 ds = muller.load("./my_dataset")
 
-# Create index on labels tensor
+# Create index on labels column
 ds.create_index("labels")
 
 # Create index with specific type
 ds.create_index("categories", index_type="hash")
 
-# Create indexes on multiple tensors
-for tensor_name in ["labels", "categories", "user_id"]:
-    ds.create_index(tensor_name)
+# Create indexes on multiple columns
+for column_name in ["labels", "categories", "user_id"]:
+    ds.create_index(column_name)
 
-# Use indexed tensor for faster filtering
+# Use indexed column for faster filtering
 ds.create_index("labels")
 filtered = ds.filter_vectorized("labels == 5")  # Much faster with index
 ```
@@ -266,7 +266,7 @@ Create an index optimized for vectorized operations. This is useful for large-sc
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor to index.
+- **column_name** (`str`): Name of the column to index.
 - **num_workers** (`int`, optional): Number of workers for parallel index creation. Defaults to `0`.
 - **scheduler** (`str`, optional): Scheduler type. Defaults to `"threaded"`.
 
@@ -287,9 +287,9 @@ ds.create_index_vectorized("labels")
 # Create with multiple workers for faster indexing
 ds.create_index_vectorized("categories", num_workers=4)
 
-# Create vectorized indexes on multiple tensors
-for tensor_name in ["labels", "user_id", "timestamp"]:
-    ds.create_index_vectorized(tensor_name, num_workers=4)
+# Create vectorized indexes on multiple columns
+for column_name in ["labels", "user_id", "timestamp"]:
+    ds.create_index_vectorized(column_name, num_workers=4)
 ```
 
 ---
@@ -302,7 +302,7 @@ Optimize an existing index to improve query performance. This reorganizes the in
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor whose index to optimize.
+- **column_name** (`str`): Name of the column whose index to optimize.
 
 #### Returns
 
@@ -319,8 +319,8 @@ ds = muller.load("./my_dataset")
 ds.optimize_index("labels")
 
 # Optimize all indexes
-for tensor_name in ds.indexed_tensors:
-    ds.optimize_index(tensor_name)
+for column_name in ds.indexed_columns:
+    ds.optimize_index(column_name)
 ```
 
 ---
@@ -329,11 +329,11 @@ for tensor_name in ds.indexed_tensors:
 
 #### Overview
 
-Create a vector index for similarity search on embedding tensors. This enables fast nearest neighbor search.
+Create a vector index for similarity search on embedding columns. This enables fast nearest neighbor search.
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor containing vectors/embeddings.
+- **column_name** (`str`): Name of the column containing vectors/embeddings. The legacy `tensor_name` keyword remains supported.
 - **index_name** (`str`): Name for the vector index.
 - **index_type** (`str`, optional): Type of vector index (e.g., "HNSW", "IVF"). Defaults to `"HNSW"`.
 - **metric** (`str`, optional): Distance metric (e.g., "cosine", "euclidean"). Defaults to `"cosine"`.
@@ -377,11 +377,11 @@ ds.create_vector_index(
 
 #### Overview
 
-Delete a vector index from a tensor.
+Delete a vector index from a column.
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor.
+- **column_name** (`str`): Name of the column. The legacy `tensor_name` keyword remains supported.
 - **index_name** (`str`): Name of the vector index to drop.
 
 #### Returns
@@ -413,7 +413,7 @@ Update a vector index after adding new samples to the dataset.
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor.
+- **column_name** (`str`): Name of the column. The legacy `tensor_name` keyword remains supported.
 - **index_name** (`str`): Name of the vector index to update.
 
 #### Returns
@@ -450,7 +450,7 @@ Load a vector index into memory for faster search operations.
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor.
+- **column_name** (`str`): Name of the column. The legacy `tensor_name` keyword remains supported.
 - **index_name** (`str`): Name of the vector index to load.
 
 #### Returns
@@ -482,7 +482,7 @@ Unload a vector index from memory to free up resources.
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor.
+- **column_name** (`str`): Name of the column. The legacy `tensor_name` keyword remains supported.
 - **index_name** (`str`): Name of the vector index to unload.
 
 #### Returns
@@ -513,7 +513,7 @@ Create a hot shard index for frequently accessed data. This optimizes access pat
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor to create hot shard index for.
+- **column_name** (`str`): Name of the column to create hot shard index for.
 - **shard_size** (`int`, optional): Size of each shard. Defaults to automatic calculation.
 
 #### Returns
@@ -544,7 +544,7 @@ Reorganize index shards for better performance. This is useful after significant
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor whose index to reshard.
+- **column_name** (`str`): Name of the column whose index to reshard.
 - **num_shards** (`int`, optional): Target number of shards. Defaults to automatic calculation.
 
 #### Returns

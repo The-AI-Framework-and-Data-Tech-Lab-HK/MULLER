@@ -127,7 +127,7 @@ except ImportError:
     ImageDraw = None  # type: ignore
     ImageFont = None  # type: ignore
 
-# Canonical COCO2017 tensors (as produced by official_demo.ipynb and the
+# Canonical COCO2017 columns (as produced by official_demo.ipynb and the
 # muller_datasetcoco export). The SIGMOD demo schema extends this with
 # `description` (text, derived from category_id), and downstream code paths
 # may want to attach even more derived columns — so we treat the set below
@@ -191,9 +191,12 @@ def _is_image_htype(ht: Any) -> bool:
     return False
 
 
-def list_image_tensor_names(ds: Any) -> List[str]:
-    """Tensor names whose htype stores image samples (for Streamlit preview)."""
-    return [n for n, t in ds.tensors.items() if _is_image_htype(t.htype)]
+def list_image_column_names(ds: Any) -> List[str]:
+    """Column names whose htype stores image samples (for Streamlit preview)."""
+    return [n for n, t in ds.columns.items() if _is_image_htype(t.htype)]
+
+
+list_image_tensor_names = list_image_column_names
 
 
 def decode_muller_image_sample(v: Any) -> Optional[Any]:
@@ -312,14 +315,14 @@ def pil_fit_inside(
 
 
 def is_coco2017_muller_schema(ds: Any) -> bool:
-    """True if the dataset carries the 8 canonical COCO2017 tensors.
+    """True if the dataset carries the 8 canonical COCO2017 columns.
 
     We use a *superset* check (not equality) so datasets with extra derived
-    columns — e.g. the SIGMOD demo adds a ``description`` text tensor — are
+    columns — e.g. the SIGMOD demo adds a ``description`` text column — are
     still recognised as COCO-style and get the bbox-overlay / thumbnail-grid
-    UI treatment. The ``_uuid`` bookkeeping tensor is ignored either way.
+    UI treatment. The ``_uuid`` bookkeeping column is ignored either way.
     """
-    names = set(ds.tensors.keys())
+    names = set(ds.columns.keys())
     names.discard("_uuid")
     return COCO2017_MULLER_SCHEMA.issubset(names)
 
@@ -445,22 +448,25 @@ def create_dataset(name: str, root: str, overwrite: bool = False) -> Tuple[Optio
         return None, f"Failed to create dataset: {e}"
 
 
-def create_tensors(ds: Any, schema: Dict[str, Dict[str, Any]]) -> Optional[str]:
-    """Create tensors (columns) in the dataset.
+def create_columns(ds: Any, schema: Dict[str, Dict[str, Any]]) -> Optional[str]:
+    """Create columns in the dataset.
 
-    schema: {tensor_name: {htype, dtype, sample_compression}}
+    schema: {column_name: {htype, dtype, sample_compression}}
     """
     try:
-        for tensor_name, config in schema.items():
+        for column_name, config in schema.items():
             kwargs = {"htype": config.get("htype", "generic")}
             if config.get("dtype"):
                 kwargs["dtype"] = config["dtype"]
             if config.get("sample_compression"):
                 kwargs["sample_compression"] = config["sample_compression"]
-            ds.create_tensor(tensor_name, **kwargs)
+            ds.create_column(column_name, **kwargs)
         return None
     except Exception as e:
-        return f"Failed to create tensors: {e}"
+        return f"Failed to create columns: {e}"
+
+
+create_tensors = create_columns
 
 
 def add_samples(
@@ -469,11 +475,11 @@ def add_samples(
     auto_commit: bool = True,
     commit_message: Optional[str] = None,
 ) -> Optional[str]:
-    """Add samples to dataset using per-tensor extend."""
+    """Add samples to dataset using per-column extend."""
     try:
         with ds:
-            for tensor_name, values in data.items():
-                ds[tensor_name].extend(values)
+            for column_name, values in data.items():
+                ds[column_name].extend(values)
         if auto_commit:
             ds.commit(message=commit_message or "Add samples via Streamlit UI")
         return None
@@ -481,10 +487,10 @@ def add_samples(
         return f"Failed to add samples: {e}"
 
 
-def update_sample(ds: Any, tensor_name: str, index: int, value: Any) -> Optional[str]:
+def update_sample(ds: Any, column_name: str, index: int, value: Any) -> Optional[str]:
     """Update a single sample value."""
     try:
-        ds[tensor_name][index] = value
+        ds[column_name][index] = value
         return None
     except Exception as e:
         return f"Failed to update sample: {e}"
@@ -499,9 +505,9 @@ def delete_sample(ds: Any, index: int) -> Optional[str]:
         return f"Failed to delete sample: {e}"
 
 
-def _inverted_index_has_field(ds: Any, tensor_column: str) -> bool:
+def _inverted_index_has_field(ds: Any, column_name: str) -> bool:
     """Return True iff ``inverted_index_dir_vec/<branch>/meta.json`` has an
-    entry for ``tensor_column`` (the source of truth used by
+    entry for ``column_name`` (the source of truth used by
     ``filter_vectorized`` to decide whether an index exists)."""
     branch = ds.version_state.get("branch", "main")
     meta_path = os.path.join("inverted_index_dir_vec", branch, "meta.json")
@@ -513,7 +519,7 @@ def _inverted_index_has_field(ds: Any, tensor_column: str) -> bool:
         meta = json.loads(raw.decode("utf-8") if isinstance(raw, (bytes, bytearray)) else raw)
     except Exception:
         return False
-    return isinstance(meta, dict) and tensor_column in meta
+    return isinstance(meta, dict) and column_name in meta
 
 
 def _try_make_writable(ds: Any) -> bool:
@@ -537,10 +543,10 @@ def _try_make_writable(ds: Any) -> bool:
 
 def ensure_inverted_index(
     ds: Any,
-    tensor_column: str,
+    column_name: str,
     progress_cb: Optional[Callable[[str], None]] = None,
 ) -> Optional[str]:
-    """Make sure a vectorized inverted index exists for ``tensor_column``.
+    """Make sure a vectorized inverted index exists for ``column_name``.
 
     - No-op if an entry already exists in the meta.json.
     - Requires a writable dataset: ``create_index_vectorized`` spawns worker
@@ -552,17 +558,17 @@ def ensure_inverted_index(
     - Auto-commits pending changes first, because ``create_index_vectorized``
       silently skips (only ``warnings.warn``) when ``ds.has_head_changes`` is True.
     - Verifies via meta.json that the index was actually written, so any other
-      silent failure (empty tensor, unsupported htype, worker crash) surfaces
+      silent failure (empty column, unsupported htype, worker crash) surfaces
       as an error string instead of pretending success.
 
     Returns ``None`` on success; returns an error string on failure.
     """
-    if _inverted_index_has_field(ds, tensor_column):
+    if _inverted_index_has_field(ds, column_name):
         return None
 
     if getattr(ds, "read_only", False) and not _try_make_writable(ds):
         return (
-            f"Cannot create inverted index for '{tensor_column}': the dataset "
+            f"Cannot create inverted index for '{column_name}': the dataset "
             "is loaded in read-only mode (its write lock is held by another "
             "MULLER process or a stale session). Please close any other "
             "process that has this dataset open and re-load it here."
@@ -570,18 +576,18 @@ def ensure_inverted_index(
 
     try:
         if progress_cb is not None:
-            progress_cb(tensor_column)
+            progress_cb(column_name)
         if ds.has_head_changes:
-            ds.commit(message=f"Auto-commit before inverted index for '{tensor_column}'")
-        ds.create_index_vectorized(tensor_column)
+            ds.commit(message=f"Auto-commit before inverted index for '{column_name}'")
+        ds.create_index_vectorized(column_name)
     except Exception as e:
-        return f"Failed to create inverted index for '{tensor_column}': {e}"
+        return f"Failed to create inverted index for '{column_name}': {e}"
 
-    if not _inverted_index_has_field(ds, tensor_column):
+    if not _inverted_index_has_field(ds, column_name):
         return (
-            f"Inverted index creation for '{tensor_column}' did not complete "
+            f"Inverted index creation for '{column_name}' did not complete "
             "(no entry recorded in meta.json). Most common causes: (a) the "
-            "tensor is empty, (b) its htype/dtype is unsupported — CONTAINS "
+            "column is empty, (b) its htype/dtype is unsupported — CONTAINS "
             "indexing requires htype `text`/`class_label` or dtype `int64`/"
             "`float64`, (c) the dataset is read-only (check `ds.read_only`)."
         )
@@ -621,7 +627,7 @@ def run_query(ds: Any, conditions: List[Tuple[str, str, Any]],
             if not auto_create_index:
                 return None, f"Query failed: {e}"
             # Find the next CONTAINS field that is missing from meta.json and
-            # that we have not already attempted. Prefer the tensor named in
+            # that we have not already attempted. Prefer the column named in
             # the exception message when available, to match the backend's view.
             err_text = str(e)
             ordered_candidates = sorted(
@@ -647,12 +653,12 @@ def run_query(ds: Any, conditions: List[Tuple[str, str, Any]],
     return None, "Query failed: exceeded retry budget while auto-building inverted indexes."
 
 
-def dataset_to_dataframe(ds: Any, tensor_list: Optional[List[str]] = None,
+def dataset_to_dataframe(ds: Any, columns: Optional[List[str]] = None,
                          start: int = 0, end: Optional[int] = None) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
     """Convert dataset (or view) to pandas DataFrame.
 
     Uses the sliced *view* for the fallback path so only ``end - start`` rows are
-    materialized (avoids loading entire tensors for pagination).
+    materialized (avoids loading entire columns for pagination).
     """
     try:
         if end is not None:
@@ -661,7 +667,7 @@ def dataset_to_dataframe(ds: Any, tensor_list: Optional[List[str]] = None,
             view = ds[start:]
         else:
             view = ds
-        df = view.to_dataframe(tensor_list=tensor_list)
+        df = view.to_dataframe(columns=columns)
         return df, None
     except Exception:
         try:
@@ -671,13 +677,13 @@ def dataset_to_dataframe(ds: Any, tensor_list: Optional[List[str]] = None,
                 view = ds[start:]
             else:
                 view = ds
-            if tensor_list is None:
-                tensor_list = list(view.tensors.keys())
+            if columns is None:
+                columns = list(view.columns.keys())
             data = {}
-            for tname in tensor_list:
-                tensor = view[tname]
-                vals = tensor.numpy(aslist=True)
-                data[tname] = vals
+            for column_name in columns:
+                column = view[column_name]
+                vals = column.numpy(aslist=True)
+                data[column_name] = vals
             return pd.DataFrame(data), None
         except Exception as e2:
             return None, f"Failed to convert to DataFrame: {e2}"
@@ -1415,18 +1421,21 @@ def _is_vector_like_htype(ht: Any) -> bool:
     return h in ("embedding", "vector")
 
 
-def list_vector_tensor_names(ds: Any) -> List[str]:
-    """Tensor names that can be used as vector-search targets.
+def list_vector_column_names(ds: Any) -> List[str]:
+    """Column names that can be used as vector-search targets.
 
-    Returns tensors whose declared ``htype`` is ``embedding``/``vector``, plus
-    any 1-D float tensor that *could* be treated as an embedding column.
+    Returns columns whose declared ``htype`` is ``embedding``/``vector``, plus
+    any 1-D float column that *could* be treated as an embedding column.
     The first group is preferred; callers may display them distinctly.
     """
     names: List[str] = []
-    for n, t in ds.tensors.items():
+    for n, t in ds.columns.items():
         if _is_vector_like_htype(t.htype):
             names.append(n)
     return names
+
+
+list_vector_tensor_names = list_vector_column_names
 
 
 def list_vector_indexes(ds: Any) -> Dict[str, List[str]]:
@@ -1435,7 +1444,7 @@ def list_vector_indexes(ds: Any) -> Dict[str, List[str]]:
     The vector-index layout (see ``TensorVectorIndex._init_tensor_index``):
         <ds.path>/_vector_index/<branch>/<tensor_key>/<index_name>/
 
-    Returns ``{tensor_name: [index_name, ...]}``. Empty dict if the
+    Returns ``{column_name: [index_name, ...]}``. Empty dict if the
     ``_vector_index`` directory does not exist yet.
     """
     out: Dict[str, List[str]] = {}
@@ -1481,15 +1490,15 @@ def parse_query_vector(text: str, expected_dim: Optional[int] = None) -> Tuple[O
     if expected_dim is not None and vec.shape[0] != expected_dim:
         return None, (
             f"Dimension mismatch: got {vec.shape[0]} values, "
-            f"but tensor expects {expected_dim}."
+            f"but column expects {expected_dim}."
         )
     return vec, None
 
 
-def tensor_embedding_dim(ds: Any, tensor_name: str) -> Optional[int]:
-    """Best-effort embedding dimension for ``tensor_name`` (for input validation)."""
+def column_embedding_dim(ds: Any, column_name: str) -> Optional[int]:
+    """Best-effort embedding dimension for ``column_name`` (for input validation)."""
     try:
-        t = ds.tensors.get(tensor_name)
+        t = ds.columns.get(column_name)
         if t is None:
             return None
         shp = getattr(t, "shape", None)
@@ -1506,9 +1515,12 @@ def tensor_embedding_dim(ds: Any, tensor_name: str) -> Optional[int]:
     return None
 
 
-def _uuids_to_positions(ds: Any, tensor_name: str, uuids: Any) -> List[int]:
+tensor_embedding_dim = column_embedding_dim
+
+
+def _uuids_to_positions(ds: Any, column_name: str, uuids: Any) -> List[int]:
     """Map sample-uuid results from FAISS back to positional row indexes."""
-    t = ds.tensors.get(tensor_name)
+    t = ds.columns.get(column_name)
     if t is None:
         return []
     try:
@@ -1529,7 +1541,7 @@ def _uuids_to_positions(ds: Any, tensor_name: str, uuids: Any) -> List[int]:
 
 def run_vector_search(
     ds: Any,
-    tensor_name: str,
+    column_name: str,
     index_name: str,
     query_vector: np.ndarray,
     topk: int = 10,
@@ -1548,21 +1560,21 @@ def run_vector_search(
     """
     try:
         try:
-            ds.load_vector_index(tensor_name, index_name)
+            ds.load_vector_index(column_name, index_name)
         except Exception as e:
             return None, None, None, (
                 f"Failed to load vector index '{index_name}' on "
-                f"'{tensor_name}': {e}"
+                f"'{column_name}': {e}"
             )
         qv = np.asarray(query_vector, dtype=np.float32).reshape(1, -1)
-        dist, ids = ds.vector_search(qv, tensor_name, index_name, topk=topk)
+        dist, ids = ds.vector_search(qv, column_name, index_name, topk=topk)
         dist_arr = np.asarray(dist).reshape(-1)
         id_arr = np.asarray(ids).reshape(-1)
         # Drop FAISS sentinel values for "no neighbour" (-1).
         keep = id_arr != -1
         id_arr = id_arr[keep]
         dist_arr = dist_arr[keep] if dist_arr.shape[0] == keep.shape[0] else dist_arr
-        positions = _uuids_to_positions(ds, tensor_name, id_arr)
+        positions = _uuids_to_positions(ds, column_name, id_arr)
         if not positions:
             # Fall back to interpreting ids as positional indexes (some index
             # backends might already return positions).
@@ -1587,7 +1599,7 @@ def run_vector_search(
 
 def ensure_vector_index(
     ds: Any,
-    tensor_name: str,
+    column_name: str,
     index_name: str,
     index_type: str = "FLAT",
     metric: str = "l2",
@@ -1599,17 +1611,17 @@ def ensure_vector_index(
     ``ds.has_head_changes``).
     """
     _existing = list_vector_indexes(ds)
-    if index_name in _existing.get(tensor_name, []):
+    if index_name in _existing.get(column_name, []):
         return None
     if getattr(ds, "read_only", False) and not _try_make_writable(ds):
         return (
-            f"Cannot create vector index '{index_name}' on '{tensor_name}': "
+            f"Cannot create vector index '{index_name}' on '{column_name}': "
             "dataset is read-only."
         )
     try:
         if ds.has_head_changes:
             ds.commit(message=f"Auto-commit before building vector index '{index_name}'")
-        ds.create_vector_index(tensor_name, index_name, index_type=index_type, metric=metric)
+        ds.create_vector_index(column_name, index_name, index_type=index_type, metric=metric)
     except Exception as e:
         return f"Failed to create vector index: {e}"
     return None
@@ -1722,11 +1734,13 @@ def delete_saved_view(ds: Any, view_id: str) -> Optional[str]:
 def get_dataset_info(ds: Any) -> Dict[str, Any]:
     """Return summary info about the dataset."""
     try:
+        columns = {name: {"htype": t.htype, "dtype": str(t.dtype)} for name, t in ds.columns.items()}
         return {
             "path": ds.path,
             "branch": ds.branch,
             "num_samples": len(ds),
-            "tensors": {name: {"htype": t.htype, "dtype": str(t.dtype)} for name, t in ds.tensors.items()},
+            "columns": columns,
+            "tensors": columns,
             "commit_id": ds.commit_id,
             "has_uncommitted": ds.has_head_changes,
         }

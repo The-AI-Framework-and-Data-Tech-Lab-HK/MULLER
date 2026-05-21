@@ -15,7 +15,7 @@ import os
 from pathlib import Path
 
 # Add project root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../..")))
 
 try:
     import muller
@@ -140,10 +140,10 @@ def query_samples(args):
         ds = muller.load(args.path, read_only=True)
 
         if args.filter:
-            # Parse filter: "tensor op value"
+            # Parse filter: "column op value"
             parts = args.filter.split()
             if len(parts) >= 3:
-                tensor = parts[0]
+                column = parts[0]
                 op = parts[1]
                 value = " ".join(parts[2:])
 
@@ -156,7 +156,7 @@ def query_samples(args):
                 except ValueError:
                     value = value.strip('"\'')
 
-                result = ds.filter_vectorized([(tensor, op, value)])
+                result = ds.filter_vectorized([(column, op, value)])
             else:
                 result = ds
         else:
@@ -250,7 +250,7 @@ def main():
     # Query command
     query_parser = subparsers.add_parser("query", help="Query samples")
     query_parser.add_argument("--path", required=True, help="Dataset path")
-    query_parser.add_argument("--filter", help="Filter: 'tensor op value'")
+    query_parser.add_argument("--filter", help="Filter: 'column op value'")
     query_parser.add_argument("--limit", type=int, help="Max results")
 
     # Import command

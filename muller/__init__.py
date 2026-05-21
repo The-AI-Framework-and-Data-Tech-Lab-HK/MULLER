@@ -15,6 +15,7 @@ __all__ = [
     "load",
     "dataset",
     "Dataset",
+    "Column",
     "__version__",
     "delete",
     "compute",
@@ -23,6 +24,7 @@ __all__ = [
     "like",
     "tiled",
     "Sample",
+    "column",
     "from_file",
     "from_dataframes",
     "from_csv",
@@ -60,6 +62,8 @@ if sys.version_info < (3, 11):
 
 # The api of muller tensor
 tensor = Tensor
+Column = Tensor
+column = Tensor
 
 import muller.api
 

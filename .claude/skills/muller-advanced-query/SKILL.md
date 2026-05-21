@@ -49,22 +49,22 @@ Handles advanced query and indexing operations.
 ```bash
 # Create inverted index for text search
 python3 .claude/skills/muller-advanced-query/scripts/advanced_query.py create-index \
-  --path ./my_dataset --tensors "description,title"
+  --path ./my_dataset --columns "description,title"
 
 # Create vector index
 python3 .claude/skills/muller-advanced-query/scripts/advanced_query.py create-vector-index \
-  --path ./my_dataset --tensor embeddings --index-name hnsw \
+  --path ./my_dataset --column embeddings --index-name hnsw \
   --index-type HNSWFLAT --metric l2
 
 # Vector search
 python3 .claude/skills/muller-advanced-query/scripts/advanced_query.py vector-search \
-  --path ./my_dataset --tensor embeddings --index-name hnsw \
+  --path ./my_dataset --column embeddings --index-name hnsw \
   --query-file query.npy --topk 10
 
 # Aggregation
 python3 .claude/skills/muller-advanced-query/scripts/advanced_query.py aggregate \
   --path ./my_dataset --group-by categories --select labels,categories \
-  --aggregate-tensors "*"
+  --aggregate-columns "*"
 ```
 
 ## Quick Reference
