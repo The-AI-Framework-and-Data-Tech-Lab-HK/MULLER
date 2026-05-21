@@ -10,15 +10,15 @@ import muller
 # Create empty dataset
 ds = muller.dataset("./my_dataset", overwrite=True)
 
-# Create tensors
-ds.create_tensor("images", htype="image", sample_compression="jpg")
-ds.create_tensor("labels", htype="class_label", dtype="uint32")
+# Create columns
+ds.create_column("images", htype="image", sample_compression="jpg")
+ds.create_column("labels", htype="class_label", dtype="uint32")
 ```
 
 **Via skill:**
 ```bash
 uv run scripts/dataset_manager.py create --path ./my_dataset \
-  --tensors "images:image:jpg,labels:class_label:uint32"
+  --columns "images:image:jpg,labels:class_label:uint32"
 ```
 
 ### 2. Add Data
@@ -104,18 +104,18 @@ with ds:
     ds.pop([0, 5, 10])
 ```
 
-### Tensor Management
+### Column Management
 
 ```python
 with ds:
-    # Create tensor
-    ds.create_tensor("embeddings", htype="vector", dtype="float32")
+    # Create column
+    ds.create_column("embeddings", htype="vector", dtype="float32")
 
-    # Rename tensor
-    ds.rename_tensor("old_name", "new_name")
+    # Rename column
+    ds.rename_column("old_name", "new_name")
 
-    # Delete tensor
-    ds.delete_tensor("temp_tensor")
+    # Delete column
+    ds.delete_column("temp_column")
 ```
 
 ## Storage Backends

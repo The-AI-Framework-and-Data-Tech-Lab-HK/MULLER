@@ -12,7 +12,7 @@ MULLER supports 12+ high-level data types (htypes) for different kinds of data.
 **Compression:** jpg, png, webp, bmp, gif, tiff, etc.
 
 ```python
-ds.create_tensor("photos", htype="image", sample_compression="jpg")
+ds.create_column("photos", htype="image", sample_compression="jpg")
 ds.photos.append(muller.read("photo.jpg"))
 ```
 
@@ -22,7 +22,7 @@ ds.photos.append(muller.read("photo.jpg"))
 **Compression:** mp4, mkv, avi
 
 ```python
-ds.create_tensor("videos", htype="video", sample_compression="mp4")
+ds.create_column("videos", htype="video", sample_compression="mp4")
 ds.videos.append(muller.read("video.mp4"))
 ```
 
@@ -32,7 +32,7 @@ ds.videos.append(muller.read("video.mp4"))
 **Compression:** mp3, wav, flac
 
 ```python
-ds.create_tensor("audio", htype="audio", sample_compression="mp3")
+ds.create_column("audio", htype="audio", sample_compression="mp3")
 ds.audio.append(muller.read("audio.mp3"))
 ```
 
@@ -42,7 +42,7 @@ ds.audio.append(muller.read("audio.mp3"))
 **Compression:** None, lz4 (optional)
 
 ```python
-ds.create_tensor("descriptions", htype="text")
+ds.create_column("descriptions", htype="text")
 ds.descriptions.append("A beautiful sunset")
 ```
 
@@ -52,7 +52,7 @@ ds.descriptions.append("A beautiful sunset")
 **Compression:** None, lz4 (optional)
 
 ```python
-ds.create_tensor("embeddings", htype="vector", dtype="float32")
+ds.create_column("embeddings", htype="vector", dtype="float32")
 ds.embeddings.append(np.array([0.1, 0.2, 0.3]))
 ```
 
@@ -62,7 +62,7 @@ ds.embeddings.append(np.array([0.1, 0.2, 0.3]))
 **Compression:** None, lz4 (optional)
 
 ```python
-ds.create_tensor("labels", htype="class_label", dtype="uint32")
+ds.create_column("labels", htype="class_label", dtype="uint32")
 ds.labels.append(5)
 ```
 
@@ -72,7 +72,7 @@ ds.labels.append(5)
 **Compression:** None, lz4 (optional)
 
 ```python
-ds.create_tensor("boxes", htype="bbox", dtype="float32")
+ds.create_column("boxes", htype="bbox", dtype="float32")
 ds.boxes.append([x, y, width, height])
 ```
 
@@ -81,7 +81,7 @@ ds.boxes.append([x, y, width, height])
 **Compression:** None, lz4 (optional)
 
 ```python
-ds.create_tensor("metadata", htype="json")
+ds.create_column("metadata", htype="json")
 ds.metadata.append({"key": "value", "count": 42})
 ```
 
@@ -90,7 +90,7 @@ ds.metadata.append({"key": "value", "count": 42})
 **Compression:** None, lz4 (optional)
 
 ```python
-ds.create_tensor("tags", htype="list")
+ds.create_column("tags", htype="list")
 ds.tags.append(["tag1", "tag2", "tag3"])
 ```
 
@@ -100,7 +100,7 @@ ds.tags.append(["tag1", "tag2", "tag3"])
 **Compression:** None, lz4 (optional)
 
 ```python
-ds.create_tensor("scores", htype="generic", dtype="float32")
+ds.create_column("scores", htype="generic", dtype="float32")
 ds.scores.append(0.95)
 ```
 
@@ -141,21 +141,21 @@ ds.scores.append(0.95)
 
 ### Image Classification Dataset
 ```python
-ds.create_tensor("images", htype="image", sample_compression="jpg")
-ds.create_tensor("labels", htype="class_label", dtype="uint32")
+ds.create_column("images", htype="image", sample_compression="jpg")
+ds.create_column("labels", htype="class_label", dtype="uint32")
 ```
 
 ### Text Dataset with Embeddings
 ```python
-ds.create_tensor("text", htype="text")
-ds.create_tensor("embeddings", htype="vector", dtype="float32")
+ds.create_column("text", htype="text")
+ds.create_column("embeddings", htype="vector", dtype="float32")
 ```
 
 ### Object Detection Dataset
 ```python
-ds.create_tensor("images", htype="image", sample_compression="jpg")
-ds.create_tensor("boxes", htype="bbox", dtype="float32")
-ds.create_tensor("labels", htype="class_label", dtype="uint32")
+ds.create_column("images", htype="image", sample_compression="jpg")
+ds.create_column("boxes", htype="bbox", dtype="float32")
+ds.create_column("labels", htype="class_label", dtype="uint32")
 ```
 
 For complete details, see [../../docs/api/htypes.md](../../docs/api/htypes.md)

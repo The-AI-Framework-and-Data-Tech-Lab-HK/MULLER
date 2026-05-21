@@ -1,6 +1,6 @@
 # Dataset Core Methods
 
-This page documents core instance methods for Dataset objects, including data operations, tensor management, cache control, and basic information retrieval.
+This page documents core instance methods for Dataset objects, including data operations, column management, cache control, and basic information retrieval.
 
 ## Table of Contents
 
@@ -10,11 +10,11 @@ This page documents core instance methods for Dataset objects, including data op
 - [ds.update()](#dsupdate)
 - [ds.pop()](#dspop)
 
-### Tensor Management
-- [ds.create_tensor()](#dscreate_tensor)
-- [ds.create_tensor_like()](#dscreate_tensor_like)
-- [ds.delete_tensor()](#dsdelete_tensor)
-- [ds.rename_tensor()](#dsrename_tensor)
+### Column Management
+- [ds.create_column()](#dscreate_column)
+- [ds.create_column_like()](#dscreate_column_like)
+- [ds.delete_column()](#dsdelete_column)
+- [ds.rename_column()](#dsrename_column)
 
 ### Cache and Flush
 - [ds.flush()](#dsflush)
@@ -26,7 +26,7 @@ This page documents core instance methods for Dataset objects, including data op
 - [ds.statistics()](#dsstatistics)
 - [ds.size_approx()](#dssize_approx)
 - [ds.num_samples](#dsnum_samples)
-- [ds.tensors](#dstensors)
+- [ds.columns](#dscolumns)
 
 ---
 
@@ -36,11 +36,11 @@ This page documents core instance methods for Dataset objects, including data op
 
 #### Overview
 
-Append a single sample to the dataset. Each sample is a dictionary where keys are tensor names and values are the data to append.
+Append a single sample to the dataset. Each sample is a dictionary where keys are column names and values are the data to append.
 
 #### Parameters
 
-- **sample** (`Dict[str, Any]`): Dictionary mapping tensor names to their values.
+- **sample** (`Dict[str, Any]`): Dictionary mapping column names to their values.
 - **skip_ok** (`bool`, optional): If `True`, allows skipping samples that cause errors. Defaults to `False`.
 - **append_empty** (`bool`, optional): If `True`, allows appending empty samples. Defaults to `False`.
 
@@ -55,8 +55,8 @@ import muller
 import numpy as np
 
 ds = muller.dataset("./my_dataset", overwrite=True)
-ds.create_tensor("images")
-ds.create_tensor("labels")
+ds.create_column("images")
+ds.create_column("labels")
 
 # Append a single sample
 with ds:
@@ -88,7 +88,7 @@ Extend the dataset with multiple samples at once. This is more efficient than ca
 
 #### Parameters
 
-- **samples** (`Dict[str, Any]`): Dictionary where keys are tensor names and values are lists/arrays of data to append.
+- **samples** (`Dict[str, Any]`): Dictionary where keys are column names and values are lists/arrays of data to append.
 - **skip_ok** (`bool`, optional): If `True`, allows skipping samples that cause errors. Defaults to `False`.
 - **append_empty** (`bool`, optional): If `True`, allows appending empty samples. Defaults to `False`.
 - **ignore_errors** (`bool`, optional): If `True`, continues processing even if errors occur. Defaults to `False`.
@@ -105,8 +105,8 @@ import muller
 import numpy as np
 
 ds = muller.dataset("./my_dataset", overwrite=True)
-ds.create_tensor("images")
-ds.create_tensor("labels")
+ds.create_column("images")
+ds.create_column("labels")
 
 # Extend with multiple samples
 images_data = [np.random.rand(224, 224, 3) for _ in range(100)]
@@ -143,7 +143,7 @@ Update existing samples in the dataset. This modifies data at specific indices.
 
 #### Parameters
 
-- **sample** (`Dict[str, Any]`): Dictionary mapping tensor names to their new values.
+- **sample** (`Dict[str, Any]`): Dictionary mapping column names to their new values.
 
 #### Returns
 
@@ -213,27 +213,27 @@ with ds:
 
 ---
 
-## Tensor Management
+## Column Management
 
-### ds.create_tensor()
+### ds.create_column()
 
 #### Overview
 
-Create a new tensor in the dataset. Tensors are the columns of your dataset, each storing a specific type of data.
+Create a new column in the dataset. Columns store one field of data across samples. The legacy `ds.create_tensor()` method remains supported as a compatibility alias.
 
 #### Parameters
 
-- **name** (`str`): Name of the tensor to create.
-- **htype** (`str`, optional): The htype (high-level type) of the tensor (e.g., "image", "class_label", "text"). If not specified, defaults to "generic".
-- **dtype** (`str` or `np.dtype`, optional): The numpy dtype of the tensor data. If not specified, it's inferred from htype.
+- **name** (`str`): Name of the column to create.
+- **htype** (`str`, optional): The htype (high-level type) of the column (e.g., "image", "class_label", "text"). If not specified, defaults to "generic".
+- **dtype** (`str` or `np.dtype`, optional): The numpy dtype of the column data. If not specified, it's inferred from htype.
 - **sample_compression** (`str`, optional): Compression to apply to each sample (e.g., "jpeg", "png"). Defaults to `None`.
 - **chunk_compression** (`str`, optional): Compression to apply to chunks. Defaults to `None`.
-- **hidden** (`bool`, optional): If `True`, creates a hidden tensor. Defaults to `False`.
-- **kwargs**: Additional keyword arguments for tensor configuration.
+- **hidden** (`bool`, optional): If `True`, creates a hidden column. Defaults to `False`.
+- **kwargs**: Additional keyword arguments for column configuration.
 
 #### Returns
 
-- **Tensor**: The created tensor object.
+- **Tensor**: The created column object. Internally, MULLER still uses the `Tensor` class for storage compatibility.
 
 #### Examples
 
@@ -242,41 +242,41 @@ import muller
 
 ds = muller.dataset("./my_dataset", overwrite=True)
 
-# Create a generic tensor
-ds.create_tensor("data")
+# Create a generic column
+ds.create_column("data")
 
-# Create an image tensor with JPEG compression
-ds.create_tensor("images", htype="image", sample_compression="jpeg")
+# Create an image column with JPEG compression
+ds.create_column("images", htype="image", sample_compression="jpeg")
 
-# Create a text tensor
-ds.create_tensor("descriptions", htype="text", dtype="str")
+# Create a text column
+ds.create_column("descriptions", htype="text", dtype="str")
 
-# Create a class label tensor
-ds.create_tensor("labels", htype="class_label", dtype="int32")
+# Create a class label column
+ds.create_column("labels", htype="class_label", dtype="int32")
 
-# Create a bounding box tensor
-ds.create_tensor("boxes", htype="bbox", dtype="float32")
+# Create a bounding box column
+ds.create_column("boxes", htype="bbox", dtype="float32")
 
 # Create with chunk compression
-ds.create_tensor("embeddings", htype="embedding", chunk_compression="lz4")
+ds.create_column("embeddings", htype="embedding", chunk_compression="lz4")
 ```
 
 ---
 
-### ds.create_tensor_like()
+### ds.create_column_like()
 
 #### Overview
 
-Create a new tensor by copying the metadata and configuration from an existing tensor. No samples are copied, only the structure.
+Create a new column by copying the metadata and configuration from an existing column. No samples are copied, only the structure. The legacy `ds.create_tensor_like()` method remains supported.
 
 #### Parameters
 
-- **name** (`str`): Name of the new tensor to create.
-- **source** (`Tensor`): The source tensor to copy metadata from.
+- **name** (`str`): Name of the new column to create.
+- **source** (`Tensor`): The source column to copy metadata from.
 
 #### Returns
 
-- **Tensor**: The created tensor object.
+- **Tensor**: The created column object.
 
 #### Examples
 
@@ -289,28 +289,28 @@ source_ds = muller.load("./source_dataset")
 # Create new dataset with similar structure
 new_ds = muller.dataset("./new_dataset", overwrite=True)
 
-# Create tensor with same configuration as source
+# Create columns with the same configuration as source
 with new_ds:
-    new_ds.create_tensor_like("images", source_ds["images"])
-    new_ds.create_tensor_like("labels", source_ds["labels"])
+    new_ds.create_column_like("images", source_ds["images"])
+    new_ds.create_column_like("labels", source_ds["labels"])
 
-# Copy tensor structure within same dataset
+# Copy column structure within same dataset
 with new_ds:
-    new_ds.create_tensor_like("images_copy", new_ds["images"])
+    new_ds.create_column_like("images_copy", new_ds["images"])
 ```
 
 ---
 
-### ds.delete_tensor()
+### ds.delete_column()
 
 #### Overview
 
-Delete a tensor from the dataset. This permanently removes the tensor and all its data.
+Delete a column from the dataset. This permanently removes the column and all its data. The legacy `ds.delete_tensor()` method remains supported.
 
 #### Parameters
 
-- **name** (`str`): Name of the tensor to delete.
-- **large_ok** (`bool`, optional): If `True`, allows deletion of large tensors. Defaults to `False`.
+- **name** (`str`): Name of the column to delete.
+- **large_ok** (`bool`, optional): If `True`, allows deletion of large columns. Defaults to `False`.
 
 #### Returns
 
@@ -323,36 +323,36 @@ import muller
 
 ds = muller.load("./my_dataset")
 
-# Delete a tensor
+# Delete a column
 with ds:
-    ds.delete_tensor("old_tensor")
+    ds.delete_column("old_column")
 
-# Delete a large tensor
+# Delete a large column
 with ds:
-    ds.delete_tensor("large_tensor", large_ok=True)
+    ds.delete_column("large_column", large_ok=True)
 
-# Delete multiple tensors
+# Delete multiple columns
 with ds:
-    for tensor_name in ["temp1", "temp2", "temp3"]:
-        ds.delete_tensor(tensor_name)
+    for column_name in ["temp1", "temp2", "temp3"]:
+        ds.delete_column(column_name)
 ```
 
 #### Warning
 
-This operation is irreversible. All data in the tensor will be permanently deleted.
+This operation is irreversible. All data in the column will be permanently deleted.
 
 ---
 
-### ds.rename_tensor()
+### ds.rename_column()
 
 #### Overview
 
-Rename a tensor in the dataset.
+Rename a column in the dataset. The legacy `ds.rename_tensor()` method remains supported.
 
 #### Parameters
 
-- **name** (`str`): Current name of the tensor.
-- **new_name** (`str`): New name for the tensor.
+- **name** (`str`): Current name of the column.
+- **new_name** (`str`): New name for the column.
 
 #### Returns
 
@@ -365,14 +365,14 @@ import muller
 
 ds = muller.load("./my_dataset")
 
-# Rename a tensor
+# Rename a column
 with ds:
-    ds.rename_tensor("old_name", "new_name")
+    ds.rename_column("old_name", "new_name")
 
-# Rename multiple tensors
+# Rename multiple columns
 with ds:
-    ds.rename_tensor("img", "images")
-    ds.rename_tensor("lbl", "labels")
+    ds.rename_column("img", "images")
+    ds.rename_column("lbl", "labels")
 ```
 
 ---
@@ -451,7 +451,7 @@ with ds:
 
 #### Overview
 
-Display a summary of the dataset including tensor names, shapes, dtypes, and sample counts.
+Display a summary of the dataset including column names, shapes, dtypes, and sample counts.
 
 #### Parameters
 
@@ -478,9 +478,9 @@ ds.summary(force=True)
 #### Example Output
 
 ```
-Dataset(path='./my_dataset', tensors=['images', 'labels'])
+Dataset(path='./my_dataset', columns=['images', 'labels'])
 
-  tensor      htype        shape       dtype  compression
+  column      htype        shape       dtype  compression
  -------    --------    ----------    -------  -----------
   images     image     (224, 224, 3)   uint8      jpeg
   labels   class_label      ()         int32      None
@@ -620,15 +620,15 @@ if ds.num_samples == 0:
 
 ---
 
-### ds.tensors
+### ds.columns
 
 #### Overview
 
-Property that returns a dictionary of all tensors in the dataset.
+Property that returns a dictionary of all user-visible columns in the dataset. The legacy `ds.tensors` property remains supported as a compatibility alias.
 
 #### Type
 
-- **Dict[str, Tensor]**: Dictionary mapping tensor names to Tensor objects.
+- **Dict[str, Tensor]**: Dictionary mapping column names to column objects. Internally, these objects still use the `Tensor` class.
 
 #### Examples
 
@@ -637,19 +637,19 @@ import muller
 
 ds = muller.load("./my_dataset")
 
-# Get all tensor names
-tensor_names = list(ds.tensors.keys())
-print(f"Tensors: {tensor_names}")
+# Get all column names
+column_names = list(ds.columns.keys())
+print(f"Columns: {column_names}")
 
-# Iterate over tensors
-for name, tensor in ds.tensors.items():
-    print(f"{name}: {tensor.shape}, {tensor.dtype}")
+# Iterate over columns
+for name, column in ds.columns.items():
+    print(f"{name}: {column.shape}, {column.dtype}")
 
-# Access specific tensor
-images_tensor = ds.tensors["images"]
-print(images_tensor.meta)
+# Access specific column
+images_column = ds.columns["images"]
+print(images_column.meta)
 
-# Check if tensor exists
-if "labels" in ds.tensors:
-    print("Labels tensor exists")
+# Check if column exists
+if "labels" in ds.columns:
+    print("Labels column exists")
 ```

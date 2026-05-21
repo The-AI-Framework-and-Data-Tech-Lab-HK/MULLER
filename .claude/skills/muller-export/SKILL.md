@@ -41,7 +41,7 @@ Handles export and format conversion operations.
 - `to-arrow` - Export to Apache Arrow format
 - `to-parquet` - Export to Parquet files
 - `to-json` - Export to JSON format
-- `to-numpy` - Convert tensors to NumPy arrays
+- `to-numpy` - Convert columns to NumPy arrays
 - `to-mindrecord` - Export to MindRecord format
 - `get-info` - Get export information
 
@@ -59,9 +59,9 @@ python3 .claude/skills/muller-export/scripts/export.py to-parquet \
 python3 .claude/skills/muller-export/scripts/export.py to-json \
   --path ./my_dataset --output ./output.json
 
-# Convert tensor to NumPy
+# Convert column to NumPy
 python3 .claude/skills/muller-export/scripts/export.py to-numpy \
-  --path ./my_dataset --tensor embeddings --output ./embeddings.npy
+  --path ./my_dataset --column embeddings --output ./embeddings.npy
 
 # Export to MindRecord
 python3 .claude/skills/muller-export/scripts/export.py to-mindrecord \

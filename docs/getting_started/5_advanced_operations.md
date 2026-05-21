@@ -14,8 +14,8 @@ Example:
 def create_cifar10_dataset_parallel(num_workers=4, scheduler="threaded"):
     ds_multi = muller.dataset(path="./temp_test", overwrite=True)
     with ds_multi:
-        ds_multi.create_tensor("test1", htype="text")
-        ds_multi.create_tensor("test2", htype="text")
+        ds_multi.create_column("test1", htype="text")
+        ds_multi.create_column("test2", htype="text")
 
     # Add data row-by-row to preserve row-level atomicity
     iter_dict = []
@@ -59,7 +59,7 @@ With large datasets, not every sample path is guaranteed to be valid (e.g., inva
 
 ```python
 for i in range(10):
-    ds.my_tensor.append(i)
+    ds.my_column.append(i)
 ```
 
 1. Using a `with` block typically improves performance. Updates are batched and flushed when the `with` block completes (or when the local cache is full), reducing fragmented writes:
@@ -67,14 +67,14 @@ for i in range(10):
 ```python
 with ds:
     for i in range(10):
-        ds.my_tensor.append(i)  # or other write operations: create, update, etc.
+        ds.my_column.append(i)  # or other write operations: create, update, etc.
 ```
 
 ### 3. Why a Dataset Become Corrupted, and How to Recover?
 
-If your program is interrupted unexpectedly (e.g., a crash during append/pop), the dataset may become inconsistent: some tensors may have been updated while others were not. In such cases, you can use `ds.reset()` to roll back illegal, uncommitted operations and return to the most recent valid commit.
+If your program is interrupted unexpectedly (e.g., a crash during append/pop), the dataset may become inconsistent: some columns may have been updated while others were not. In such cases, you can use `ds.reset()` to roll back illegal, uncommitted operations and return to the most recent valid commit.
 
-1. **Scenario A:** The dataset (or some tensors) cannot be read (e.g., you see an error like below).
+1. **Scenario A:** The dataset (or some columns) cannot be read (e.g., you see an error like below).
 
 ```text
 DatasetCorruptError: Exception occured (see Traceback). The dataset maybe corrupted. Try using `reset=True` to reset HEAD changes and load the previous commit. This will delete all uncommitted changes on the branch you are trying to load.
@@ -86,7 +86,7 @@ Recovery: reload with `reset=True`.
 ds = muller.load(<dataset_path>, reset=True)
 ```
 
-1. **Scenario B:** The dataset is corrupted (e.g., tensor lengths are inconsistent).
+1. **Scenario B:** The dataset is corrupted (e.g., column lengths are inconsistent).
 
 Recovery: load without integrity checking, then reset.
 
@@ -162,9 +162,9 @@ Key differences include:
 
 ```python
 # Fetch adjacent data in the chunk -> increases speed when loading sequentially,
-# or when a tensor's data fits in the cache.
+# or when a column's data fits in the cache.
 numeric_label = ds.labels[i].numpy(fetch_chunks=True)
 ```
 
-> Note: If `True`, full chunks will be retrieved from the storage; otherwise only required bytes will be retrieved. This will always be `True` even if specified as `False` in the following cases: (1) the tensor is ChunkCompressed; (2) the chunk being accessed has more than 128 samples.
+> Note: If `True`, full chunks will be retrieved from the storage; otherwise only required bytes will be retrieved. This will always be `True` even if specified as `False` in the following cases: (1) the column is chunk-compressed; (2) the chunk being accessed has more than 128 samples.
 

@@ -49,19 +49,19 @@ The usage is similar to the examples above; simply add the appropriate path pref
 * If the path specified by `path` already contains an existing MULLER dataset, a `DatasetHandlerError` will be raised. You may set `overwrite=True` to explicitly overwrite the existing dataset.
 * For additional optional arguments and advanced usage of these APIs, please refer to the API documentation: [`muller.empty()`](../api/dataset-creation/#mullerempty) and [`muller.dataset()`](../api/dataset-creation/#mullerdataset).
 
-### Step 2. Create Tensor Columns and Specify Column Types
+### Step 2. Create Columns and Specify Column Types
 
-In a MULLER dataset, columns are referred to as **tensor columns**.  
-MULLER adopts a column-oriented storage layout, where each tensor column can be configured with a specific column type (`htype`), sample compression format (`sample_compression`), and data type (`dtype`).
+In a MULLER dataset, data is organized as **columns**.  
+MULLER adopts a column-oriented storage layout, where each column can be configured with a specific column type (`htype`), sample compression format (`sample_compression`), and data type (`dtype`). Older `tensor` APIs such as `create_tensor()` remain supported as compatibility aliases.
 
 For most column types, specifying an appropriate compression format can significantly reduce storage footprint and improve read performance.
 
 ```python
 >>> ds = muller.dataset(path='my_muller_dataset/', overwrite=True)  # Create a new MULLER dataset
->>> ds.create_tensor(name='my_text', htype='text')
->>> ds.create_tensor(name='my_photos', htype='image', sample_compression='jpg')
+>>> ds.create_column(name='my_text', htype='text')
+>>> ds.create_column(name='my_photos', htype='image', sample_compression='jpg')
 >>> ds.summary()  # Inspect the dataset schema
-  tensor      htype     shape     dtype   compression
+  column      htype     shape     dtype   compression
   -------    -------   -------   -------  -----------
   my_text     text      (0,)      str      None
   my_photos   image     (0,)      uint8    jpeg
@@ -70,15 +70,15 @@ For the `generic` column type, the data type (`dtype`) can be explicitly specifi
 For other column types, the `dtype` is predefined and does not need to be specified.
 
 ```python
->>> ds.create_tensor(name='my_label', htype='generic', dtype='int32')
+>>> ds.create_column(name='my_label', htype='generic', dtype='int32')
 >>> ds.summary()
-  tensor      htype     shape     dtype   compression
+  column      htype     shape     dtype   compression
   -------    -------   -------   -------  -----------
   my_text     text      (0,)      str      None
   my_photos   image     (0,)      uint8    jpeg
   my_label    generic   (0,)      int32    None
 ```
-Currently, MULLER supports the following tensor column types (`htype`), compression formats (`sample_compression`), and default data types (`dtype`). For detailed information about each htype, see the [Htypes Reference](../api/htypes/).
+Currently, MULLER supports the following column types (`htype`), compression formats (`sample_compression`), and default data types (`dtype`). For detailed information about each htype, see the [Htypes Reference](../api/htypes/).
 
 | htype | sample_compression | dtype |
 | --- | --- | --- |
@@ -93,18 +93,18 @@ Currently, MULLER supports the following tensor column types (`htype`), compress
 | vector  | Default: None (null); Optional: lz4 | Default:  `float32` |
 | generic  | Default: None (null); Optional: lz4 | Default: None (undeclared, inferred from data); Declaration at creation is recommended.<br>Options: `int8`, `int16`, `int32`, `int64`, `uint8`, `uint16`, <br>`uint32`, `float32`, `float64`, `bool` |
 
-- **Note 1:** If `htype` is not specified when creating a tensor column, it defaults to `generic`.
+- **Note 1:** If `htype` is not specified when creating a column, it defaults to `generic`.
 - **Note 2:** For `class_label`, `bbox`, `text`, `json`, `list`, and `generic` columns, it is recommended to leave `sample_compression` as `None` unless storage savings are critical. Using `lz4` introduces additional compression and decompression overhead, which may negatively impact read and write performance.
-- **Note 3:** In addition to `htype`, `sample_compression`, and `dtype`, additional parameters can be specified when creating tensor columns for advanced use cases, such as [`chunk_compression`](../api/dataset-methods/#create_tensor) for chunk-level compression, and `coords` for `bbox` columns. Refer to the [`create_tensor()`](../api/dataset-methods/#create_tensor) API documentation and [Htypes Reference](../api/htypes/) for details.
-- **Note 4:** Tensor column names must not contain any MULLER reserved keywords or any Python reserved keywords.
+- **Note 3:** In addition to `htype`, `sample_compression`, and `dtype`, additional parameters can be specified when creating columns for advanced use cases, such as [`chunk_compression`](../api/dataset-methods/#dscreate_column) for chunk-level compression, and `coords` for `bbox` columns. Refer to the [`create_column()`](../api/dataset-methods/#dscreate_column) API documentation and [Htypes Reference](../api/htypes/) for details.
+- **Note 4:** Column names must not contain any MULLER reserved keywords or any Python reserved keywords.
   ```
   keyword_list_1 = ['__bool__', '__class__', '__del__', '__delattr__', '__dict__', '__dir__', '__doc__', '__enter__', '__eq__', '__exit__', '__format__', '__ge__', '__getattr__', '__getattribute__', '__getitem__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__iter__', '__le__', '__len__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setitem__', '__setstate__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_all_tensors_filtered', '_append_or_extend', '_append_to_queries_json', '_check_values', '_checkout', '_checkout_hooks', '_client', '_commit', '_commit_hooks', '_copy', '_create_downsampled_tensor', '_create_sample_id_tensor', '_create_sample_info_tensor', '_create_sample_shape_tensor', '_create_tensor', '_dataset_diff', '_delete_branch', '_delete_tensor', '_deserialize_uuids', '_disable_padding', '_ds_diff', '_enable_padding', '_find_subtree', '_first_load_init', '_flush_vc_info', '_get_chunk_names', '_get_commit_id_for_address', '_get_empty_vds', '_get_inverted_index', '_get_tensor_from_root', '_get_tensor_uuids', '_get_view', '_get_view_info', '_groups', '_groups_filtered', '_has_group_in_root', '_indexing_history', '_info', '_initial_autoflush', '_inverted_index', '_is_filtered_view', '_is_root', '_link_tensors', '_load_link_creds', '_load_version_info', '_lock', '_lock_lost_handler', '_lock_queries_json', '_lock_timeout', '_locked_out', '_locking_enabled', '_pad_tensors', '_parent_dataset', '_pop', '_populate_meta', '_query_string', '_read_from_upper_cache', '_read_only', '_read_only_error', '_read_queries_json', '_register_dataset', '_reload_version_state', '_resolve_tensor_list', '_sample_indices', '_save_view', '_save_view_in_path', '_save_view_in_subdir', '_send_branch_creation_event', '_send_branch_deletion_event', '_send_commit_event', '_send_compute_progress', '_send_query_progress', '_set_derived_attributes', '_set_read_only', '_sub_ds', '_subtree_to_dict', '_temp_tensors', '_tensors', '_token', '_ungrouped_tensors', '_unlock', '_update_hooks', '_update_upper_cache', '_vc_info_updated', '_view_base', '_view_hash', '_view_id', '_view_use_parent_commit', '_write_queries_json', '_write_vds', 'add_data', 'add_data_from_dataframes', 'add_data_from_file', 'aggregate', 'append', 'base_storage', 'branch', 'branches', 'checkout', 'client', 'commit', 'commit_id', 'commits', 'commits_between', 'create_index', 'create_tensor', 'create_tensor_like', 'delete', 'delete_branch', 'delete_tensor', 'delete_view', 'diff', 'ds_name', 'enabled_tensors', 'extend', 'filter', 'filter_next', 'filtered_index', 'flush', 'generate_add_update_value', 'get_children_nodes', 'get_commit_details', 'get_view', 'get_views', 'group_index', 'groups', 'has_head_changes', 'index', 'indexed_tensors', 'info', 'is_first_load', 'is_head_node', 'is_iteration', 'is_optimized', 'is_view', 'libgtnf_dataset', 'link_creds', 'load_view', 'log', 'max_len', 'max_view', 'maybe_flush', 'merge', 'meta', 'min_len', 'min_view', 'no_view_dataset', 'num_samples', 'numpy', 'org_id', 'pad_tensors', 'parent', 'parse_changes', 'path', 'pending_commit_id', 'pop', 'public', 'query', 'read_only', 'rechunk', 'rename', 'reset', 'root', 'sample_indices', 'save_as_branch', 'save_view', 'set_token', 'size_approx', 'split_tensor_meta', 'statistics', 'storage', 'summary', 'tensors', 'to_arrow', 'to_json', 'to_mindrecord', 'token', 'update', 'username', 'verbose', 'version_state', 'write_to_parquet']
   keyword_list_2 = ['__class__', '__class_getitem__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__ior__', '__iter__', '__le__', '__len__', '__lt__', '__ne__', '__new__', '__or__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__ror__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'clear', 'copy', 'fromkeys', 'get', 'items', 'keys', 'pop', 'popitem', 'setdefault', 'update', 'values']
   attr_and_keyword_list_3 = ['tensors', 'data', 'all_chunk_engines', 'group_index', 'cache_size', 'cache_used' 'idx',  'pg_callback', 'start_input_idx', '_client', 'path', 'storage', '_read_only_error', 'base_storage', '_read_only',  '_locked_out', 'is_iteration', 'is_first_load', '_is_filtered_view', 'index', 'group_index', 'version_state', 'pad_tensors', '_locking_enabled', '_lock_timeout', '_temp_tensors', '_commit_hooks', '_checkout_hooks', 'public', 'verbose', '_vc_info_updated', '_info', '_ds_diff', 'enabled_tensors', 'link_creds', '_update_hooks', '_view_id', '_view_base', '_view_use_parent_commit', '_pad_tensors', 'libgtnf_dataset', '_parent_dataset', '_query_string', '_inverted_index', 'filtered_index', 'split_tensor_meta', 'creds', '_vector_index', 'append_only', '_initial_autoflush', '_indexing_history', 'read_only', 'is_first_load']
   ```
-- For more detailed usage, please refer to [`create_tensor()`](../api/dataset-methods/#create_tensor). We plan to support additional `htype`s and provide clearer guidelines for tensor column creation in future releases. This documentation will be updated accordingly.
+- For more detailed usage, please refer to [`create_column()`](../api/dataset-methods/#dscreate_column). We plan to support additional `htype`s and provide clearer guidelines for column creation in future releases. This documentation will be updated accordingly.
 
-### Step 3. Append Data to Tensor Columns
+### Step 3. Append Data to Columns
 
 #### 3.1. Appending a small number of samples (recommended: default single-process mode)
 

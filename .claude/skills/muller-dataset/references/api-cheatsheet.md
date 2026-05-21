@@ -16,23 +16,23 @@ ds = muller.empty(path, overwrite=False)
 muller.delete(path, large_ok=False)
 
 # Copy structure
-muller.like(dest, src, tensors=None, overwrite=False)
+muller.like(dest, src, columns=None, overwrite=False)
 ```
 
-## Tensor Management
+## Column Management
 
 ```python
-# Create tensor
-ds.create_tensor(name, htype="generic", dtype=None, sample_compression=None)
+# Create column
+ds.create_column(name, htype="generic", dtype=None, sample_compression=None)
 
-# Delete tensor
-ds.delete_tensor(name, large_ok=False)
+# Delete column
+ds.delete_column(name, large_ok=False)
 
-# Rename tensor
-ds.rename_tensor(old_name, new_name)
+# Rename column
+ds.rename_column(old_name, new_name)
 
-# Copy tensor structure
-ds.create_tensor_like(name, source_tensor)
+# Copy column structure
+ds.create_column_like(name, source_column)
 ```
 
 ## Data Operations
@@ -40,15 +40,15 @@ ds.create_tensor_like(name, source_tensor)
 ```python
 # Append single sample
 with ds:
-    ds.append({"tensor1": value1, "tensor2": value2})
+    ds.append({"column1": value1, "column2": value2})
 
 # Extend with multiple samples
 with ds:
-    ds.extend({"tensor1": [v1, v2], "tensor2": [v3, v4]})
+    ds.extend({"column1": [v1, v2], "column2": [v3, v4]})
 
 # Update sample
 with ds:
-    ds[index].update({"tensor1": new_value})
+    ds[index].update({"column1": new_value})
 
 # Delete samples
 with ds:
@@ -60,7 +60,7 @@ with ds:
 
 ```python
 # Filter samples
-result = ds.filter_vectorized([("tensor", "op", value)])
+result = ds.filter_vectorized([("column", "op", value)])
 
 # Operators: ==, !=, >, <, >=, <=, CONTAINS
 result = ds.filter_vectorized([("labels", ">", 5)])
@@ -88,8 +88,8 @@ stats = ds.statistics()
 # Sample count
 count = ds.num_samples
 
-# Tensor list
-tensors = ds.tensors
+# Column list
+columns = ds.columns
 
 # Dataset info
 info = ds.info
@@ -106,7 +106,7 @@ ds = muller.from_dataframes(dataframes, muller_path, schema=None)
 
 # Schema format
 schema = {
-    "tensor_name": (htype, dtype, compression),
+    "column_name": (htype, dtype, compression),
     "images": ("image", "uint8", "jpg"),
     "labels": ("class_label", "uint32", None)
 }
@@ -125,7 +125,7 @@ schema = {
 ## Return Types
 
 - `Dataset` - Dataset object
-- `Tensor` - Tensor object
+- `Tensor` - Column object (internal storage class name)
 - `dict` - Statistics, info
 - `int` - Sample count, size
 - `None` - Operations with side effects

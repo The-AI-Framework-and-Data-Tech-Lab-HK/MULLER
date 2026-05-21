@@ -10,6 +10,7 @@ import keyword
 
 muller_kwlist = [
     'tensors',  # The attributes of TransformDataset
+    'columns',
     'data',
     'embedding',
     'all_chunk_engines',
@@ -53,7 +54,16 @@ muller_kwlist = [
     'initial_autoflush',
     '_indexing_history',
     'read_only',
-    'is_first_load'
+    'is_first_load',
+    'create_column',
+    'create_column_like',
+    'delete_column',
+    'rename_column',
+    'indexed_columns',
+    'indexed_columns_vec',
+    'get_columns',
+    'all_columns_filtered',
+    'column_diff',
     ]
 
 

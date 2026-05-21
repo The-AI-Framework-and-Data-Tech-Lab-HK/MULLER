@@ -79,7 +79,7 @@ The application will open in your default browser at `http://localhost:8501`.
 - **Batch Upload**: Upload CSV file with matching column names
 
 **View & Edit:**
-- View dataset summary (total samples, tensors, current branch)
+- View dataset summary (total samples, columns, current branch)
 - Browse data in table format
 - Delete samples by index
 
@@ -95,7 +95,7 @@ Supported operators:
 - Text: `CONTAINS`, `LIKE`
 
 **Vector Search:**
-- Requires embeddings tensor with vector index
+- Requires an embeddings column with a vector index
 - Feature available when dataset includes vector data
 
 ### 3. Version Control

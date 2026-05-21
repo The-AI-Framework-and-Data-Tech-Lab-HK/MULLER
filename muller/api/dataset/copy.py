@@ -24,15 +24,17 @@ def like(
         tensors: Optional[List[str]] = None,
         overwrite: bool = False,
         verbose: bool = True,
+        columns: Optional[List[str]] = None,
 ) -> Dataset:
     """Copies the `source` dataset's structure to a new location.
-    No samples are copied, only the meta/info for the dataset and its tensors.
+    No samples are copied, only the meta/info for the dataset and its columns.
 
     Args:
         dest(Union[str, Dataset]): Empty Dataset or Path where the new dataset will be created.
         src (Union[str, Dataset]): Path or dataset object that will be used as the template for the new dataset.
-        tensors (List[str], optional): Names of tensors (and groups) to be replicated.
-            If not specified all tensors in source dataset are considered.
+        columns (List[str], optional): Names of columns (and groups) to be replicated.
+            If not specified all columns in source dataset are considered.
+        tensors (List[str], optional): Legacy alias for ``columns``.
         overwrite (bool): If True and a dataset exists at `destination`, it will be overwritten. Defaults to False.
         verbose (bool): If True, logs will be printed. Defaults to ``True``.
 
@@ -50,10 +52,13 @@ def like(
         source_ds = src
         src_path = src.path
 
-    if tensors:
-        tensors = source_ds.resolve_tensor_list(tensors)  # type: ignore
+    if columns is None:
+        columns = tensors
+
+    if columns:
+        columns = source_ds.resolve_column_list(columns)  # type: ignore
     else:
-        tensors = list(source_ds.tensors.keys())  # type: ignore
+        columns = list(source_ds.columns.keys())  # type: ignore
 
     if isinstance(dest, Dataset):
         destination_ds = dest
@@ -65,11 +70,11 @@ def like(
         else:
             destination_ds = empty(dest_path, overwrite=overwrite)  # type: ignore
 
-    for tensor_name in tensors:  # type: ignore
-        source_tensor = source_ds[tensor_name]
-        if overwrite and tensor_name in destination_ds:
-            destination_ds.delete_tensor(tensor_name)
-        destination_ds.create_tensor_like(tensor_name, source_tensor)  # type: ignore
+    for column_name in columns:  # type: ignore
+        source_column = source_ds[column_name]
+        if overwrite and column_name in destination_ds:
+            destination_ds.delete_column(column_name)
+        destination_ds.create_column_like(column_name, source_column)  # type: ignore
 
     destination_ds.info.update(source_ds.info.__getstate__())  # type: ignore
 
