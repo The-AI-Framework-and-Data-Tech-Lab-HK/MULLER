@@ -505,6 +505,131 @@ def delete_sample(ds: Any, index: int) -> Optional[str]:
         return f"Failed to delete sample: {e}"
 
 
+# ---------------------------------------------------------------------------
+# Column-level CRUD helpers (schema changes on an existing dataset)
+# ---------------------------------------------------------------------------
+
+
+def add_column(
+    ds: Any,
+    name: str,
+    htype: str = "generic",
+    dtype: Optional[str] = None,
+    sample_compression: Optional[str] = None,
+    pad_existing: bool = True,
+    auto_commit: bool = True,
+    commit_message: Optional[str] = None,
+) -> Optional[str]:
+    """Create a new column on an existing dataset.
+
+    On a non-empty dataset, ``create_column`` produces a column with length 0
+    while every other column has length ``len(ds)``. That mismatched state
+    breaks many subsequent operations (``ds.extend`` without ``append_empty``,
+    most exporters, ``filter_vectorized`` on uneven-length columns, …) — so
+    by default we pad the new column with ``None`` samples to align it with
+    the dataset row count. Pass ``pad_existing=False`` to opt out (e.g. when
+    the next step is a CSV import that will append values for every row).
+    """
+    try:
+        nm = (name or "").strip()
+        if not nm:
+            return "Column name must be non-empty."
+        if nm in ds.columns:
+            return f"Column '{nm}' already exists."
+
+        kwargs: Dict[str, Any] = {}
+        if htype:
+            kwargs["htype"] = htype
+        if dtype:
+            kwargs["dtype"] = dtype
+        if sample_compression:
+            kwargs["sample_compression"] = sample_compression
+
+        ds.create_column(nm, **kwargs)
+
+        if pad_existing:
+            n = len(ds)
+            if n > 0:
+                # Pad the *new* column only — going through ``ds.extend`` here
+                # would extend every other column too because of how
+                # ``_append_or_extend_dataset`` handles ``append_empty``.
+                ds[nm].extend([None] * n)
+
+        if auto_commit:
+            ds.commit(message=commit_message or f"Add column '{nm}'")
+        return None
+    except Exception as e:
+        return f"Failed to add column: {e}"
+
+
+def rename_column(
+    ds: Any,
+    old_name: str,
+    new_name: str,
+    auto_commit: bool = True,
+    commit_message: Optional[str] = None,
+) -> Optional[str]:
+    """Rename a column. Wraps ``ds.rename_column`` with input validation.
+
+    Refuses to touch the hidden ``_uuid`` bookkeeping column (the backend
+    raises ``RenameError`` anyway, but failing early gives a cleaner UI).
+    """
+    try:
+        old_nm = (old_name or "").strip()
+        new_nm = (new_name or "").strip()
+        if not old_nm or not new_nm:
+            return "Old and new column names must both be non-empty."
+        if old_nm == new_nm:
+            return "New name must differ from the old name."
+        if old_nm == "_uuid":
+            return "The internal '_uuid' column cannot be renamed."
+        if old_nm not in ds.columns:
+            return f"Column '{old_nm}' does not exist."
+        if new_nm in ds.columns:
+            return f"Column '{new_nm}' already exists."
+
+        ds.rename_column(old_nm, new_nm)
+
+        if auto_commit:
+            ds.commit(
+                message=commit_message or f"Rename column '{old_nm}' -> '{new_nm}'"
+            )
+        return None
+    except Exception as e:
+        return f"Failed to rename column: {e}"
+
+
+def delete_column(
+    ds: Any,
+    name: str,
+    large_ok: bool = True,
+    auto_commit: bool = True,
+    commit_message: Optional[str] = None,
+) -> Optional[str]:
+    """Delete a column. Wraps ``ds.delete_column`` with input validation.
+
+    ``large_ok=True`` by default because the UI gates the destructive action
+    behind a separate confirmation checkbox; surfacing the backend's
+    "too many chunks" guard rail there as well would be redundant.
+    """
+    try:
+        nm = (name or "").strip()
+        if not nm:
+            return "Column name must be non-empty."
+        if nm == "_uuid":
+            return "The internal '_uuid' column cannot be deleted."
+        if nm not in ds.columns:
+            return f"Column '{nm}' does not exist."
+
+        ds.delete_column(nm, large_ok=large_ok)
+
+        if auto_commit:
+            ds.commit(message=commit_message or f"Delete column '{nm}'")
+        return None
+    except Exception as e:
+        return f"Failed to delete column: {e}"
+
+
 def _inverted_index_has_field(ds: Any, column_name: str) -> bool:
     """Return True iff ``inverted_index_dir_vec/<branch>/meta.json`` has an
     entry for ``column_name`` (the source of truth used by
