@@ -53,6 +53,13 @@ demo = [
     "streamlit>=1.30",
     "plotly"
 ]
+# DISKANN is an optional vector index backend. The upstream diskannpy wheels
+# are not available for macOS, and diskannpy 0.7.0 pins numpy==1.25, so keep it
+# limited to Linux + Python 3.11. macOS users need to build DiskANN/diskannpy
+# from source instead of installing this extra.
+diskann = [
+    "diskannpy==0.7.0; platform_system == 'Linux' and python_version == '3.11'"
+]
 
 [tool.setuptools]
 zip-safe = false

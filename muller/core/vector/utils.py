@@ -7,11 +7,17 @@
 # Copyright (c) 2026 Xueling Lin
 
 import importlib
+import os
+import sys
 
+if sys.platform == "darwin":
+    # FAISS and PyTorch wheels can load separate OpenMP runtimes on macOS.
+    # This must be set before FAISS imports libomp.
+    os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 try:
     import faiss
-except ImportError:
-    print("faiss not found")
+except ImportError as err:
+    raise ModuleNotFoundError("please install dependency for vector search first: faiss-cpu") from err
 import numpy as np
 from numpy._typing import NDArray
 

@@ -11,20 +11,33 @@ import importlib
 import logging
 from abc import abstractmethod
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 from numpy._typing import NDArray
-from torch import Tensor
+
+if TYPE_CHECKING:
+    from torch import Tensor
+else:
+    Tensor = object
 
 import muller.core.vector.index_param as IndexParam
 from muller.core.vector.exceptions import SearchError
 
 dap = None
+_diskann_import_error = None
 try:
     dap = importlib.import_module("diskannpy")
 except ImportError as err:
-    print("diskannpy not found")
+    _diskann_import_error = err
+
+
+def _require_diskann():
+    if dap is None:
+        raise ModuleNotFoundError(
+            "please install dependency for DISKANN vector index first: diskannpy"
+        ) from _diskann_import_error
+    return dap
 
 
 class DiskANNVectorIndex:
@@ -33,7 +46,7 @@ class DiskANNVectorIndex:
     @abstractmethod
     def search(
         cls,
-        index: dap.StaticDiskIndex,
+        index: "dap.StaticDiskIndex",
         query_vector: Union[NDArray[np.float32], Tensor],
         metric: str,
         **search_param,
@@ -70,7 +83,7 @@ class DiskANNVectorIndex:
         pass
 
     @classmethod
-    def load(cls, **kwargs) -> dap.StaticDiskIndex:
+    def load(cls, **kwargs) -> "dap.StaticDiskIndex":
         """
         Default method for load DiskANN vector index.
         Args:
@@ -79,8 +92,9 @@ class DiskANNVectorIndex:
         Returns:
 
         """
+        diskann = _require_diskann()
         param = IndexParam.LoadDiskANN.model_validate(kwargs)
-        return dap.StaticDiskIndex(
+        return diskann.StaticDiskIndex(
             index_directory=str(param.path),
             num_threads=param.num_threads,
             num_nodes_to_cache=param.num_nodes_to_cache,
@@ -109,16 +123,17 @@ class StaticDiskIndex(DiskANNVectorIndex):
         **index_param,
     ):
         param = IndexParam.CreateDiskANN.model_validate(index_param)
+        diskann = _require_diskann()
         path = Path(param.path)
         if not path.exists():
             path.mkdir(parents=True)
         vector_path = str(path / "ann_vectors.bin")
         dtype = vector_array.dtype
-        dap.vectors_to_file(vector_file=vector_path, vectors=vector_array)
+        diskann.vectors_to_file(vector_file=vector_path, vectors=vector_array)
         logging.info("Finish save vectors to file.")
         del vector_array
         gc.collect()
-        dap.build_disk_index(
+        diskann.build_disk_index(
             data=vector_path,
             vector_dtype=dtype,
             distance_metric=metric,
@@ -131,7 +146,7 @@ class StaticDiskIndex(DiskANNVectorIndex):
             pq_disk_bytes=param.pq_disk_bytes,
         )
         return (
-            dap.StaticDiskIndex(
+            diskann.StaticDiskIndex(
                 index_directory=param.path,
                 num_threads=param.num_threads,
                 num_nodes_to_cache=param.num_nodes_to_cache,
@@ -142,7 +157,7 @@ class StaticDiskIndex(DiskANNVectorIndex):
     @classmethod
     def search(
         cls,
-        index: dap.StaticDiskIndex,
+        index: "dap.StaticDiskIndex",
         query_vector: NDArray[np.float32],
         metric: str,
         **search_param,

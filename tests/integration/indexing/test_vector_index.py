@@ -7,6 +7,7 @@
 # Copyright (c) 2026 Xueling Lin
 
 import gc
+import importlib.util
 import logging
 import os
 import shutil
@@ -20,6 +21,11 @@ import muller
 from muller.core.vector.exceptions import SearchError
 from tests.constants import SMALL_TEST_PATH
 from tests.utils import official_path, check_skip_vector_index_test
+
+DISKANNPY_AVAILABLE = importlib.util.find_spec("diskannpy") is not None
+DISKANNPY_SKIP = pytest.mark.skipif(
+    not DISKANNPY_AVAILABLE, reason="diskannpy is required for DISKANN vector index tests"
+)
 
 
 @pytest.mark.skipif(
@@ -45,7 +51,12 @@ class TestCpuVectorIndex:
         [
             ["flat", "FLAT", np.random.rand(1, 3).astype(np.float32)],
             ["hnsw", "HNSWFLAT", np.random.rand(1, 3).astype(np.float32)],
-            ["disk_ann", "DISKANN", np.random.rand(3).astype(np.float32)],
+            pytest.param(
+                "disk_ann",
+                "DISKANN",
+                np.random.rand(3).astype(np.float32),
+                marks=DISKANNPY_SKIP,
+            ),
         ],
     )
     def test_simple(
@@ -78,7 +89,12 @@ class TestCpuVectorIndex:
         [
             ["flat", "FLAT", np.random.rand(1, 3).astype(np.float32)],
             ["hnsw", "HNSWFLAT", np.random.rand(1, 3).astype(np.float32)],
-            ["disk_ann", "DISKANN", np.random.rand(3).astype(np.float32)],
+            pytest.param(
+                "disk_ann",
+                "DISKANN",
+                np.random.rand(3).astype(np.float32),
+                marks=DISKANNPY_SKIP,
+            ),
         ],
     )
     def test_unload(
