@@ -30,6 +30,7 @@ if _project_root not in sys.path:
 
 from utils import (
     create_dataset, create_columns, add_samples, update_sample, delete_sample,
+    add_column, rename_column, delete_column,
     run_query, dataset_to_dataframe, dataframe_for_streamlit_display,
     list_image_tensor_names, decode_muller_image_sample, pil_resize_to_height,
     pil_square_thumbnail, pil_fit_inside,
@@ -521,7 +522,10 @@ elif page == "📝 View & Edit":
             # because the original `st.success()` was wiped by the rerun.
             # Auto-clear them whenever the user loads a different dataset to
             # avoid stale "Deleted sample N" lines on a fresh dataset.
-            _flash_keys = ("_flash_add", "_flash_csv", "_flash_del", "_flash_upd")
+            _flash_keys = (
+                "_flash_add", "_flash_csv", "_flash_del", "_flash_upd",
+                "_flash_add_col", "_flash_ren_col", "_flash_del_col",
+            )
             _flash_ctx = (st.session_state.get("dataset_path"), ds.branch)
             if st.session_state.get("_flash_ctx") != _flash_ctx:
                 st.session_state["_flash_ctx"] = _flash_ctx
@@ -540,19 +544,223 @@ elif page == "📝 View & Edit":
                 else:
                     st.info(msg)
 
-            # 1) Current Schema (collapsed by default)
+            # 1) Dataset details
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Samples", n)
+            col2.metric("Columns", len(ds.columns))
+            col3.metric("Branch", ds.branch)
+
+            # Rendered just below Dataset details. The long preview/table code
+            # is populated later through this placeholder so the visual order
+            # stays: details -> preview -> schema -> modification controls.
+            preview_slot = st.empty()
+
+            # 2) Current Schema (collapsed by default)
             with st.expander("Current Schema", expanded=False):
                 schema_rows = []
                 for column_name, column in ds.columns.items():
                     schema_rows.append({"Column": column_name, "htype": column.htype, "dtype": str(column.dtype)})
                 st.dataframe(pd.DataFrame(schema_rows), width="stretch", hide_index=True)
 
-            # 2) Dataset details
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Samples", n)
-            col2.metric("Columns", len(ds.columns))
-            col3.metric("Branch", ds.branch)
+            # 1a–1c) Column-level CRUD (schema changes on the live dataset).
+            # Placed right after Current Schema so all schema operations live
+            # together at the top of the page, before any row-level edits.
+            # Dropdown options for htype / dtype / sample_compression mirror
+            # the lists used by "Dataset Management → Create New Dataset" so
+            # the two flows offer the same vocabulary; the small duplication
+            # is deliberate (the original lists are scoped inside that page's
+            # `with` block and hoisting them would touch unrelated code).
+            try:
+                from muller.core.types.htype import HTYPE_CONFIGURATIONS as _HTYPE_CFG_VE
+                _CORE_HTYPES_VE = list(_HTYPE_CFG_VE.keys())
+            except Exception:
+                _CORE_HTYPES_VE = []
+            _PREFERRED_HTYPES_VE = [
+                "generic", "text", "image", "video", "audio",
+                "embedding", "class_label", "bbox", "polygon",
+                "keypoints_coco", "segment_mask", "binary_mask",
+                "instance_label", "list", "json", "vector", "point",
+            ]
+            _seen_ve = set()
+            HTYPE_OPTIONS_VE = []
+            for h in _PREFERRED_HTYPES_VE:
+                if h in _CORE_HTYPES_VE or not _CORE_HTYPES_VE:
+                    HTYPE_OPTIONS_VE.append(h)
+                    _seen_ve.add(h)
+            for h in sorted(_CORE_HTYPES_VE):
+                if h not in _seen_ve:
+                    HTYPE_OPTIONS_VE.append(h)
+            DTYPE_OPTIONS_VE = [
+                "(auto)",
+                "int8", "int16", "int32", "int64",
+                "uint8", "uint16", "uint32", "uint64",
+                "float16", "float32", "float64",
+                "bool", "str",
+            ]
+            COMPRESSION_OPTIONS_VE = ["(none)", "lz4", "jpg", "png", "mp4", "mp3", "wav"]
 
+            # Filter out MULLER's internal _uuid column from rename/delete
+            # dropdowns — the backend rejects both operations on it anyway,
+            # so hiding it from the picker prevents a confusing failure path.
+            user_columns = [c for c in column_names if c != "_uuid"]
+
+            # 3) Column-level Modification
+            with st.expander("Column-level Modification", expanded=False):
+                st.markdown("##### Add Column")
+                ac_name = st.text_input(
+                    "Column name", key="add_col_name",
+                    help="Must be unique within the dataset.",
+                )
+                ac_c1, ac_c2, ac_c3 = st.columns(3)
+                with ac_c1:
+                    ac_htype = st.selectbox("htype", HTYPE_OPTIONS_VE, key="add_col_htype")
+                with ac_c2:
+                    ac_dtype = st.selectbox("dtype", DTYPE_OPTIONS_VE, key="add_col_dtype")
+                with ac_c3:
+                    ac_comp = st.selectbox(
+                        "sample_compression", COMPRESSION_OPTIONS_VE, key="add_col_comp"
+                    )
+                # Padding default: on, to keep the dataset row-aligned. This
+                # mirrors what most users expect (a new column "fills in"
+                # with empty values for existing rows) and avoids the
+                # uneven-length-columns trap. Users importing values
+                # immediately afterwards (e.g. via CSV) can turn it off.
+                ac_pad = st.checkbox(
+                    f"Pad existing {n} row(s) with empty values",
+                    value=True,
+                    key="add_col_pad",
+                    help="When on, the new column is back-filled with None for every "
+                    "existing row so all columns stay the same length. Turn off "
+                    "if the next step is a batch import that supplies values "
+                    "for every row.",
+                )
+                ac_commit_msg = st.text_input(
+                    "Commit Message",
+                    value="Add column via Streamlit UI",
+                    key="add_col_commit_msg",
+                )
+                if st.button("Add Column", type="primary", key="btn_add_col"):
+                    dtype_val = None if ac_dtype == "(auto)" else ac_dtype
+                    comp_val = None if ac_comp == "(none)" else ac_comp
+                    err = add_column(
+                        ds,
+                        name=ac_name,
+                        htype=ac_htype,
+                        dtype=dtype_val,
+                        sample_compression=comp_val,
+                        pad_existing=ac_pad,
+                        auto_commit=True,
+                        commit_message=ac_commit_msg,
+                    )
+                    if err:
+                        st.session_state["_flash_add_col"] = ("error", err)
+                    else:
+                        st.session_state["_flash_add_col"] = (
+                            "success",
+                            f"Column `{ac_name}` added "
+                            f"(htype=`{ac_htype}`, dtype=`{ac_dtype}`, "
+                            f"compression=`{ac_comp}`"
+                            + (f", padded {n} rows" if ac_pad and n > 0 else "")
+                            + f"; commit: `{ac_commit_msg}`).",
+                        )
+                        st.rerun()
+                _render_flash("_flash_add_col")
+
+                st.markdown("---")
+                st.markdown("##### Rename Column")
+                if not user_columns:
+                    st.info("No user columns to rename.")
+                else:
+                    rc_c1, rc_c2 = st.columns(2)
+                    with rc_c1:
+                        rc_old = st.selectbox(
+                            "Column to rename", user_columns, key="ren_col_old"
+                        )
+                    with rc_c2:
+                        rc_new = st.text_input(
+                            "New name", key="ren_col_new",
+                            help="Must be a fresh, unique name.",
+                        )
+                    rc_commit_msg = st.text_input(
+                        "Commit Message",
+                        value="Rename column via Streamlit UI",
+                        key="ren_col_commit_msg",
+                    )
+                    if st.button("Rename Column", type="secondary", key="btn_ren_col"):
+                        err = rename_column(
+                            ds,
+                            old_name=rc_old,
+                            new_name=rc_new,
+                            auto_commit=True,
+                            commit_message=rc_commit_msg,
+                        )
+                        if err:
+                            st.session_state["_flash_ren_col"] = ("error", err)
+                        else:
+                            st.session_state["_flash_ren_col"] = (
+                                "success",
+                                f"Renamed `{rc_old}` → `{rc_new}` "
+                                f"(commit: `{rc_commit_msg}`).",
+                            )
+                            st.rerun()
+                _render_flash("_flash_ren_col")
+
+                st.markdown("---")
+                st.markdown("##### Delete Column")
+                if not user_columns:
+                    st.info("No user columns to delete.")
+                else:
+                    dc_target = st.selectbox(
+                        "Column to delete", user_columns, key="del_col_target"
+                    )
+                    # Two-step confirmation: the action is destructive and
+                    # also commits, so an accidental click would otherwise be
+                    # immediately persisted. The confirmation text echoes the
+                    # target name to make it obvious which column is at risk.
+                    dc_confirm = st.checkbox(
+                        f"I understand this permanently removes `{dc_target}` "
+                        f"and all its data from the current branch.",
+                        key="del_col_confirm",
+                    )
+                    dc_commit_msg = st.text_input(
+                        "Commit Message",
+                        value="Delete column via Streamlit UI",
+                        key="del_col_commit_msg",
+                    )
+                    if st.button(
+                        "Delete Column",
+                        type="secondary",
+                        key="btn_del_col",
+                        disabled=not dc_confirm,
+                    ):
+                        err = delete_column(
+                            ds,
+                            name=dc_target,
+                            large_ok=True,
+                            auto_commit=True,
+                            commit_message=dc_commit_msg,
+                        )
+                        if err:
+                            st.session_state["_flash_del_col"] = ("error", err)
+                        else:
+                            st.session_state["_flash_del_col"] = (
+                                "success",
+                                f"Deleted column `{dc_target}` "
+                                f"(commit: `{dc_commit_msg}`).",
+                            )
+                            st.rerun()
+                _render_flash("_flash_del_col")
+
+            # 4) Sample(row)-level Modification
+            #
+            # Create the expander slot here so it is displayed immediately
+            # after the column-level controls. The row-level UI itself is
+            # populated below, after the preview/table code, to keep this
+            # long page section readable without changing the rendered order.
+            sample_mod_slot = st.expander("Sample(row)-level Modification", expanded=False)
+
+            _preview_ctx = preview_slot.container()
+            _preview_ctx.__enter__()
             if n == 0:
                 st.info("Dataset is empty. Add samples below.")
             else:
@@ -1044,9 +1252,10 @@ elif page == "📝 View & Edit":
                         st.error(err)
                     else:
                         st.dataframe(dataframe_for_streamlit_display(df), width="stretch")
+            _preview_ctx.__exit__(None, None, None)
 
-            # 3) Add Single Sample (collapsed by default)
-            with st.expander("Add Single Sample", expanded=False):
+            with sample_mod_slot:
+                st.markdown("##### Add Single Sample")
                 sample_data = {}
                 for col_name in column_names:
                     column = ds.columns[col_name]
@@ -1113,8 +1322,8 @@ elif page == "📝 View & Edit":
                             st.rerun()
                 _render_flash("_flash_add")
 
-            # 4) Batch Upload via CSV (collapsed by default)
-            with st.expander("Batch Upload via CSV", expanded=False):
+                st.markdown("---")
+                st.markdown("##### Batch Upload Samples via CSV")
                 uploaded = st.file_uploader("Choose CSV file", type=["csv"])
                 if uploaded is not None:
                     df_up = pd.read_csv(uploaded)
@@ -1238,8 +1447,8 @@ elif page == "📝 View & Edit":
                                     os.unlink(tmp_path)
                 _render_flash("_flash_csv")
 
-            # 5) Delete Sample (collapsed by default)
-            with st.expander("Delete Sample", expanded=False):
+                st.markdown("---")
+                st.markdown("##### Delete Sample")
                 if n == 0:
                     st.info("No samples to delete.")
                 else:
@@ -1260,8 +1469,8 @@ elif page == "📝 View & Edit":
                             st.rerun()
                 _render_flash("_flash_del")
 
-            # 6) Update Sample (collapsed by default)
-            with st.expander("Update Sample", expanded=False):
+                st.markdown("---")
+                st.markdown("##### Update Sample")
                 if n == 0:
                     st.info("No samples to update.")
                 else:
