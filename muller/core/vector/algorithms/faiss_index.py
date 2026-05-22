@@ -7,16 +7,25 @@
 # Copyright (c) 2026 Xueling Lin
 
 import logging
+import os
+import sys
 from abc import abstractmethod
-from typing import Union, Tuple
+from typing import Union, Tuple, TYPE_CHECKING
 
+if sys.platform == "darwin":
+    # See muller.core.vector.utils for context. Keep this before importing FAISS.
+    os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 try:
     import faiss
-except ImportError:
-    print("faiss not found")
+except ImportError as err:
+    raise ModuleNotFoundError("please install dependency for vector search first: faiss-cpu") from err
 import numpy as np
 from numpy._typing import NDArray
-from torch import Tensor
+
+if TYPE_CHECKING:
+    from torch import Tensor
+else:
+    Tensor = object
 
 import muller.core.vector.index_param as IndexParam
 from muller.core.vector.exceptions import FaissIndexError
@@ -133,7 +142,7 @@ class IVFPQIndex(FaissVectorIndex):
                 FaissVectorIndex._get_faiss_metric(metric),
             )
             vector_index.train(x=vector_array)
-            vector_index.add(vector_array)
+            vector_index.add_with_ids(vector_array, id_array.astype(np.int64, copy=False))
         except KeyError:
             logging.error(f"Get invalid metric: {metric}")
         return vector_index, param.__dict__
@@ -148,10 +157,10 @@ class IVFPQIndex(FaissVectorIndex):
     ) -> Tuple[NDArray[np.float32], NDArray[np.uint64]]:
         # verify parameter
         param = IndexParam.SearchIVFPQ.model_validate(search_param)
+        query_vector = np.ascontiguousarray(query_vector, dtype=np.float32)
         if metric == "cosine":
             faiss.normalize_L2(query_vector)
         index.nprobe = param.nprobe
-        index.k_factor = param.refine_factor
         dist_list: NDArray[np.float32]
         id_list: NDArray[np.int64]
         dist_list, id_list = index.search(x=query_vector, k=param.topk)
@@ -175,7 +184,8 @@ class FlatIndex(FaissVectorIndex):
             vector_index = faiss.IndexFlat(
                 dimension, FaissVectorIndex._get_faiss_metric(metric)
             )
-            vector_index.add(vector_array)
+            vector_index = faiss.IndexIDMap(vector_index)
+            vector_index.add_with_ids(vector_array, id_array.astype(np.int64, copy=False))
         except KeyError:
             logging.error(f"get invalid metric")
         return vector_index, {}
@@ -190,6 +200,7 @@ class FlatIndex(FaissVectorIndex):
     ) -> Tuple[NDArray[np.float32], NDArray[np.uint64]]:
         # verify parameter
         param = IndexParam.SearchFLAT.model_validate(search_param)
+        query_vector = np.ascontiguousarray(query_vector, dtype=np.float32)
         if metric == "cosine":
             faiss.normalize_L2(query_vector)
         dist_list: NDArray[np.float32]
@@ -214,12 +225,13 @@ class HNSWFLATIndex(FaissVectorIndex):
         if metric == "cosine":
             faiss.normalize_L2(vector_array)
 
-        vector_index = faiss.IndexHNSWFlat(
+        base_index = faiss.IndexHNSWFlat(
             dimension, param.m, FaissVectorIndex._get_faiss_metric(metric)
         )
-        vector_index.hnsw.efConstruction = param.ef_construction
-        vector_index.train(x=vector_array)
-        vector_index.add(vector_array)
+        base_index.hnsw.efConstruction = param.ef_construction
+        base_index.train(x=vector_array)
+        vector_index = faiss.IndexIDMap(base_index)
+        vector_index.add_with_ids(vector_array, id_array.astype(np.int64, copy=False))
 
         return vector_index, param.__dict__
 
@@ -233,6 +245,7 @@ class HNSWFLATIndex(FaissVectorIndex):
     ) -> Tuple[NDArray[np.float32], NDArray[np.uint64]]:
         # verify parameter
         param = IndexParam.SearchHNSW.model_validate(search_param)
+        query_vector = np.ascontiguousarray(query_vector, dtype=np.float32)
         if metric == "cosine":
             faiss.normalize_L2(query_vector)
         faiss.ParameterSpace().set_index_parameter(index, "efSearch", param.ef_search)

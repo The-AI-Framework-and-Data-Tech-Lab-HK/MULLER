@@ -10,10 +10,9 @@ import json
 import logging
 import shutil
 from pathlib import Path
-from typing import Dict, Union, List, Tuple
+from typing import Dict, Union, List, Tuple, TYPE_CHECKING
 
 import numpy as np
-import torch
 from numpy.typing import NDArray
 
 from muller.core.tensor import Tensor
@@ -28,6 +27,14 @@ from .exceptions import (
     IndexNotLoadError,
     CreateIndexError,
 )
+
+if TYPE_CHECKING:
+    import torch
+else:
+    class _TorchModule:
+        Tensor = object
+
+    torch = _TorchModule()
 
 
 class VectorIndex:
@@ -214,6 +221,8 @@ class VectorIndex:
         commit_id = param.get("commit_id")
         if commit_id is None:
             raise CreateIndexError("commit_id cannot be None.")
+        vector_array = np.ascontiguousarray(vector_array, dtype=np.float32)
+        id_array = np.ascontiguousarray(id_array, dtype=np.int64)
         dimension = vector_array.shape[1]
         index_creator = utils.load_algo(index_type)
         param.update({"path": str(self.path)})
@@ -252,7 +261,7 @@ class VectorIndex:
             index_algo = utils.load_algo(self.index_type)
             refine_factor = search_param.get("refine_factor", 1)
             topk = search_param.get("topk", 1)
-            search_param["topk"] = topk * refine_factor
+            search_param["topk"] = int(topk * refine_factor)
             dist_list, id_list = index_algo.search(
                 self._index, query_array, self._meta["metric"], **search_param
             )
@@ -267,19 +276,23 @@ class VectorIndex:
         """
         shutil.rmtree(self.path)
 
-    def add_data(self, input_array: NDArray[np.float32]):
+    def add_data(self, input_array: NDArray[np.float32], id_array: NDArray[np.int64]):
         """
         Add data into the vector index.
         Args:
             input_array: 1-d ndarray of vector to append into index.
+            id_array: 1-d ndarray of ids for the appended vectors.
         """
         if len(input_array.shape) > 2:
             raise CreateIndexError(
                 f"unexpect input_array format with shape {input_array.shape}"
             )
 
+        input_array = np.ascontiguousarray(input_array, dtype=np.float32)
+        id_array = np.ascontiguousarray(id_array, dtype=np.int64)
+
         if input_array.shape[1] == self._meta["dimension"]:
-            self._index.add(input_array)
+            self._index.add_with_ids(input_array, id_array)
         else:
             raise IndexAddDataError(
                 f"Add data to index error, cause input array with {input_array.shape[1]}, "
@@ -342,13 +355,8 @@ class TensorVectorIndex:
         uuid_list: NDArray[np.uint64], tensor: Tensor
     ) -> NDArray[np.uint64]:
         tensor_uuid_list = tensor._sample_id_tensor.numpy().flatten()
-        res_id = []
-        for uuid_q in uuid_list:
-            id_list = []
-            for uuid in uuid_q:
-                id_list.append(np.where(tensor_uuid_list == uuid))
-            res_id.append(id_list)
-        return np.array(res_id)
+        uuid_to_pos = {str(uuid): pos for pos, uuid in enumerate(tensor_uuid_list)}
+        return np.array([uuid_to_pos[str(uuid)] for uuid in uuid_list], dtype=np.int64)
 
     @staticmethod
     def _refine_result(
@@ -363,19 +371,22 @@ class TensorVectorIndex:
         # calculate real top-k nearest distance list for each query
         for i in range(query_vectors.shape[0]):
             # get origin vectors from id list
-            vectors: NDArray[np.uint32, np.float32] = tensor[
-                id_list[i].tolist()
-            ].numpy()
+            candidate_ids = id_list[i]
+            vectors: NDArray[np.uint32, np.float32] = tensor[candidate_ids.tolist()].numpy()
             # calculate the distance list between query_vector and origin vectors
             dist_list: NDArray[np.float32] = utils.cal_distance(
                 metric_type, query_vectors[i], vectors
             )
             # select the top-k nearest subscript.
-            nn_dist_list = np.argpartition(a=dist_list, kth=topk)[:topk]
+            if len(dist_list) <= topk:
+                nn_dist_list = np.argsort(dist_list)
+            else:
+                nn_dist_list = np.argpartition(a=dist_list, kth=topk - 1)[:topk]
+                nn_dist_list = nn_dist_list[np.argsort(dist_list[nn_dist_list])]
             # map the top-k nearest subscript to original id
-            topk_ids = id_list[i][nn_dist_list]
+            topk_ids = candidate_ids[nn_dist_list]
             topk_id_list.append(topk_ids)
-            topk_dist_list.append(dist_list)
+            topk_dist_list.append(dist_list[nn_dist_list])
 
         return np.array(topk_dist_list), np.array(topk_id_list)
 
@@ -402,9 +413,10 @@ class TensorVectorIndex:
         overwrite = create_param.get("overwrite", False)
         vector_index = VectorIndex(self.path, tensor.key, index_name)
         if overwrite or not vector_index.is_exist:
+            vector_array = tensor.numpy()
             vector_index.build_index(
-                vector_array=tensor.numpy(),
-                id_array=tensor._sample_id_tensor.numpy().flatten(),
+                vector_array=vector_array,
+                id_array=np.arange(vector_array.shape[0], dtype=np.int64),
                 index_type=index_type,
                 metric=metric,
                 **create_param,
@@ -494,9 +506,14 @@ class TensorVectorIndex:
         vector_index = self.get_vector_index(tensor, index_name)
         vector_index.unload()
         vector_index.drop()
+        tensor_indexes = self._index_map.get(tensor.key, {})
+        tensor_indexes.pop(index_name, None)
         # if drop the last index of tensor, remove tensor level directory
-        if len(self._index_map.get(tensor.key, {})) == 0:
-            (self.path / tensor.key).rmdir()
+        if len(tensor_indexes) == 0:
+            self._index_map.pop(tensor.key, None)
+            tensor_path = self.path / tensor.key
+            if tensor_path.exists():
+                tensor_path.rmdir()
 
     def update_index(
         self,
@@ -517,10 +534,17 @@ class TensorVectorIndex:
         vector_index = self.get_vector_index(tensor, index_name)
         if not vector_index.is_loaded:
             raise IndexNotLoadError(tensor_name=tensor.key, index_name=index_name)
+        added_items = list(tensor_changes["added"].items())
+        if not added_items:
+            vector_index.commit_id = new_commit_id
+            return
         data_array: NDArray[np.float32] = np.array(
-            list(tensor_changes["added"].values()), dtype=np.float32
+            [value for _, value in added_items], dtype=np.float32
         )
-        vector_index.add_data(data_array)
+        current_uuids = tensor._sample_id_tensor.numpy().flatten()
+        uuid_to_pos = {str(uuid): pos for pos, uuid in enumerate(current_uuids)}
+        id_array = np.array([uuid_to_pos[str(uuid)] for uuid, _ in added_items], dtype=np.int64)
+        vector_index.add_data(data_array, id_array)
         vector_index.commit_id = new_commit_id
 
     def _init_tensor_index(self):

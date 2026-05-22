@@ -9,10 +9,7 @@
 import os
 import sys
 
-import torch
-from torchvision.datasets import CIFAR10
 from pathlib import Path
-from torch.utils.data import Dataset
 from .constants import LOCAL_DATA_DIR, HUASHAN_DATA_DIR
 
 DATA_DIR = Path(LOCAL_DATA_DIR)
@@ -80,7 +77,7 @@ def get_size(mode="train"):
             return VAL_SIZE
 
 
-class Cifar10Dataset(Dataset):
+class Cifar10Dataset:
     """Face Landmarks dataset."""
 
     def __init__(self, root_dir, mode, train=True, download=False):
@@ -100,6 +97,8 @@ class Cifar10Dataset(Dataset):
             return get_size("test")
 
     def _download(self):
+        from torchvision.datasets import CIFAR10
+
         original_path = self.root_dir.parent / f"original_{'train' if self.is_train else 'test'}"
         ds = CIFAR10(original_path, train=self.is_train, download=True)
         self.root_dir.mkdir(parents=True, exist_ok=True)
@@ -131,6 +130,8 @@ class Cifar10Dataset(Dataset):
 
 
 def get_cifar10(mode="train", download=True):
+    import torch
+
     is_train = mode in ["train", "val"]  # TODO: why?
     path = DATA_DIR
     if is_train:
