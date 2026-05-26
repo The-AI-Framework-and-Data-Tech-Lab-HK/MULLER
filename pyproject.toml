@@ -40,7 +40,8 @@ dependencies = [
     "cykhash",
     "mmh3",
     "pydantic",
-    "faiss-cpu",
+    # faiss-cpu 1.10+ imports numpy._core and fails with diskannpy's NumPy 1.25 pin.
+    "faiss-cpu==1.9.0.post1",
     "torch"
 ]
 
