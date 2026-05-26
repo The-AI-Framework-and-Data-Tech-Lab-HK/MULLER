@@ -147,11 +147,10 @@ def _get_vector_index(ds):
     except Exception as e:
         raise ModuleNotFoundError("please install dependency for vector search first.") from e
     if ds.vector_index is None:
-        base_path = ds.path
         branch_name = ds.branch
         commit_id = ds.pending_commit_id
         try:
-            ds.vector_index = TensorVectorIndex(parent_path=base_path, branch_name=branch_name)
+            ds.vector_index = TensorVectorIndex(storage=ds.storage, branch_name=branch_name)
         except Exception as e:
             logger.warning(f"the dataset has not been indexed for branch {branch_name} and commit id {commit_id}")
             raise Exception from e

@@ -19,6 +19,7 @@ from numpy._typing import NDArray
 
 import muller
 from muller.core.vector.exceptions import SearchError
+from muller.util.exceptions import ReadOnlyModeError
 from tests.constants import SMALL_TEST_PATH
 from tests.utils import official_path, check_skip_vector_index_test
 
@@ -26,6 +27,90 @@ DISKANNPY_AVAILABLE = importlib.util.find_spec("diskannpy") is not None
 DISKANNPY_SKIP = pytest.mark.skipif(
     not DISKANNPY_AVAILABLE, reason="diskannpy is required for DISKANN vector index tests"
 )
+
+
+def _add_storage_backed_vectors(ds):
+    with ds:
+        ds.create_tensor(
+            name="vectors", htype="vector", dtype="float32", dimension=3
+        )
+        vectors = ds.vectors
+        vectors.append(np.array([0.0, 0.0, 0.0], dtype=np.float32))
+        vectors.append(np.array([0.1, 0.1, 0.1], dtype=np.float32))
+        vectors.append(np.array([1.0, 1.0, 1.0], dtype=np.float32))
+        ds.commit()
+
+
+def _vector_index_keys(ds):
+    return sorted(
+        key for key in ds.storage._all_keys()
+        if key.startswith("_vector_index/")
+    )
+
+
+def test_vector_index_artifacts_are_storage_backed_and_reloadable(tmp_path):
+    path = tmp_path / "vector_index_storage"
+    ds = muller.dataset(path=str(path), reset=True)
+    _add_storage_backed_vectors(ds)
+
+    ds.create_vector_index(
+        tensor_name="vectors", index_name="flat", index_type="FLAT", metric="l2"
+    )
+
+    keys = _vector_index_keys(ds)
+    assert "_vector_index/main/vectors/flat/meta.json" in keys
+    assert any(key.endswith("/flat.index") for key in keys)
+
+    meta = ds.vector_index.get_vector_index(ds.vectors, "flat")._meta
+    assert meta["manifest"]
+    assert meta["manifest"][0]["key"] in keys
+
+    reloaded = muller.load(path=str(path))
+    reloaded.load_vector_index(tensor_name="vectors", index_name="flat")
+    dist_list, id_list = reloaded.vector_search(
+        query_vector=np.array([[0.0, 0.0, 0.0]], dtype=np.float32),
+        tensor_name="vectors",
+        index_name="flat",
+        topk=1,
+    )
+    assert id_list.tolist() == [[0]]
+    assert dist_list.tolist() == [[0.0]]
+
+
+def test_vector_index_drop_removes_storage_artifacts(tmp_path):
+    path = tmp_path / "vector_index_drop"
+    ds = muller.dataset(path=str(path), reset=True)
+    _add_storage_backed_vectors(ds)
+
+    ds.create_vector_index(
+        tensor_name="vectors", index_name="flat", index_type="FLAT", metric="l2"
+    )
+    assert _vector_index_keys(ds)
+
+    ds.drop_vector_index(tensor_name="vectors", index_name="flat")
+
+    assert _vector_index_keys(ds) == []
+
+
+def test_vector_index_read_only_blocks_writes(tmp_path):
+    path = tmp_path / "vector_index_read_only"
+    ds = muller.dataset(path=str(path), reset=True)
+    _add_storage_backed_vectors(ds)
+    ds.create_vector_index(
+        tensor_name="vectors", index_name="flat", index_type="FLAT", metric="l2"
+    )
+
+    read_only_ds = muller.load(path=str(path), read_only=True)
+    with pytest.raises(ReadOnlyModeError):
+        read_only_ds.create_vector_index(
+            tensor_name="vectors",
+            index_name="readonly",
+            index_type="FLAT",
+            metric="l2",
+        )
+
+    with pytest.raises(ReadOnlyModeError):
+        read_only_ds.drop_vector_index(tensor_name="vectors", index_name="flat")
 
 
 @pytest.mark.skipif(

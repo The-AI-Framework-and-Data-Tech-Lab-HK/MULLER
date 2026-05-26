@@ -23,6 +23,7 @@ import mmh3
 import numpy as np
 
 from muller.constants import FIRST_COMMIT_ID, FILTER_LOG
+from muller.core.storage.cache_utils import get_base_storage
 from muller.util.exceptions import InvertedIndexNotExistsError, InvertedIndexUnsupportedError, \
     InvertedIndexNotFoundError, ExecuteError, UnsupportedMethod
 
@@ -187,21 +188,25 @@ class InvertedIndexVectorized(object):
             num_of_batches = int(num_of_batches)
             num_of_shards = int(num_of_shards)
 
-        # Define a new temporary index folder, then delete the previous temporary folder (if it exists)
-        # to avoid accidental mixing or reuse.
-        tmp_path = os.path.join(self.dataset.path, self.index_folder + "_tmp")
-        if os.path.exists(tmp_path):
-            shutil.rmtree(tmp_path)
+        # Define a new temporary index prefix, then delete leftovers from the
+        # previous attempt. Python indexing stores these artifacts through
+        # MULLER storage; the C++ path still needs a local directory because
+        # the native code writes files by path.
+        use_uuids = bool(uuids)
+        tmp_meta = [num_of_batches, num_of_shards, use_uuids]
+        if use_cpp:
+            tmp_path = os.path.join(self.dataset.path, self.index_folder + "_tmp")
+            if os.path.exists(tmp_path):
+                shutil.rmtree(tmp_path)
 
-        # Create a log file to record the metadata of this indexing run.
-        # Note that this is only for temporary logging purposes!
-        log_path = os.path.join(self.dataset.path, self.index_folder + "_tmp", self.col_log_folder)
-        if not os.path.exists(log_path):
-            use_uuids = bool(uuids)
-            os.makedirs(log_path)
-            tmp_meta = [num_of_batches, num_of_shards, use_uuids]
-            with open(os.path.join(log_path, self.col_log_file), "w") as f:
-                json.dump(tmp_meta, f)
+            log_path = os.path.join(self.dataset.path, self.index_folder + "_tmp", self.col_log_folder)
+            if not os.path.exists(log_path):
+                os.makedirs(log_path)
+                with open(os.path.join(log_path, self.col_log_file), "w") as f:
+                    json.dump(tmp_meta, f)
+        else:
+            self._delete_storage_prefix(self.index_folder + "_tmp")
+            self._save_run_settings(self.index_folder + "_tmp", tmp_meta)
 
         # Read the stopword list and store it in a list.
         if index_type == "fuzzy_match":
@@ -273,13 +278,15 @@ class InvertedIndexVectorized(object):
 
         # If no temporary index file folder has already been generated, raise an error and return immediately.
         tmp_index_path = os.path.join(self.dataset.path, self.index_folder + "_tmp")
-        if not os.path.exists(tmp_index_path):
+        if use_cpp and not os.path.exists(tmp_index_path):
+            raise InvertedIndexNotExistsError(self.column_name)
+        if not use_cpp and not self._storage_prefix_exists(self.index_folder + "_tmp"):
             raise InvertedIndexNotExistsError(self.column_name)
 
         # Formally build the index. Note: A new (column_name)_optimized index folder is created here,
         # and all indexes are written into it.
         optimized_index_path = os.path.join(self.dataset.path, self.index_folder + f"_optimized")
-        if not os.path.exists(optimized_index_path):
+        if use_cpp and not os.path.exists(optimized_index_path):
             # It must be created in the main process. If created in a child process, conflicts will occur!
             os.makedirs(optimized_index_path)
         # During merging, you need to determine whether this is a merge during index creation or during an update:
@@ -314,26 +321,32 @@ class InvertedIndexVectorized(object):
             for res in results:
                 res.get()
 
-        # Rename the original index folder (if it exists) to col_[uuid].
-        # Then, rename the col_optimized folder to col, and delete the col_tmp folder.
-        official_index_path = os.path.join(self.dataset.path, self.index_folder)
-        old_index_path = official_index_path + "_" + uuid.uuid4().hex
-        if os.path.exists(old_index_path):
-            shutil.rmtree(old_index_path)
-        if os.path.exists(official_index_path):
-            os.rename(official_index_path, old_index_path)
-            self.logger.info(f"Rename the old index folder as {old_index_path}")
+        if use_cpp:
+            # Rename the original index folder (if it exists) to col_[uuid].
+            # Then, rename the col_optimized folder to col, and delete the col_tmp folder.
+            official_index_path = os.path.join(self.dataset.path, self.index_folder)
+            old_index_path = official_index_path + "_" + uuid.uuid4().hex
+            if os.path.exists(old_index_path):
+                shutil.rmtree(old_index_path)
+            if os.path.exists(official_index_path):
+                os.rename(official_index_path, old_index_path)
+                self.logger.info(f"Rename the old index folder as {old_index_path}")
 
-        os.rename(official_index_path + f"_optimized", official_index_path)
-        self.logger.info(f"Generate new index folder of {self.column_name} successfully.")
+            os.rename(official_index_path + f"_optimized", official_index_path)
+            self.logger.info(f"Generate new index folder of {self.column_name} successfully.")
 
-        if os.path.exists(tmp_index_path):
-            shutil.rmtree(tmp_index_path)
-            self.logger.info(f"Successfully delete {tmp_index_path} (the unoptimized index).")
+            if os.path.exists(tmp_index_path):
+                shutil.rmtree(tmp_index_path)
+                self.logger.info(f"Successfully delete {tmp_index_path} (the unoptimized index).")
 
-        if delete_old_index and os.path.exists(old_index_path):
-            shutil.rmtree(old_index_path)
-            self.logger.info(f"Successfully delete {old_index_path} (the old index)!")
+            if delete_old_index and os.path.exists(old_index_path):
+                shutil.rmtree(old_index_path)
+                self.logger.info(f"Successfully delete {old_index_path} (the old index)!")
+        else:
+            self._promote_storage_prefix(self.index_folder + "_optimized", self.index_folder)
+            self._delete_storage_prefix(self.index_folder + "_tmp")
+            self._delete_storage_prefix(self.index_folder + "_optimized")
+            self.logger.info(f"Generate new index prefix of {self.column_name} successfully.")
 
 
     def update_index(self,
@@ -391,11 +404,69 @@ class InvertedIndexVectorized(object):
         """Function to check created index's completeness."""
         path = os.path.join(self.dataset.path, folder, self.col_log_folder)
         current_batches = set()
-        for file_name in os.listdir(path):
-            if file_name.find(self.col_log_file) == -1:
-                current_batches.add(int(file_name))
+        if os.path.exists(path):
+            for file_name in os.listdir(path):
+                if file_name.find(self.col_log_file) == -1:
+                    current_batches.add(int(file_name))
+        else:
+            current_batches = set(self._list_completed_batches(folder))
         unfinished_batches = num_of_batches - len(current_batches)
         return unfinished_batches
+
+    def _storage_keys_under(self, prefix: str):
+        prefix = prefix.rstrip("/")
+        prefix_with_slash = f"{prefix}/"
+        keys = set(self.storage._all_keys())
+        try:
+            keys.update(get_base_storage(self.storage)._all_keys(refresh_tag=True))
+        except TypeError:
+            keys.update(get_base_storage(self.storage)._all_keys())
+        except Exception:
+            pass
+        return sorted(
+            key for key in keys
+            if key == prefix or key.startswith(prefix_with_slash)
+        )
+
+    def _storage_prefix_exists(self, prefix: str):
+        return bool(self._storage_keys_under(prefix))
+
+    def _delete_storage_prefix(self, prefix: str):
+        for key in self._storage_keys_under(prefix):
+            del self.storage[key]
+        self.storage.flush()
+
+    def _promote_storage_prefix(self, source_prefix: str, target_prefix: str):
+        self._delete_storage_prefix(target_prefix)
+        source_prefix = source_prefix.rstrip("/")
+        source_prefix_with_slash = f"{source_prefix}/"
+        for source_key in self._storage_keys_under(source_prefix):
+            relative_key = (
+                source_key[len(source_prefix_with_slash):]
+                if source_key.startswith(source_prefix_with_slash)
+                else source_key.rsplit("/", 1)[-1]
+            )
+            self.storage[os.path.join(target_prefix, relative_key)] = self.storage[source_key]
+        self.storage.flush()
+
+    def _run_settings_key(self, folder: str):
+        return os.path.join(folder, self.col_log_folder, self.col_log_file)
+
+    def _save_run_settings(self, folder: str, settings: list):
+        self.storage[self._run_settings_key(folder)] = json.dumps(settings).encode("utf-8")
+        self.storage.flush()
+
+    def _load_run_settings(self, folder: str):
+        return json.loads(self.storage[self._run_settings_key(folder)].decode("utf-8"))
+
+    def _list_completed_batches(self, folder: str):
+        log_prefix = os.path.join(folder, self.col_log_folder)
+        completed_batches = []
+        for key in self._storage_keys_under(log_prefix):
+            file_name = key.rsplit("/", 1)[-1]
+            if file_name.find(self.col_log_file) == -1:
+                completed_batches.append(int(file_name))
+        return completed_batches
 
 
     def reshard_index(self, old_shard_num: int, new_shard_num: int, max_workers: int = 16):
@@ -656,19 +727,15 @@ class InvertedIndexVectorized(object):
 
 
     def _setup_paths(self, batch_params):
-        tmp_path = os.path.join(self.dataset.path, self.index_folder + "_tmp")
-        if os.path.exists(tmp_path):
-            shutil.rmtree(tmp_path)
-
-        log_path = os.path.join(tmp_path, self.col_log_folder)
-        os.makedirs(log_path, exist_ok=True)
-
-        with open(os.path.join(log_path, self.col_log_file), "w") as f:
-            json.dump([
+        self._delete_storage_prefix(self.index_folder + "_tmp")
+        self._save_run_settings(
+            self.index_folder + "_tmp",
+            [
                 batch_params['num_of_batches'],
                 batch_params['num_of_shards'],
                 batch_params['use_uuids']
-            ], f)
+            ],
+        )
 
     def _create_cpp_index(self, batch_params, cut_all, stop_words, compulsory_words, case_sensitive, max_workers):
         """Create cpp index"""
@@ -1032,19 +1099,24 @@ class InvertedIndexVectorized(object):
                       ):
         try:
             # 0. Check whether the target index file already exists in the optimized folder.
-            optimized_index_path = os.path.join(self.dataset.path, self.index_folder + f"_optimized")
-            if os.path.exists(optimized_index_path) and str(shard_id) in os.listdir(optimized_index_path):
+            optimized_index_prefix = self.index_folder + f"_optimized"
+            if self._storage_prefix_exists(os.path.join(optimized_index_prefix, str(shard_id))):
                 self.logger.info(f"Already exists {shard_id}. Skip!")
                 return
 
             merged = defaultdict(set)
             # Note: If there is only a single file from start to finish and the current operation is creating an index,
             # there's no need to read it into memory—just copy it directly to the target location.
-            file_list = os.listdir(os.path.join(self.dataset.path, self.index_folder + "_tmp", str(shard_id)))
-            current_index_folder = os.path.join(self.dataset.path, self.index_folder)
+            tmp_shard_prefix = os.path.join(self.index_folder + "_tmp", str(shard_id))
+            file_list = [
+                key.rsplit("/", 1)[-1]
+                for key in self._storage_keys_under(tmp_shard_prefix)
+            ]
             if len(file_list) == 1 and optimize_mode != "update":
-                shutil.copy(os.path.join(self.dataset.path, self.index_folder + "_tmp", str(shard_id), "0"),
-                            os.path.join(self.dataset.path, self.index_folder + "_optimized", str(shard_id)))
+                self.storage[os.path.join(optimized_index_prefix, str(shard_id))] = self.storage[
+                    os.path.join(tmp_shard_prefix, file_list[0])
+                ]
+                self.storage.flush()
 
             else:
                 # Merge all key-value pairs under the current shard_id folder.
@@ -1055,7 +1127,7 @@ class InvertedIndexVectorized(object):
 
                 # Check if an existing index folder is present;
                 # if so, and the current operation is an index update, merge the corresponding shard_id as well.
-                if os.path.exists(current_index_folder) and optimize_mode == "update":
+                if self._storage_prefix_exists(self.index_folder) and optimize_mode == "update":
                     tmp_dict = pickle.loads(self.storage[os.path.join(self.index_folder,
                                                                       str(shard_id))])
                     for word, pos_set in tmp_dict.items():
@@ -1192,6 +1264,8 @@ class InvertedIndexVectorized(object):
             for file in os.listdir(log_path):
                 if file.find("log") == -1:
                     existing_batches.append(int(file))
+        else:
+            existing_batches = self._list_completed_batches(self.index_folder)
         self.logger.info(f"The following batches are already constructed: {existing_batches}")
         return existing_batches
 
@@ -1215,6 +1289,11 @@ class InvertedIndexVectorized(object):
             if os.path.exists(log_path):
                 with open(log_path, 'r') as f:
                     settings = json.load(f)
+                self.logger.info(f"We did not finish the construction of the original indexes. Now we can continue. "
+                             f"Note that we will use the original number of batches.")
+                self.logger.info(f"Original settings: {settings}")
+            elif self._storage_prefix_exists(self._run_settings_key(self.index_folder)):
+                settings = self._load_run_settings(self.index_folder)
                 self.logger.info(f"We did not finish the construction of the original indexes. Now we can continue. "
                              f"Note that we will use the original number of batches.")
                 self.logger.info(f"Original settings: {settings}")
