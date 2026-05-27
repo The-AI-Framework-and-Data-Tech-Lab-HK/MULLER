@@ -6,16 +6,18 @@
 #
 # Copyright (c) 2026 Xueling Lin
 
-import json
 import logging
-import shutil
+import tempfile
+import uuid
 from pathlib import Path
 from typing import Dict, Union, List, Tuple, TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import NDArray
 
+from muller.core.storage import StorageProvider
 from muller.core.tensor import Tensor
+from .artifact_store import IndexArtifactStore
 from . import utils
 from .exceptions import (
     IndexNotFoundError,
@@ -44,7 +46,7 @@ class VectorIndex:
 
     def __init__(
         self,
-        parent_path: Path,
+        artifact_store: IndexArtifactStore,
         tensor_name: str,
         index_name: str,
         device: str = "cpu",
@@ -52,13 +54,14 @@ class VectorIndex:
         self._index = None
         self.index_name: str = index_name
         self.tensor_name: str = tensor_name
-        self.parent_path: Path = parent_path
+        self.artifact_store = artifact_store
         self._device: str = device
         self._meta: Dict = {}
+        self._local_dir: tempfile.TemporaryDirectory[str] | None = None
 
         # preload index meta
-        if self.meta_file.exists() and self.meta_file.is_file():
-            self._meta = json.load(self.meta_file.open(mode="r"))
+        if self.artifact_store.exists(self.meta_key):
+            self._meta = self._load_meta()
 
     @property
     def index(self):
@@ -74,31 +77,31 @@ class VectorIndex:
         return self._index
 
     @property
-    def path(self):
+    def index_prefix(self):
         """
-        The path to save the vector index.
+        The storage prefix for this vector index.
         Returns:
-            A pathlib.Path of the directory that saving the index file.
+            A storage key prefix.
         """
-        return Path(self.parent_path, self.tensor_name, self.index_name)
+        return f"{self.tensor_name}/{self.index_name}"
 
     @property
-    def meta_file(self):
+    def meta_key(self):
         """
-        The meta file to save the metadata.
+        The storage key for metadata.
         Returns:
-            A pathlib.Path of metadata file.
+            A storage key.
         """
-        return self.path / "meta.json"
+        return f"{self.index_prefix}/meta.json"
 
     @property
-    def index_file(self):
+    def artifact_prefix(self):
         """
-        The index file path.
+        The storage prefix for the current index artifact files.
         Returns:
-            A pathlib.Path of index file.
+            A storage key prefix.
         """
-        return self.path / f"{self.index_name}.index"
+        return self._meta.get("artifact_prefix", f"{self.index_prefix}/artifacts")
 
     @property
     def is_exist(self):
@@ -107,7 +110,7 @@ class VectorIndex:
         Returns:
             True if the index exist, otherwise False.
         """
-        return self.path.exists()
+        return self.artifact_store.exists(self.meta_key)
 
     @property
     def is_loaded(self):
@@ -211,6 +214,7 @@ class VectorIndex:
             **param: the create index parameters for specific vector index type.
         """
         logging.info("Start building vector index...")
+        self.artifact_store.storage.check_readonly()
         if len(vector_array.shape) > 2:
             raise CreateIndexError(
                 f"unexpect vector_array format with shape {vector_array.shape}"
@@ -225,7 +229,10 @@ class VectorIndex:
         id_array = np.ascontiguousarray(id_array, dtype=np.int64)
         dimension = vector_array.shape[1]
         index_creator = utils.load_algo(index_type)
-        param.update({"path": str(self.path)})
+        if index_type == "DISKANN":
+            self._reset_local_dir()
+            param.update({"path": str(self.local_path)})
+        old_artifact_prefix = self._meta.get("artifact_prefix")
         self._index, parameter = index_creator.create(
             vector_array=vector_array,
             id_array=id_array,
@@ -233,6 +240,8 @@ class VectorIndex:
             metric=metric,
             **param,
         )
+        parameter = dict(parameter)
+        parameter.pop("path", None)
         self._meta = {
             "index_name": self.index_name,
             "index_type": index_type,
@@ -241,8 +250,7 @@ class VectorIndex:
             "parameter": parameter,
             "commit_id": commit_id,
         }
-        self._save_index(self._index)
-        self._save_meta(self._meta)
+        self._save_index_and_meta(self._index, self._meta, old_artifact_prefix)
         logging.info("Finish building vector index.")
 
     def search(
@@ -274,7 +282,9 @@ class VectorIndex:
         """
         Drop the vector index in disk.
         """
-        shutil.rmtree(self.path)
+        self.artifact_store.storage.check_readonly()
+        self.artifact_store.delete_prefix(self.index_prefix)
+        self.artifact_store.storage.flush()
 
     def add_data(self, input_array: NDArray[np.float32], id_array: NDArray[np.int64]):
         """
@@ -299,30 +309,79 @@ class VectorIndex:
                 f"but index with {self._meta['dimension']}"
             )
 
+    @property
+    def local_path(self) -> Path:
+        if self._local_dir is None:
+            self._reset_local_dir()
+        return Path(self._local_dir.name)
+
+    def _reset_local_dir(self):
+        if self._local_dir is not None:
+            self._local_dir.cleanup()
+        self._local_dir = tempfile.TemporaryDirectory(
+            prefix=f"muller-vector-index-{self.tensor_name}-{self.index_name}-"
+        )
+
     def _load_meta(self):
-        if self.meta_file.exists() and self.meta_file.is_file():
-            return json.loads(self.meta_file.read_text())
-        raise IndexError("index meta file not found.")
+        try:
+            return self.artifact_store.load_json(self.meta_key)
+        except KeyError as err:
+            raise IndexError("index meta file not found.") from err
 
     def _load_index(self, **kwargs):
         index = utils.load_algo(self.index_type)
+        if hasattr(index, "loads"):
+            artifact_name = self._meta.get("artifact", f"{self.index_name}.index")
+            data = self.artifact_store.read_bytes(self.artifact_prefix, artifact_name)
+            kwargs.setdefault("device", self._device)
+            return index.loads(data, **kwargs)
+
+        self._reset_local_dir()
+        self.artifact_store.materialize_dir(self.local_path, self.artifact_prefix)
         kwargs.update(
             {
-                "path": self.path,
+                "path": self.local_path,
                 "index_name": self.index_name,
             }
         )
         return index.load(**kwargs)
 
     def _save_meta(self, vector_index_meta: Dict, overwrite: bool = True):
-        self.path.mkdir(parents=True, exist_ok=overwrite)
-        with self.meta_file.open(mode="w") as meta_file:
-            json.dump(vector_index_meta, meta_file)
+        self.artifact_store.save_json(vector_index_meta, self.meta_key)
+        self.artifact_store.storage.flush()
 
-    def _save_index(self, vector_index):
-        self.path.mkdir(parents=True, exist_ok=True)
+    def _save_index_and_meta(
+        self,
+        vector_index,
+        vector_index_meta: Dict,
+        old_artifact_prefix: str | None = None,
+    ):
         index_algo = utils.load_algo(self.index_type)
-        index_algo.save(index=vector_index, path=self.path, index_name=self.index_name)
+        if old_artifact_prefix is None:
+            old_artifact_prefix = self._meta.get("artifact_prefix")
+        new_artifact_prefix = f"{self.index_prefix}/artifacts-{uuid.uuid4().hex}"
+        manifest = []
+
+        if hasattr(index_algo, "dumps"):
+            artifact_name = f"{self.index_name}.index"
+            data = index_algo.dumps(vector_index)
+            self.artifact_store.write_bytes(data, new_artifact_prefix, artifact_name)
+            manifest.append({
+                "path": artifact_name,
+                "key": self.artifact_store.key(new_artifact_prefix, artifact_name),
+                "size": len(data),
+            })
+            vector_index_meta["artifact"] = artifact_name
+        else:
+            manifest = self.artifact_store.publish_dir(self.local_path, new_artifact_prefix)
+
+        vector_index_meta["artifact_prefix"] = new_artifact_prefix
+        vector_index_meta["manifest"] = manifest
+        self._save_meta(vector_index_meta)
+
+        if old_artifact_prefix and old_artifact_prefix != new_artifact_prefix:
+            self.artifact_store.delete_prefix(old_artifact_prefix)
+            self.artifact_store.storage.flush()
 
 
 class TensorVectorIndex:
@@ -331,8 +390,9 @@ class TensorVectorIndex:
     API.
     """
 
-    def __init__(self, parent_path: Path, branch_name: str):
-        self.path = Path(parent_path, "_vector_index", branch_name)
+    def __init__(self, storage: StorageProvider, branch_name: str):
+        self.storage = storage
+        self.artifact_store = IndexArtifactStore(storage, f"_vector_index/{branch_name}")
         self.branch_name = branch_name
 
         self._index_map: Dict[str, Dict[str, VectorIndex]] = {}
@@ -346,9 +406,7 @@ class TensorVectorIndex:
         Returns:
             List of tensor names which has been created vector index.
         """
-        return [
-            tensor_dir.name for tensor_dir in self.path.iterdir() if tensor_dir.is_dir()
-        ]
+        return sorted(self._index_map.keys())
 
     @staticmethod
     def _uuid_to_id(
@@ -411,7 +469,7 @@ class TensorVectorIndex:
 
         """
         overwrite = create_param.get("overwrite", False)
-        vector_index = VectorIndex(self.path, tensor.key, index_name)
+        vector_index = VectorIndex(self.artifact_store, tensor.key, index_name)
         if overwrite or not vector_index.is_exist:
             vector_array = tensor.numpy()
             vector_index.build_index(
@@ -511,9 +569,6 @@ class TensorVectorIndex:
         # if drop the last index of tensor, remove tensor level directory
         if len(tensor_indexes) == 0:
             self._index_map.pop(tensor.key, None)
-            tensor_path = self.path / tensor.key
-            if tensor_path.exists():
-                tensor_path.rmdir()
 
     def update_index(
         self,
@@ -545,21 +600,28 @@ class TensorVectorIndex:
         uuid_to_pos = {str(uuid): pos for pos, uuid in enumerate(current_uuids)}
         id_array = np.array([uuid_to_pos[str(uuid)] for uuid, _ in added_items], dtype=np.int64)
         vector_index.add_data(data_array, id_array)
-        vector_index.commit_id = new_commit_id
+        vector_index._meta["commit_id"] = new_commit_id
+        vector_index._save_index_and_meta(vector_index.index, vector_index._meta)
 
     def _init_tensor_index(self):
-        if self.path.exists():
-            for tensor_name in self.indexed_tensors:
-                self._index_map[tensor_name] = {}
-                tensor_index_path = Path(self.path, tensor_name)
-                index_name_list = [
-                    index_dir.name
-                    for index_dir in tensor_index_path.iterdir()
-                    if index_dir.is_dir()
-                ]
-                for index_name in index_name_list:
-                    vector_index = VectorIndex(self.path, tensor_name, index_name)
-                    self._index_map[tensor_name][index_name] = vector_index
+        root = self.artifact_store.root.rstrip("/")
+        prefix = f"{root}/" if root else ""
+        for key in self.artifact_store.list_prefix():
+            if not key.endswith("/meta.json"):
+                continue
+            relative_key = key[len(prefix):] if prefix and key.startswith(prefix) else key
+            parts = relative_key.split("/")
+            if len(parts) != 3:
+                continue
+            tensor_name, index_name, meta_file = parts
+            if meta_file != "meta.json":
+                continue
+            self._index_map.setdefault(tensor_name, {})
+            self._index_map[tensor_name][index_name] = VectorIndex(
+                self.artifact_store,
+                tensor_name,
+                index_name,
+            )
 
     def _cache_vector_index(
         self, tensor: Tensor, index_name: str, vector_index: VectorIndex

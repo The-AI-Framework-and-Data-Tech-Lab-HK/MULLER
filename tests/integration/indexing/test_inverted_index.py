@@ -181,6 +181,41 @@ def test_inverted_index(storage):
     assert ds_test_21.filtered_index == [6]
 
 
+def test_vectorized_inverted_index_python_artifacts_use_storage(tmp_path):
+    ds = muller.dataset(path=str(tmp_path / "vectorized_inverted_index"), reset=True)
+    with ds:
+        ds.create_tensor("text", htype="text")
+        ds.text.append("alpha")
+        ds.text.append("beta")
+        ds.text.append("alpha")
+        ds.commit()
+
+    ds.create_index_vectorized(
+        "text",
+        index_type="exact_match",
+        use_cpp=False,
+        num_of_batches=1,
+        num_of_shards=2,
+        max_workers=1,
+        force_create=True,
+    )
+
+    index_keys = sorted(
+        key for key in ds.storage._all_keys()
+        if key.startswith("inverted_index_dir_vec/")
+    )
+    assert "inverted_index_dir_vec/main/meta.json" in index_keys
+    assert "inverted_index_dir_vec/main/text/0" in index_keys
+    assert "inverted_index_dir_vec/main/text/1" in index_keys
+    assert not any("_tmp" in key or "_optimized" in key for key in index_keys)
+
+    filtered = ds.filter_vectorized(
+        [("text", "==", "alpha")],
+        use_local_index=True,
+    )
+    assert filtered.filtered_index == [0, 2]
+
+
 def test_inverted_index_with_multi_user(storage):
     """test inverted index with multi user"""
     values = ["白日依山尽，黄河入海流，欲穷千里目，更上一层楼",

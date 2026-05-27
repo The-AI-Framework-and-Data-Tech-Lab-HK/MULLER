@@ -93,6 +93,16 @@ class FaissVectorIndex:
         raise IndexError(f"index file: {index_file} not found.")
 
     @classmethod
+    def loads(cls, data: bytes, **kwargs) -> faiss.Index:
+        """
+        Load a Faiss index from bytes stored by MULLER storage.
+        """
+        index = faiss.deserialize_index(np.frombuffer(data, dtype=np.uint8))
+        if kwargs.get("device") == "gpu":
+            index = faiss.index_cpu_to_gpu(index)
+        return index
+
+    @classmethod
     def save(cls, index: faiss.Index, **kwargs):
         """
         Default method for saving Faiss vector index.
@@ -103,6 +113,13 @@ class FaissVectorIndex:
         param = IndexParam.SaveFaissIndex.model_validate(kwargs)
         index_file = param.path / f"{param.index_name}.index"
         faiss.write_index(index, str(index_file))
+
+    @classmethod
+    def dumps(cls, index: faiss.Index) -> bytes:
+        """
+        Serialize a Faiss index to bytes for storage providers.
+        """
+        return bytes(faiss.serialize_index(index))
 
     @classmethod
     def _get_faiss_metric(cls, metric: str):
