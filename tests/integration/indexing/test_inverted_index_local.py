@@ -7,6 +7,7 @@
 # Copyright (c) 2026 Bingyu Liu
 
 import logging
+import importlib
 import os
 import multiprocessing as mp
 
@@ -47,14 +48,26 @@ def is_ci_environment():
     return os.getenv('JENKINS_URL') is not None or os.getenv('CI') == 'true'
 
 
+def is_cpp_index_available():
+    """Check whether the optional C++ inverted-index extension can be loaded."""
+    try:
+        importlib.import_module("muller.util.sparsehash.build.custom_hash_map")
+        return True
+    except (ImportError, OSError):
+        return False
+
+
 def get_test_params():
-    """Dynamic return test parameters: Only return [False] in CI environment, otherwise return [True, False]"""
-    if is_ci_environment():
+    """Dynamic return test parameters based on C++ extension availability."""
+    if is_ci_environment() or not is_cpp_index_available():
         return [False]
     return [True, False]
 
 
-@pytest.mark.skipif(is_ci_environment(),reason="Skip CI online, because it cannot use cpp yet.")
+@pytest.mark.skipif(
+    is_ci_environment() or not is_cpp_index_available(),
+    reason="Skip when C++ inverted-index extension is unavailable.",
+)
 def test_cpp_python_mix(storage):
     ds = muller.empty(official_path(storage, TEST_INDEX_PATH), creds=official_creds(storage), overwrite=True)
 
@@ -672,7 +685,10 @@ def _generate_ds(storage):
     ds.commit()
 
 
-@pytest.mark.skipif(is_ci_environment(),reason="Skip CI online, because it cannot use cpp yet.")
+@pytest.mark.skipif(
+    is_ci_environment() or not is_cpp_index_available(),
+    reason="Skip when C++ inverted-index extension is unavailable.",
+)
 def test_create_new_index_while_using_old_index_cpp(storage):
     ctx = mp.get_context('spawn')
     p0 = ctx.Process(target=_generate_ds, args=(storage,))
