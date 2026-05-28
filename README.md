@@ -20,7 +20,7 @@ Modern AI datasets require collaborative workflows where multiple engineers work
 - **Git-like versioning**: Commit, branch, merge with fine-grained row-level updates and three-way merge conflict resolution
 - **Seamless integration**: Works with PyTorch, TensorFlow, and LLM/MLLM training pipelines
 
-🖼️ [poster](https://github.com/The-AI-Framework-and-Data-Tech-Lab-HK/MULLER/blob/main/docs/figures/poster.pdf) | 📺 [Video demo](https://www.youtube.com/watch?v=okHzhbp7an0) | 📖 [Documentation](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/) | 🔗 [API Reference](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/api/top-level-functions/)
+🖼️ [Poster](https://github.com/The-AI-Framework-and-Data-Tech-Lab-HK/MULLER/blob/main/docs/figures/poster.pdf) | 📺 [Video demo](https://www.youtube.com/watch?v=okHzhbp7an0) | 📖 [Documentation](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/) | 🔗 [API Reference](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/api/top-level-functions/)
 
 ## Quick Start
 
