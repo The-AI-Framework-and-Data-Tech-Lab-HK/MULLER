@@ -10,7 +10,7 @@
 Modern AI datasets require collaborative workflows where multiple engineers work on parallel branches, perform LLM-assisted annotation, and merge changes—similar to Git workflows for code. However, existing data lake formats (Parquet, Lance, Iceberg, Deep Lake) lack native support for such collaborative patterns.
 
 <div align="center">
-    <img src="docs/figures/motivation-github.png" width="700">
+    <img src="docs/figures/motivation-github-updated.png" width="700">
 </div>
 
 **MULLER** is a multimodal data lake format designed for collaborative AI data workflows with:
@@ -20,7 +20,7 @@ Modern AI datasets require collaborative workflows where multiple engineers work
 - **Git-like versioning**: Commit, branch, merge with fine-grained row-level updates and three-way merge conflict resolution
 - **Seamless integration**: Works with PyTorch, TensorFlow, and LLM/MLLM training pipelines
 
-📺 [Video demo](https://www.youtube.com/watch?v=okHzhbp7an0) | 📖 [Documentation](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/) | 🔗 [API Reference](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/api/top-level-functions/)
+🖼️ [poster](https://github.com/The-AI-Framework-and-Data-Tech-Lab-HK/MULLER/blob/main/docs/figures/poster.pdf) | 📺 [Video demo](https://www.youtube.com/watch?v=okHzhbp7an0) | 📖 [Documentation](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/) | 🔗 [API Reference](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/api/top-level-functions/)
 
 ## Quick Start
 
@@ -352,4 +352,23 @@ ds.direct_diff(id_1="dev-1", id_2="dev-2", as_dataframe=True)
 
 ## Research & Reproduction
 
-To reproduce the experiment results from our paper, see [exp_scripts/README.md](https://github.com/spencerr221/MULLER/blob/main/exp_scripts/README.md).
+To reproduce the experiment results from our paper, see [exp_scripts/README.md](https://github.com/The-AI-Framework-and-Data-Tech-Lab-HK/MULLER/blob/main/exp_scripts/README.md).
+
+## Learn More
+
+Please ⭐ star our repository and cite our paper if you like our work!
+
+📄 **Paper**: [MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows](https://dl.acm.org/doi/10.1145/3788853.3801585)
+
+```bibtex
+@inproceedings{lin2026muller,
+  title     = {MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows},
+  author    = {Lin, Xueling and Liu, Bingyu and Cong, Gao},
+  booktitle = {Companion of the International Conference on Management of Data (SIGMOD Companion '26)},
+  year      = {2026},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3788853.3801585},
+  url       = {https://doi.org/10.1145/3788853.3801585},
+}
+```
+
