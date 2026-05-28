@@ -26,6 +26,7 @@ from muller.constants import FIRST_COMMIT_ID, FILTER_LOG
 from muller.core.storage.cache_utils import get_base_storage
 from muller.util.exceptions import InvertedIndexNotExistsError, InvertedIndexUnsupportedError, \
     InvertedIndexNotFoundError, ExecuteError, UnsupportedMethod
+from muller.util.path import is_remote_path
 
 
 class InvertedIndexVectorized(object):
@@ -45,8 +46,15 @@ class InvertedIndexVectorized(object):
         # col_log_file: A log file for each column, primarily recording the parameters used during processing
         # of that column.
         self.col_log_file = "log.json"
-        # logger
-        self.logger = self._set_logger(self.dataset.path + os.sep + FILTER_LOG)
+        # logger: FILTER_LOG is plain on-disk log. On remote-backed datasets
+        # (s3://, huawei-obs://, roma://, mem://, ...) we cannot open it as a
+        # local file, so skip the FileHandler and keep only console logging.
+        log_path = (
+            None
+            if is_remote_path(self.dataset.path)
+            else self.dataset.path + os.sep + FILTER_LOG
+        )
+        self.logger = self._set_logger(log_path)
         self.hot_shard_data = None
 
     @property
@@ -56,26 +64,46 @@ class InvertedIndexVectorized(object):
             return ""
         return self.dataset.version_state['commit_id']
 
+    def _ensure_local_for_cpp(self):
+        """Fail fast if a C++ index path is requested on a remote dataset.
+
+        The C++ engine reads dataset chunks via ``muller::Reader`` (plain
+        ``std::ifstream``) and writes shard files via ``fopen`` /
+        ``saveToFileNoCompression``. Both bypass MULLER's storage
+        abstraction, so the C++ path only works when ``dataset.path``
+        resolves to a local directory. We refuse to start instead of
+        silently producing a broken or wrong-location index.
+        """
+        if is_remote_path(self.dataset.path):
+            raise UnsupportedMethod(
+                f"The C++ inverted-index engine reads and writes the local "
+                f"filesystem directly and cannot operate on a remote dataset "
+                f"(path='{self.dataset.path}'). Pass use_cpp=False, or run "
+                f"this operation against a locally-backed dataset."
+            )
+
     @staticmethod
-    def _set_logger(path):
+    def _set_logger(path: Optional[str]):
         logger = logging.getLogger('my_logger')
         logger.setLevel(logging.DEBUG)
         logger.propagate = False
 
         if not logger.handlers:
-            # File logging
-            file_handler = logging.FileHandler(path, mode='a')
-            file_handler.setLevel(logging.DEBUG)
-            file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            file_handler.setFormatter(file_formatter)
+            # File logging is only meaningful for a local path; skip it for
+            # remote-backed datasets so __init__ does not crash trying to
+            # open a non-local file.
+            if path is not None:
+                file_handler = logging.FileHandler(path, mode='a')
+                file_handler.setLevel(logging.DEBUG)
+                file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                file_handler.setFormatter(file_formatter)
+                logger.addHandler(file_handler)
 
             # Console logging
             stream_handler = logging.StreamHandler()
             stream_handler.setLevel(logging.INFO)
             stream_formatter = logging.Formatter('%(levelname)s: %(message)s')
             stream_handler.setFormatter(stream_formatter)
-
-            logger.addHandler(file_handler)
             logger.addHandler(stream_handler)
         return logger
 
@@ -195,6 +223,7 @@ class InvertedIndexVectorized(object):
         use_uuids = bool(uuids)
         tmp_meta = [num_of_batches, num_of_shards, use_uuids]
         if use_cpp:
+            self._ensure_local_for_cpp()
             tmp_path = os.path.join(self.dataset.path, self.index_folder + "_tmp")
             if os.path.exists(tmp_path):
                 shutil.rmtree(tmp_path)
@@ -220,7 +249,8 @@ class InvertedIndexVectorized(object):
         # Create index via multi-processinng
         if use_cpp:
             filtered_starts, filtered_ends = self._split_data(0, len(self.dataset),
-                                                              num_of_batches, self._obtain_existing_batches(),
+                                                              num_of_batches,
+                                                              self._obtain_existing_batches(use_cpp=True),
                                                               True)
             num_process = min(len(filtered_starts), max_workers)
             com_words = "" if compulsory_words is None else compulsory_words
@@ -254,7 +284,8 @@ class InvertedIndexVectorized(object):
 
         # After creating an index, you need to verify whether the indexes for all batches have been successfully
         # generated. If any are missing, they can be regenerated!
-        unfinished_batches = self.check_index_completeness(self.index_folder + "_tmp", num_of_batches)
+        unfinished_batches = self.check_index_completeness(self.index_folder + "_tmp", num_of_batches,
+                                                           use_cpp=use_cpp)
         # In the future, we could consider using a recursive call like
         # unfinished_batches = self.check_create_index_completeness(...) to ensure the completeness of index creation.
         # However, we must also ensure that memory is automatically released if workers are unexpectedly interrupted.
@@ -274,6 +305,9 @@ class InvertedIndexVectorized(object):
                        delete_old_index: bool = False,
                        use_cpp: bool = True):
         """Merge all shard files under the same shard ID into a single file."""
+        if use_cpp:
+            self._ensure_local_for_cpp()
+
         num_of_shards = self._obtain_meta(["num_of_shards"])[0] # Number of shards, not number of shard files
 
         # If no temporary index file folder has already been generated, raise an error and return immediately.
@@ -397,17 +431,26 @@ class InvertedIndexVectorized(object):
             )
 
         # Check whether update is complete
-        return self._check_update_completion(num_of_batches)
+        return self._check_update_completion(num_of_batches, use_cpp=settings['use_cpp'])
 
 
-    def check_index_completeness(self, folder: str, num_of_batches: int):
-        """Function to check created index's completeness."""
-        path = os.path.join(self.dataset.path, folder, self.col_log_folder)
+    def check_index_completeness(self, folder: str, num_of_batches: int, *, use_cpp: bool = False):
+        """Check how many per-batch completion markers are still missing.
+
+        For ``use_cpp=True`` the markers are written by the native engine
+        via ``std::ofstream`` directly to the local filesystem, so the
+        storage abstraction never sees them and we must inspect the local
+        FS. For the Python path the markers are written through
+        ``self.storage[...]`` and the local FS is irrelevant (and wrong on
+        remote-backed datasets).
+        """
         current_batches = set()
-        if os.path.exists(path):
-            for file_name in os.listdir(path):
-                if file_name.find(self.col_log_file) == -1:
-                    current_batches.add(int(file_name))
+        if use_cpp:
+            path = os.path.join(self.dataset.path, folder, self.col_log_folder)
+            if os.path.exists(path):
+                for file_name in os.listdir(path):
+                    if file_name.find(self.col_log_file) == -1:
+                        current_batches.add(int(file_name))
         else:
             current_batches = set(self._list_completed_batches(folder))
         unfinished_batches = num_of_batches - len(current_batches)
@@ -525,6 +568,7 @@ class InvertedIndexVectorized(object):
                    search_type="fuzzy_match",
                    max_workers: int = 16):
         """Function to search the enter query in cpp engine."""
+        self._ensure_local_for_cpp()
         [num_buckets, _, cut_all, stop_words_list, compulsory_words, case_sensitive] = (
             self._obtain_meta(["num_of_shards", "tokenizer", "cut_all",
                                "stop_words_list", "compulsory_words", "case_sensitive"]))
@@ -596,6 +640,7 @@ class InvertedIndexVectorized(object):
 
     def _cpp_complex_search(self, query, meta_data, max_workers):
         """CPP complex search"""
+        self._ensure_local_for_cpp()
         from muller.util.sparsehash.build.custom_hash_map import search_idx
         try:
             return search_idx(
@@ -739,6 +784,7 @@ class InvertedIndexVectorized(object):
 
     def _create_cpp_index(self, batch_params, cut_all, stop_words, compulsory_words, case_sensitive, max_workers):
         """Create cpp index"""
+        self._ensure_local_for_cpp()
         from muller.util.sparsehash.build.custom_hash_map import IndexProcessor
         import muller.util.sparsehash.build.custom_hash_map as cm
 
@@ -747,7 +793,7 @@ class InvertedIndexVectorized(object):
         starts, ends = self._split_data(
             0, len(self.dataset),
             batch_params['num_of_batches'],
-            self._obtain_existing_batches(),
+            self._obtain_existing_batches(use_cpp=True),
             True
         )
 
@@ -778,7 +824,7 @@ class InvertedIndexVectorized(object):
         ranges = self._split_data( # starts, ends
             0, len(self.dataset),
             batch_params['num_of_batches'],
-            self._obtain_existing_batches()
+            self._obtain_existing_batches(use_cpp=False)
         )
 
         mp_context = multiprocessing.get_context("fork") if hasattr(os, "fork") else multiprocessing
@@ -823,8 +869,8 @@ class InvertedIndexVectorized(object):
             res.get()
 
 
-    def _check_index_completion(self, num_of_batches):
-        unfinished = self.check_index_completeness(self.index_folder + "_tmp", num_of_batches)
+    def _check_index_completion(self, num_of_batches, *, use_cpp: bool = False):
+        unfinished = self.check_index_completeness(self.index_folder + "_tmp", num_of_batches, use_cpp=use_cpp)
         if not unfinished:
             self.logger.info(f"Creating index of {self.column_name} successfully.")
             return True
@@ -865,13 +911,14 @@ class InvertedIndexVectorized(object):
                          num_of_shards, max_workers, stop_words,
                          compulsory_words, case_sensitive, cut_all):
         """Update index with c++"""
+        self._ensure_local_for_cpp()
         from muller.util.sparsehash.build.custom_hash_map import IndexProcessor
         import muller.util.sparsehash.build.custom_hash_map as cm
 
         starts, ends = self._split_data(
             start_index, end_index,
             num_of_batches,
-            self._obtain_existing_batches(),
+            self._obtain_existing_batches(use_cpp=True),
             True
         )
 
@@ -903,7 +950,7 @@ class InvertedIndexVectorized(object):
         ranges = self._split_data( # starts, ends
             start_index, end_index,
             num_of_batches,
-            self._obtain_existing_batches()
+            self._obtain_existing_batches(use_cpp=False)
         )
 
         # Initialize process pool
@@ -938,9 +985,9 @@ class InvertedIndexVectorized(object):
             res.get()
 
 
-    def _check_update_completion(self, num_of_batches):
+    def _check_update_completion(self, num_of_batches, *, use_cpp: bool = False):
         unfinished = self.check_index_completeness(
-            self.index_folder + "_tmp", num_of_batches
+            self.index_folder + "_tmp", num_of_batches, use_cpp=use_cpp
         )
 
         if not unfinished:
@@ -1078,6 +1125,7 @@ class InvertedIndexVectorized(object):
 
     def _process_index_cpp(self, batch_count, start, end, num_of_shards,
                            cut_all, case_sensitive, full_stop_words, compulsory_words):
+        self._ensure_local_for_cpp()
         import muller.util.sparsehash.build.custom_hash_map as cm
         cm.init_logger(os.path.join(self.dataset.path, FILTER_LOG), cm.LogLevel.INFO)
         from muller.util.sparsehash.build.custom_hash_map import IndexProcessor
@@ -1205,17 +1253,24 @@ class InvertedIndexVectorized(object):
 
     def _reshard_single(self, shard_id: int, new_shard_num: int):
         new_shards = [defaultdict(set) for _ in range(new_shard_num)]
-        for file in os.listdir(self.dataset.path + "/" + self.index_folder):
-            if file.startswith(str(shard_id) + "_"):
-                with open(self.dataset.path + "/" + self.index_folder + "/" + file, 'rb') as f:
-                    tmp_dict = pickle.load(f)
-                    for word, pos_set in tmp_dict.items():
-                        new_shard_id = word % new_shard_num
+        # Iterate shards through the storage abstraction so this works on
+        # any backend (local/S3/OBS/...). Preserves the legacy
+        # ``<shard_id>_<uuid>`` file-naming convention used by reshard
+        # output; behavior on files that don't match the pattern is
+        # unchanged.
+        prefix = self.index_folder.rstrip("/")
+        name_prefix = f"{str(shard_id)}_"
+        for key in self._storage_keys_under(prefix):
+            file_name = key.rsplit("/", 1)[-1]
+            if file_name.startswith(name_prefix):
+                tmp_dict = pickle.loads(self.storage[key])
+                for word, pos_set in tmp_dict.items():
+                    new_shard_id = word % new_shard_num
 
-                        if word not in new_shards[new_shard_id]:
-                            new_shards[new_shard_id][word] = pos_set
-                        else:
-                            new_shards[new_shard_id][word] |= pos_set
+                    if word not in new_shards[new_shard_id]:
+                        new_shards[new_shard_id][word] = pos_set
+                    else:
+                        new_shards[new_shard_id][word] |= pos_set
 
         # 4. Dump each shard to storage
         count = 0
@@ -1240,10 +1295,19 @@ class InvertedIndexVectorized(object):
         return top_n_keys
 
     def _obtain_shard_name_from_shard_id(self, shard_id):
+        """Enumerate per-shard reshard-output filenames via storage.
+
+        Reshard output (see ``_reshard_single``) names files as
+        ``<shard_id>_<uuid>``. We list them through ``self.storage`` so the
+        lookup is backend-agnostic.
+        """
+        prefix = self.index_folder.rstrip("/")
+        name_prefix = f"{str(shard_id)}_"
         shard_name_list = []
-        for file in os.listdir(self.dataset.path + "/" + self.index_folder):
-            if file.startswith(str(shard_id) + "_"):
-                shard_name_list.append(file)
+        for key in self._storage_keys_under(prefix):
+            file_name = key.rsplit("/", 1)[-1]
+            if file_name.startswith(name_prefix):
+                shard_name_list.append(file_name)
         return shard_name_list
 
     def _obtain_set_of_key(self, num):
@@ -1257,13 +1321,20 @@ class InvertedIndexVectorized(object):
         single_data = self._load_index(shard_name_list[0])
         return set(single_data.get(num, set()))
 
-    def _obtain_existing_batches(self):
+    def _obtain_existing_batches(self, *, use_cpp: bool = False):
+        """Return the list of batch start-indexes whose creation markers exist.
+
+        For ``use_cpp=True`` the markers are local FS files (written by the
+        native engine). For the Python path they live exclusively under
+        ``self.storage``.
+        """
         existing_batches = []
-        log_path = os.path.join(self.dataset.path, self.index_folder, self.col_log_folder)
-        if os.path.exists(log_path):
-            for file in os.listdir(log_path):
-                if file.find("log") == -1:
-                    existing_batches.append(int(file))
+        if use_cpp:
+            log_path = os.path.join(self.dataset.path, self.index_folder, self.col_log_folder)
+            if os.path.exists(log_path):
+                for file in os.listdir(log_path):
+                    if file.find("log") == -1:
+                        existing_batches.append(int(file))
         else:
             existing_batches = self._list_completed_batches(self.index_folder)
         self.logger.info(f"The following batches are already constructed: {existing_batches}")
@@ -1283,16 +1354,17 @@ class InvertedIndexVectorized(object):
         try:
             meta_json = json.loads(self.storage[self.meta].decode('utf-8'))
         except KeyError:
-            # If traces of a previous indexing attempt exist, it indicates that the prior index build was incomplete;
-            # in this case, simply resume from the interruption using the previous default settings.
-            log_path = os.path.join(self.dataset.path, self.index_folder, self.col_log_folder, self.col_log_file)
-            if os.path.exists(log_path):
-                with open(log_path, 'r') as f:
-                    settings = json.load(f)
-                self.logger.info(f"We did not finish the construction of the original indexes. Now we can continue. "
-                             f"Note that we will use the original number of batches.")
-                self.logger.info(f"Original settings: {settings}")
-            elif self._storage_prefix_exists(self._run_settings_key(self.index_folder)):
+            # If traces of a previous indexing attempt exist (run-settings
+            # blob in storage), it indicates that the prior index build was
+            # incomplete; resume from the interruption using its parameters.
+            # We deliberately consult only the storage abstraction here: a
+            # legacy local-FS fallback at ``self.dataset.path/.../log.json``
+            # was previously checked first, but (a) it bypasses the storage
+            # layer entirely (incorrect for remote-backed datasets) and (b)
+            # it looked at ``self.index_folder`` while the write side puts
+            # the settings under ``self.index_folder + "_tmp"`` -- so it
+            # could never actually match on either backend. Dropped.
+            if self._storage_prefix_exists(self._run_settings_key(self.index_folder)):
                 settings = self._load_run_settings(self.index_folder)
                 self.logger.info(f"We did not finish the construction of the original indexes. Now we can continue. "
                              f"Note that we will use the original number of batches.")
