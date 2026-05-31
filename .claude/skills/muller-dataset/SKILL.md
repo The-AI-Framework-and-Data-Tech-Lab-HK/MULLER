@@ -1,6 +1,6 @@
 ---
 name: muller-dataset
-description: Create, query, and manage MULLER datasets (multimodal data lake with version control). Use when user wants to work with datasets, create columns, append data, query samples, or inspect dataset information.
+description: Create, query, and manage MULLER datasets (multimodal data lake with version control). Use when user wants to work with datasets, create tensors, append data, query samples, or inspect dataset information.
 compatibility: Requires Python 3.11+, muller package installed
 ---
 
@@ -9,7 +9,7 @@ compatibility: Requires Python 3.11+, muller package installed
 ## IMPORTANT: How to Use This Skill
 
 **DO NOT create new Python files.** Always use the existing scripts provided in this skill:
-- Use `scripts/dataset_manager.py` for dataset and column management
+- Use `scripts/dataset_manager.py` for dataset and tensor management
 - Use `scripts/data_operations.py` for data CRUD operations
 
 Execute these scripts directly with `python3` command. Never write new scripts to the project root.
@@ -28,7 +28,7 @@ Use this skill when the user wants to:
 - Create or load MULLER datasets
 - Add data to datasets (images, text, labels, vectors, etc.)
 - Query or filter dataset samples
-- Manage dataset structure (create/delete/rename columns)
+- Manage dataset structure (create/delete/rename tensors)
 - Inspect dataset information (summary, statistics)
 - Import data from files or directories
 
@@ -44,25 +44,24 @@ Manages dataset lifecycle and structure.
 - `delete` - Delete a dataset
 - `info` - Get dataset information
 - `stats` - Get dataset statistics
-- `create-column` - Create a new column
-- `delete-column` - Delete a column
-- `rename-column` - Rename a column
-  - Legacy `create-tensor`, `delete-tensor`, and `rename-tensor` commands remain accepted.
+- `create-tensor` - Create a new tensor
+- `delete-tensor` - Delete a tensor
+- `rename-tensor` - Rename a tensor
 
 **Usage:**
 ```bash
 # Create dataset
 python3 .claude/skills/muller-dataset/scripts/dataset_manager.py create --path ./my_dataset
 
-# Create with columns
+# Create with tensors
 python3 .claude/skills/muller-dataset/scripts/dataset_manager.py create --path ./my_dataset \
-  --columns "images:image:jpg,labels:class_label:uint32"
+  --tensors "images:image:jpg,labels:class_label:uint32"
 
 # Get info
 python3 .claude/skills/muller-dataset/scripts/dataset_manager.py info --path ./my_dataset
 
-# Create column
-python3 .claude/skills/muller-dataset/scripts/dataset_manager.py create-column --path ./my_dataset \
+# Create tensor
+python3 .claude/skills/muller-dataset/scripts/dataset_manager.py create-tensor --path ./my_dataset \
   --name embeddings --htype vector --dtype float32
 ```
 

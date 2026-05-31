@@ -15,7 +15,7 @@ import os
 import numpy as np
 
 # Add project root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 try:
     import muller
@@ -34,19 +34,17 @@ def create_index(args):
     try:
         ds = muller.load(args.path)
 
-        columns_arg = args.columns or args.tensors
-        columns = columns_arg.split(",") if columns_arg else None
-        ds.create_index(columns)
+        tensors = args.tensors.split(",") if args.tensors else None
+        ds.create_index(tensors)
 
         return {
             "success": True,
             "operation": "create_index",
             "result": {
                 "path": args.path,
-                "columns": columns,
-                "tensors": columns
+                "tensors": tensors
             },
-            "message": f"Created inverted index for {len(columns) if columns else 'all'} columns"
+            "message": f"Created inverted index for {len(tensors) if tensors else 'all'} tensors"
         }
     except Exception as e:
         return {
@@ -62,9 +60,6 @@ def create_vector_index(args):
     """Create vector index."""
     try:
         ds = muller.load(args.path)
-        column = args.column or args.tensor
-        if not column:
-            raise ValueError("Column name is required")
 
         kwargs = {
             "index_name": args.index_name,
@@ -80,15 +75,14 @@ def create_vector_index(args):
         if args.nlist:
             kwargs["nlist"] = args.nlist
 
-        ds.create_vector_index(column, **kwargs)
+        ds.create_vector_index(args.tensor, **kwargs)
 
         return {
             "success": True,
             "operation": "create_vector_index",
             "result": {
                 "path": args.path,
-                "column": column,
-                "tensor": column,
+                "tensor": args.tensor,
                 "index_name": args.index_name,
                 "index_type": args.index_type
             },
@@ -108,18 +102,14 @@ def load_vector_index(args):
     """Load vector index into memory."""
     try:
         ds = muller.load(args.path)
-        column = args.column or args.tensor
-        if not column:
-            raise ValueError("Column name is required")
-        ds.load_vector_index(column, index_name=args.index_name)
+        ds.load_vector_index(args.tensor, index_name=args.index_name)
 
         return {
             "success": True,
             "operation": "load_vector_index",
             "result": {
                 "path": args.path,
-                "column": column,
-                "tensor": column,
+                "tensor": args.tensor,
                 "index_name": args.index_name
             },
             "message": f"Loaded vector index: {args.index_name}"
@@ -137,9 +127,6 @@ def vector_search(args):
     """Perform vector similarity search."""
     try:
         ds = muller.load(args.path, read_only=True)
-        column = args.column or args.tensor
-        if not column:
-            raise ValueError("Column name is required")
 
         # Load query vectors
         if args.query_file:
@@ -159,7 +146,7 @@ def vector_search(args):
 
         distances, indices = ds.vector_search(
             query_vector=query_vector,
-            column_name=column,
+            tensor_name=args.tensor,
             index_name=args.index_name,
             **kwargs
         )
@@ -169,8 +156,7 @@ def vector_search(args):
             "operation": "vector_search",
             "result": {
                 "path": args.path,
-                "column": column,
-                "tensor": column,
+                "tensor": args.tensor,
                 "index_name": args.index_name,
                 "num_queries": len(query_vector),
                 "topk": args.topk,
@@ -198,20 +184,19 @@ def aggregate_query(args):
         selected = args.select.split(",") if args.select else []
         order_by = args.order_by.split(",") if args.order_by else []
 
-        # Parse aggregate columns. The legacy --aggregate-tensors flag is still accepted.
-        aggregate_columns_arg = args.aggregate_columns or args.aggregate_tensors
-        aggregate_columns = []
-        if aggregate_columns_arg:
-            if aggregate_columns_arg == "*":
-                aggregate_columns = ["*"]
+        # Parse aggregate tensors
+        aggregate_tensors = []
+        if args.aggregate_tensors:
+            if args.aggregate_tensors == "*":
+                aggregate_tensors = ["*"]
             else:
-                aggregate_columns = aggregate_columns_arg.split(",")
+                aggregate_tensors = args.aggregate_tensors.split(",")
 
         result = ds.aggregate_vectorized(
-            group_by_columns=group_by,
-            selected_columns=selected,
-            order_by_columns=order_by,
-            aggregate_columns=aggregate_columns
+            group_by_tensors=group_by,
+            selected_tensors=selected,
+            order_by_tensors=order_by,
+            aggregate_tensors=aggregate_tensors
         )
 
         return {
@@ -245,7 +230,7 @@ def filter_advanced(args):
             for cond in args.conditions.split(";"):
                 parts = cond.split(",")
                 if len(parts) >= 3:
-                    column, op, value = parts[0], parts[1], ",".join(parts[2:])
+                    tensor, op, value = parts[0], parts[1], ",".join(parts[2:])
                     # Try to convert value to number
                     try:
                         if "." in value:
@@ -254,7 +239,7 @@ def filter_advanced(args):
                             value = int(value)
                     except ValueError:
                         value = value.strip('"\'')
-                    conditions.append((column, op, value))
+                    conditions.append((tensor, op, value))
 
         # Parse connectors
         connectors = args.connectors.split(",") if args.connectors else []
@@ -301,14 +286,12 @@ def main():
     # Create index command
     create_index_parser = subparsers.add_parser("create-index", help="Create inverted index")
     create_index_parser.add_argument("--path", required=True, help="Dataset path")
-    create_index_parser.add_argument("--columns", help="Comma-separated column names")
-    create_index_parser.add_argument("--tensors", help=argparse.SUPPRESS)
+    create_index_parser.add_argument("--tensors", help="Comma-separated tensor names")
 
     # Create vector index command
     create_vector_index_parser = subparsers.add_parser("create-vector-index", help="Create vector index")
     create_vector_index_parser.add_argument("--path", required=True, help="Dataset path")
-    create_vector_index_parser.add_argument("--column", help="Column name")
-    create_vector_index_parser.add_argument("--tensor", help=argparse.SUPPRESS)
+    create_vector_index_parser.add_argument("--tensor", required=True, help="Tensor name")
     create_vector_index_parser.add_argument("--index-name", required=True, help="Index name")
     create_vector_index_parser.add_argument("--index-type", required=True, help="Index type: FLAT/HNSWFLAT/DISKANN")
     create_vector_index_parser.add_argument("--metric", default="l2", help="Distance metric: l2/cosine")
@@ -319,15 +302,13 @@ def main():
     # Load vector index command
     load_vector_index_parser = subparsers.add_parser("load-vector-index", help="Load vector index")
     load_vector_index_parser.add_argument("--path", required=True, help="Dataset path")
-    load_vector_index_parser.add_argument("--column", help="Column name")
-    load_vector_index_parser.add_argument("--tensor", help=argparse.SUPPRESS)
+    load_vector_index_parser.add_argument("--tensor", required=True, help="Tensor name")
     load_vector_index_parser.add_argument("--index-name", required=True, help="Index name")
 
     # Vector search command
     vector_search_parser = subparsers.add_parser("vector-search", help="Vector similarity search")
     vector_search_parser.add_argument("--path", required=True, help="Dataset path")
-    vector_search_parser.add_argument("--column", help="Column name")
-    vector_search_parser.add_argument("--tensor", help=argparse.SUPPRESS)
+    vector_search_parser.add_argument("--tensor", required=True, help="Tensor name")
     vector_search_parser.add_argument("--index-name", required=True, help="Index name")
     vector_search_parser.add_argument("--query-file", required=True, help="Query vectors file (.npy)")
     vector_search_parser.add_argument("--topk", type=int, default=10, help="Top K results")
@@ -336,16 +317,15 @@ def main():
     # Aggregate command
     aggregate_parser = subparsers.add_parser("aggregate", help="Aggregation query")
     aggregate_parser.add_argument("--path", required=True, help="Dataset path")
-    aggregate_parser.add_argument("--group-by", help="Comma-separated group by columns")
-    aggregate_parser.add_argument("--select", help="Comma-separated selected columns")
-    aggregate_parser.add_argument("--order-by", help="Comma-separated order by columns")
-    aggregate_parser.add_argument("--aggregate-columns", help="Aggregate columns (* or column:func)")
-    aggregate_parser.add_argument("--aggregate-tensors", help=argparse.SUPPRESS)
+    aggregate_parser.add_argument("--group-by", help="Comma-separated group by tensors")
+    aggregate_parser.add_argument("--select", help="Comma-separated selected tensors")
+    aggregate_parser.add_argument("--order-by", help="Comma-separated order by tensors")
+    aggregate_parser.add_argument("--aggregate-tensors", help="Aggregate tensors (* or tensor:func)")
 
     # Filter advanced command
     filter_parser = subparsers.add_parser("filter-advanced", help="Advanced filtering")
     filter_parser.add_argument("--path", required=True, help="Dataset path")
-    filter_parser.add_argument("--conditions", help="Conditions: column,op,value;...")
+    filter_parser.add_argument("--conditions", help="Conditions: tensor,op,value;...")
     filter_parser.add_argument("--connectors", help="Connectors: AND,OR,NOT")
     filter_parser.add_argument("--offset", type=int, default=0, help="Offset")
     filter_parser.add_argument("--limit", type=int, help="Limit")

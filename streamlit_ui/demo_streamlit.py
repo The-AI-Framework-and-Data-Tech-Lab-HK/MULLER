@@ -29,8 +29,8 @@ if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
 from utils import (
-    create_dataset, create_columns, add_samples, update_sample, delete_sample,
-    add_column, rename_column, delete_column,
+    create_dataset, create_tensors, add_samples, update_sample, delete_sample,
+    add_tensor, rename_tensor, delete_tensor,
     run_query, dataset_to_dataframe, dataframe_for_streamlit_display,
     list_image_tensor_names, decode_muller_image_sample, pil_resize_to_height,
     pil_square_thumbnail, pil_fit_inside,
@@ -254,10 +254,10 @@ if page == "📊 Dataset Management":
                 st.session_state.schema_next_id = len(_DEFAULT_ROWS)
 
             # --- Bulk-load schema from JSON ---
-            # Typing a multi-column schema cell-by-cell is tedious and error
+            # Typing a multi-tensor schema cell-by-cell is tedious and error
             # prone, and skipping this step is the #1 reason the demo looks
             # "not like a COCO dataset" afterwards (you silently end up with
-            # the 3-column placeholder schema, and a subsequent Batch Upload
+            # the 3-tensor placeholder schema, and a subsequent Batch Upload
             # of a 9-column CSV drops 8 of the 9 columns on the floor). So:
             #   - this expander is *open by default* (file uploader visible)
             #   - below, ``Create Dataset`` blocks on the default placeholder
@@ -265,12 +265,12 @@ if page == "📊 Dataset Management":
             with st.expander("📥 Load schema from JSON file", expanded=True):
                 _schema_help_md = (
                     "Accepted shapes:  \n"
-                    "• `{\"columns\": [{\"name\": …, \"htype\": …, \"dtype\": …, "
+                    "• `{\"tensors\": [{\"name\": …, \"htype\": …, \"dtype\": …, "
                     "\"sample_compression\": …}, …]}`  \n"
                     "• a plain list of the same objects  \n"
                     "• a `{name: {htype, dtype, sample_compression}}` dict  \n"
                     "See `sigmod_demo_revision/coco_schema.json` for a ready-to-use "
-                    "9-column COCO2017 example (8 core columns + `description` text)."
+                    "9-tensor COCO2017 example (8 core tensors + `description` text)."
                 )
                 schema_file = st.file_uploader(
                     "Schema JSON", type=["json"], key="schema_json_upload",
@@ -279,8 +279,8 @@ if page == "📊 Dataset Management":
 
                 def _normalize_schema_entries(data):
                     """Return (list-of-dicts, errors)."""
-                    if isinstance(data, dict) and ("columns" in data or "tensors" in data):
-                        raw = data.get("columns") or data.get("tensors") or []
+                    if isinstance(data, dict) and "tensors" in data:
+                        raw = data.get("tensors") or []
                     elif isinstance(data, list):
                         raw = data
                     elif isinstance(data, dict):
@@ -306,7 +306,7 @@ if page == "📊 Dataset Management":
                         # MULLER accepts (e.g. "Any", "List", "jpeg" alias)
                         # that may not be in the shortlist dropdown, so we
                         # pass them through and let MULLER validate at
-                        # column-creation time; the UI below dynamically
+                        # tensor-creation time; the UI below dynamically
                         # extends its dropdowns to show whatever we got.
                         if ht not in HTYPE_OPTIONS:
                             errs.append(
@@ -327,7 +327,7 @@ if page == "📊 Dataset Management":
                         if errs:
                             st.error("Schema JSON has problems:\n- " + "\n- ".join(errs))
                         elif not normalized:
-                            st.error("Schema JSON has no valid column entries.")
+                            st.error("Schema JSON has no valid tensor entries.")
                         else:
                             # Fingerprint the applied schema so streamlit's
                             # auto-reruns don't re-apply on every keystroke.
@@ -342,7 +342,7 @@ if page == "📊 Dataset Management":
                                 st.session_state.schema_next_id = next_id
                                 st.session_state["_schema_json_sig"] = sig
                                 st.success(
-                                    f"Loaded **{len(normalized)}** column rows "
+                                    f"Loaded **{len(normalized)}** tensor rows "
                                     f"from `{schema_file.name}`."
                                 )
                                 st.rerun()
@@ -353,7 +353,7 @@ if page == "📊 Dataset Management":
                                     "below to tweak, or upload a different file."
                                 )
 
-            st.markdown("**Define Columns**")
+            st.markdown("**Define Tensors**")
 
             # Header row
             h_name, h_htype, h_dtype, h_comp, h_btns = st.columns([3, 2, 2, 2, 1])
@@ -434,7 +434,7 @@ if page == "📊 Dataset Management":
                 if not col_names:
                     st.error("Please define at least one column.")
                 elif len(col_names) != len(set(col_names)):
-                    st.error("Column names must be unique.")
+                    st.error("Tensor names must be unique.")
                 else:
                     raw = (ds_path_input or "").strip()
                     p = Path(raw).expanduser()
@@ -459,7 +459,7 @@ if page == "📊 Dataset Management":
                                         cfg["sample_compression"] = comp
                                     schema[name] = cfg
 
-                                err = create_columns(ds, schema)
+                                err = create_tensors(ds, schema)
                                 if err:
                                     st.error(err)
                                 else:
@@ -512,7 +512,7 @@ elif page == "📝 View & Edit":
             st.warning("Please create or load a dataset first.")
         else:
             ds = st.session_state.dataset
-            column_names = list(ds.columns.keys())
+            tensor_names = list(ds.tensors.keys())
             n = len(ds)
 
             # Per-action "flash" slots — each Add / Import / Delete / Update
@@ -524,7 +524,7 @@ elif page == "📝 View & Edit":
             # avoid stale "Deleted sample N" lines on a fresh dataset.
             _flash_keys = (
                 "_flash_add", "_flash_csv", "_flash_del", "_flash_upd",
-                "_flash_add_col", "_flash_ren_col", "_flash_del_col",
+                "_flash_add_tensor", "_flash_ren_tensor", "_flash_del_tensor",
             )
             _flash_ctx = (st.session_state.get("dataset_path"), ds.branch)
             if st.session_state.get("_flash_ctx") != _flash_ctx:
@@ -547,7 +547,7 @@ elif page == "📝 View & Edit":
             # 1) Dataset details
             col1, col2, col3 = st.columns(3)
             col1.metric("Samples", n)
-            col2.metric("Columns", len(ds.columns))
+            col2.metric("Tensors", len(ds.tensors))
             col3.metric("Branch", ds.branch)
 
             # Rendered just below Dataset details. The long preview/table code
@@ -558,11 +558,11 @@ elif page == "📝 View & Edit":
             # 2) Current Schema (collapsed by default)
             with st.expander("Current Schema", expanded=False):
                 schema_rows = []
-                for column_name, column in ds.columns.items():
-                    schema_rows.append({"Column": column_name, "htype": column.htype, "dtype": str(column.dtype)})
+                for tname, t in ds.tensors.items():
+                    schema_rows.append({"Tensor": tname, "htype": t.htype, "dtype": str(t.dtype)})
                 st.dataframe(pd.DataFrame(schema_rows), width="stretch", hide_index=True)
 
-            # 1a–1c) Column-level CRUD (schema changes on the live dataset).
+            # 1a–1c) Tensor-level CRUD (schema changes on the live dataset).
             # Placed right after Current Schema so all schema operations live
             # together at the top of the page, before any row-level edits.
             # Dropdown options for htype / dtype / sample_compression mirror
@@ -599,50 +599,50 @@ elif page == "📝 View & Edit":
             ]
             COMPRESSION_OPTIONS_VE = ["(none)", "lz4", "jpg", "png", "mp4", "mp3", "wav"]
 
-            # Filter out MULLER's internal _uuid column from rename/delete
+            # Filter out MULLER's internal _uuid tensor from rename/delete
             # dropdowns — the backend rejects both operations on it anyway,
             # so hiding it from the picker prevents a confusing failure path.
-            user_columns = [c for c in column_names if c != "_uuid"]
+            user_tensors = [t for t in tensor_names if t != "_uuid"]
 
-            # 3) Column-level Modification
-            with st.expander("Column-level Modification", expanded=False):
-                st.markdown("##### Add Column")
+            # 3) Tensor-level Modification
+            with st.expander("Tensor-level Modification", expanded=False):
+                st.markdown("##### Add Tensor")
                 ac_name = st.text_input(
-                    "Column name", key="add_col_name",
+                    "Tensor name", key="add_tensor_name",
                     help="Must be unique within the dataset.",
                 )
                 ac_c1, ac_c2, ac_c3 = st.columns(3)
                 with ac_c1:
-                    ac_htype = st.selectbox("htype", HTYPE_OPTIONS_VE, key="add_col_htype")
+                    ac_htype = st.selectbox("htype", HTYPE_OPTIONS_VE, key="add_tensor_htype")
                 with ac_c2:
-                    ac_dtype = st.selectbox("dtype", DTYPE_OPTIONS_VE, key="add_col_dtype")
+                    ac_dtype = st.selectbox("dtype", DTYPE_OPTIONS_VE, key="add_tensor_dtype")
                 with ac_c3:
                     ac_comp = st.selectbox(
-                        "sample_compression", COMPRESSION_OPTIONS_VE, key="add_col_comp"
+                        "sample_compression", COMPRESSION_OPTIONS_VE, key="add_tensor_comp"
                     )
                 # Padding default: on, to keep the dataset row-aligned. This
-                # mirrors what most users expect (a new column "fills in"
+                # mirrors what most users expect (a new tensor "fills in"
                 # with empty values for existing rows) and avoids the
-                # uneven-length-columns trap. Users importing values
+                # uneven-length-tensors trap. Users importing values
                 # immediately afterwards (e.g. via CSV) can turn it off.
                 ac_pad = st.checkbox(
                     f"Pad existing {n} row(s) with empty values",
                     value=True,
-                    key="add_col_pad",
-                    help="When on, the new column is back-filled with None for every "
-                    "existing row so all columns stay the same length. Turn off "
+                    key="add_tensor_pad",
+                    help="When on, the new tensor is back-filled with None for every "
+                    "existing row so all tensors stay the same length. Turn off "
                     "if the next step is a batch import that supplies values "
                     "for every row.",
                 )
                 ac_commit_msg = st.text_input(
                     "Commit Message",
-                    value="Add column via Streamlit UI",
-                    key="add_col_commit_msg",
+                    value="Add tensor via Streamlit UI",
+                    key="add_tensor_commit_msg",
                 )
-                if st.button("Add Column", type="primary", key="btn_add_col"):
+                if st.button("Add Tensor", type="primary", key="btn_add_tensor"):
                     dtype_val = None if ac_dtype == "(auto)" else ac_dtype
                     comp_val = None if ac_comp == "(none)" else ac_comp
-                    err = add_column(
+                    err = add_tensor(
                         ds,
                         name=ac_name,
                         htype=ac_htype,
@@ -653,28 +653,28 @@ elif page == "📝 View & Edit":
                         commit_message=ac_commit_msg,
                     )
                     if err:
-                        st.session_state["_flash_add_col"] = ("error", err)
+                        st.session_state["_flash_add_tensor"] = ("error", err)
                     else:
-                        st.session_state["_flash_add_col"] = (
+                        st.session_state["_flash_add_tensor"] = (
                             "success",
-                            f"Column `{ac_name}` added "
+                            f"Tensor `{ac_name}` added "
                             f"(htype=`{ac_htype}`, dtype=`{ac_dtype}`, "
                             f"compression=`{ac_comp}`"
                             + (f", padded {n} rows" if ac_pad and n > 0 else "")
                             + f"; commit: `{ac_commit_msg}`).",
                         )
                         st.rerun()
-                _render_flash("_flash_add_col")
+                _render_flash("_flash_add_tensor")
 
                 st.markdown("---")
-                st.markdown("##### Rename Column")
-                if not user_columns:
-                    st.info("No user columns to rename.")
+                st.markdown("##### Rename Tensor")
+                if not user_tensors:
+                    st.info("No user tensors to rename.")
                 else:
                     rc_c1, rc_c2 = st.columns(2)
                     with rc_c1:
                         rc_old = st.selectbox(
-                            "Column to rename", user_columns, key="ren_col_old"
+                            "Tensor to rename", user_tensors, key="ren_tensor_old"
                         )
                     with rc_c2:
                         rc_new = st.text_input(
@@ -683,11 +683,11 @@ elif page == "📝 View & Edit":
                         )
                     rc_commit_msg = st.text_input(
                         "Commit Message",
-                        value="Rename column via Streamlit UI",
-                        key="ren_col_commit_msg",
+                        value="Rename tensor via Streamlit UI",
+                        key="ren_tensor_commit_msg",
                     )
-                    if st.button("Rename Column", type="secondary", key="btn_ren_col"):
-                        err = rename_column(
+                    if st.button("Rename Tensor", type="secondary", key="btn_ren_tensor"):
+                        err = rename_tensor(
                             ds,
                             old_name=rc_old,
                             new_name=rc_new,
@@ -695,45 +695,45 @@ elif page == "📝 View & Edit":
                             commit_message=rc_commit_msg,
                         )
                         if err:
-                            st.session_state["_flash_ren_col"] = ("error", err)
+                            st.session_state["_flash_ren_tensor"] = ("error", err)
                         else:
-                            st.session_state["_flash_ren_col"] = (
+                            st.session_state["_flash_ren_tensor"] = (
                                 "success",
                                 f"Renamed `{rc_old}` → `{rc_new}` "
                                 f"(commit: `{rc_commit_msg}`).",
                             )
                             st.rerun()
-                _render_flash("_flash_ren_col")
+                _render_flash("_flash_ren_tensor")
 
                 st.markdown("---")
-                st.markdown("##### Delete Column")
-                if not user_columns:
-                    st.info("No user columns to delete.")
+                st.markdown("##### Delete Tensor")
+                if not user_tensors:
+                    st.info("No user tensors to delete.")
                 else:
                     dc_target = st.selectbox(
-                        "Column to delete", user_columns, key="del_col_target"
+                        "Tensor to delete", user_tensors, key="del_tensor_target"
                     )
                     # Two-step confirmation: the action is destructive and
                     # also commits, so an accidental click would otherwise be
                     # immediately persisted. The confirmation text echoes the
-                    # target name to make it obvious which column is at risk.
+                    # target name to make it obvious which tensor is at risk.
                     dc_confirm = st.checkbox(
                         f"I understand this permanently removes `{dc_target}` "
                         f"and all its data from the current branch.",
-                        key="del_col_confirm",
+                        key="del_tensor_confirm",
                     )
                     dc_commit_msg = st.text_input(
                         "Commit Message",
-                        value="Delete column via Streamlit UI",
-                        key="del_col_commit_msg",
+                        value="Delete tensor via Streamlit UI",
+                        key="del_tensor_commit_msg",
                     )
                     if st.button(
-                        "Delete Column",
+                        "Delete Tensor",
                         type="secondary",
-                        key="btn_del_col",
+                        key="btn_del_tensor",
                         disabled=not dc_confirm,
                     ):
-                        err = delete_column(
+                        err = delete_tensor(
                             ds,
                             name=dc_target,
                             large_ok=True,
@@ -741,20 +741,20 @@ elif page == "📝 View & Edit":
                             commit_message=dc_commit_msg,
                         )
                         if err:
-                            st.session_state["_flash_del_col"] = ("error", err)
+                            st.session_state["_flash_del_tensor"] = ("error", err)
                         else:
-                            st.session_state["_flash_del_col"] = (
+                            st.session_state["_flash_del_tensor"] = (
                                 "success",
-                                f"Deleted column `{dc_target}` "
+                                f"Deleted tensor `{dc_target}` "
                                 f"(commit: `{dc_commit_msg}`).",
                             )
                             st.rerun()
-                _render_flash("_flash_del_col")
+                _render_flash("_flash_del_tensor")
 
             # 4) Sample(row)-level Modification
             #
             # Create the expander slot here so it is displayed immediately
-            # after the column-level controls. The row-level UI itself is
+            # after the tensor-level controls. The row-level UI itself is
             # populated below, after the preview/table code, to keep this
             # long page section readable without changing the rendered order.
             sample_mod_slot = st.expander("Sample(row)-level Modification", expanded=False)
@@ -827,7 +827,7 @@ elif page == "📝 View & Edit":
                             preview_col = img_tensors[0]
                         else:
                             preview_col = st.selectbox(
-                                "Image column",
+                                "Image tensor",
                                 img_tensors,
                                 key="dm_img_preview_tensor",
                             )
@@ -1257,48 +1257,48 @@ elif page == "📝 View & Edit":
             with sample_mod_slot:
                 st.markdown("##### Add Single Sample")
                 sample_data = {}
-                for col_name in column_names:
-                    column = ds.columns[col_name]
-                    htype = column.htype
-                    dtype_str = str(column.dtype)
+                for tname in tensor_names:
+                    t = ds.tensors[tname]
+                    htype = t.htype
+                    dtype_str = str(t.dtype)
 
                     if htype == "text":
-                        sample_data[col_name] = [st.text_input(f"{col_name} (text)", key=f"add_{col_name}")]
+                        sample_data[tname] = [st.text_input(f"{tname} (text)", key=f"add_{tname}")]
                     elif htype in ("image", "video", "audio"):
                         file_types = {"image": ["jpg", "png", "jpeg", "bmp"],
                                       "video": ["mp4", "avi", "mov"],
                                       "audio": ["mp3", "wav", "flac"]}
                         uploaded_file = st.file_uploader(
-                            f"{col_name} ({htype})", type=file_types.get(htype, []),
-                            key=f"add_{col_name}")
+                            f"{tname} ({htype})", type=file_types.get(htype, []),
+                            key=f"add_{tname}")
                         if uploaded_file is not None:
-                            sample_data[col_name] = [np.frombuffer(uploaded_file.read(), dtype=np.uint8)]
+                            sample_data[tname] = [np.frombuffer(uploaded_file.read(), dtype=np.uint8)]
                         else:
-                            sample_data[col_name] = None
+                            sample_data[tname] = None
                     elif "int" in dtype_str:
-                        val = st.text_input(f"{col_name} (integer)", value="0", key=f"add_{col_name}")
+                        val = st.text_input(f"{tname} (integer)", value="0", key=f"add_{tname}")
                         try:
-                            sample_data[col_name] = [int(val)]
+                            sample_data[tname] = [int(val)]
                         except ValueError:
-                            sample_data[col_name] = [0]
+                            sample_data[tname] = [0]
                     elif "float" in dtype_str:
-                        val = st.text_input(f"{col_name} (float)", value="0.0", key=f"add_{col_name}")
+                        val = st.text_input(f"{tname} (float)", value="0.0", key=f"add_{tname}")
                         try:
-                            sample_data[col_name] = [float(val)]
+                            sample_data[tname] = [float(val)]
                         except ValueError:
-                            sample_data[col_name] = [0.0]
+                            sample_data[tname] = [0.0]
                     elif "bool" in dtype_str:
-                        val = st.checkbox(f"{col_name} (bool)", key=f"add_{col_name}")
-                        sample_data[col_name] = [val]
+                        val = st.checkbox(f"{tname} (bool)", key=f"add_{tname}")
+                        sample_data[tname] = [val]
                     else:
-                        val = st.text_input(f"{col_name}", key=f"add_{col_name}")
+                        val = st.text_input(f"{tname}", key=f"add_{tname}")
                         try:
-                            sample_data[col_name] = [int(val)]
+                            sample_data[tname] = [int(val)]
                         except ValueError:
                             try:
-                                sample_data[col_name] = [float(val)]
+                                sample_data[tname] = [float(val)]
                             except ValueError:
-                                sample_data[col_name] = [val]
+                                sample_data[tname] = [val]
 
                 add_commit_msg = st.text_input(
                     "Commit Message", value="Add sample via Streamlit UI",
@@ -1328,8 +1328,8 @@ elif page == "📝 View & Edit":
                 if uploaded is not None:
                     df_up = pd.read_csv(uploaded)
 
-                    matched = [col for col in df_up.columns if col in column_names]
-                    unmatched = [col for col in df_up.columns if col not in column_names]
+                    matched = [col for col in df_up.columns if col in tensor_names]
+                    unmatched = [col for col in df_up.columns if col not in tensor_names]
                     if matched:
                         st.info(f"Matched columns: {matched}")
                     if unmatched:
@@ -1365,9 +1365,9 @@ elif page == "📝 View & Edit":
                     #    variable-length area / category_id / id / iscrowd)
                     #  - "skip" (i.e. not in path_columns) for plain scalars
                     #
-                    # Why sniff the CSV content instead of the column metadata:
-                    # at Batch Upload time the target column was just created
-                    # and holds no samples, so column.shape is (0,) and we
+                    # Why sniff the CSV content instead of the tensor metadata:
+                    # at Batch Upload time the target tensor was just created
+                    # and holds no samples, so tensor.shape is (0,) and we
                     # cannot tell from the schema alone whether a `generic`
                     # column will hold one number or a length-N array. The
                     # CSV cell itself is the source of truth — a leading `[`
@@ -1388,8 +1388,8 @@ elif page == "📝 View & Edit":
                                 return True
                         return False
 
-                    def _infer_mode(col_name, column):
-                        h = (column.htype or "").lower()
+                    def _infer_mode(col_name, tensor):
+                        h = (tensor.htype or "").lower()
                         if h in ("image", "video", "audio"):
                             return "read"
                         # Some htypes are inherently non-scalar regardless of
@@ -1404,7 +1404,7 @@ elif page == "📝 View & Edit":
                             return "json"
                         return "skip"
 
-                    inferred = {col: _infer_mode(col, ds.columns[col]) for col in matched}
+                    inferred = {col: _infer_mode(col, ds.tensors[col]) for col in matched}
 
                     # Apply inferred import modes silently so the demo UI stays
                     # compact after a CSV is uploaded.
@@ -1418,7 +1418,7 @@ elif page == "📝 View & Edit":
                     if st.button("Import CSV Data"):
                         if not matched:
                             st.session_state["_flash_csv"] = (
-                                "error", f"CSV columns must match dataset columns: {column_names}"
+                                "error", f"CSV columns must match tensors: {tensor_names}"
                             )
                         else:
                             tmp_path = None
@@ -1475,7 +1475,7 @@ elif page == "📝 View & Edit":
                     st.info("No samples to update.")
                 else:
                     upd_idx = st.number_input("Sample Index to Update", min_value=0, max_value=max(n - 1, 0), value=0, key="upd_idx")
-                    upd_column = st.selectbox("Column", list(ds.columns.keys()), key="upd_column")
+                    upd_tensor = st.selectbox("Tensor", list(ds.tensors.keys()), key="upd_tensor")
                     upd_val = st.text_input("New Value", key="upd_val")
                     upd_commit_msg = st.text_input(
                         "Commit Message", value="Update sample via Streamlit UI",
@@ -1483,8 +1483,8 @@ elif page == "📝 View & Edit":
                     if st.button("Update", type="secondary"):
                         # Try JSON first so users can paste array literals like
                         # "[1]" or "[[1,2,3,4]]" (matches the CSV-import "json"
-                        # mode for non-scalar columns); fall back to int / float
-                        # / raw string for scalar columns.
+                        # mode for non-scalar tensors); fall back to int / float
+                        # / raw string for scalar tensors.
                         parsed = None
                         _stripped = (upd_val or "").strip()
                         if _stripped and _stripped[0] in "[{":
@@ -1501,14 +1501,14 @@ elif page == "📝 View & Edit":
                                     parsed = float(upd_val)
                                 except ValueError:
                                     parsed = upd_val
-                        err = update_sample(ds, upd_column, upd_idx, parsed)
+                        err = update_sample(ds, upd_tensor, upd_idx, parsed)
                         if err:
                             st.session_state["_flash_upd"] = ("error", err)
                         else:
                             commit_dataset(ds, message=upd_commit_msg)
                             st.session_state["_flash_upd"] = (
                                 "success",
-                                f"Updated `{upd_column}[{upd_idx}]` -> `{parsed}` (commit: `{upd_commit_msg}`).",
+                                f"Updated `{upd_tensor}[{upd_idx}]` -> `{parsed}` (commit: `{upd_commit_msg}`).",
                             )
                             st.rerun()
                 _render_flash("_flash_upd")
@@ -1524,7 +1524,7 @@ elif page == "🔍 Query & Search":
         st.warning("Please create or load a dataset first.")
     else:
         ds = st.session_state.dataset
-        column_names = list(ds.columns.keys())
+        tensor_names = list(ds.tensors.keys())
 
         # Result of the most recent query/view load lives across reruns so the
         # user can scroll, tweak display options, and then save it as a view
@@ -1673,7 +1673,7 @@ elif page == "🔍 Query & Search":
 
                 with c_field:
                     field = st.selectbox("Field" if pos == 0 else "Field",
-                                         column_names, key=f"field_{cid}",
+                                         tensor_names, key=f"field_{cid}",
                                          label_visibility="collapsed" if pos > 0 else "visible")
                 with c_op:
                     op = st.selectbox("Op" if pos == 0 else "Op",
@@ -1745,37 +1745,37 @@ elif page == "🔍 Query & Search":
         else:  # Vector search
             st.subheader("Vector Similarity Search")
 
-            vec_columns = list_vector_tensor_names(ds)
+            vec_tensors = list_vector_tensor_names(ds)
             idx_map = list_vector_indexes(ds)
 
-            if not vec_columns and not idx_map:
+            if not vec_tensors and not idx_map:
                 st.info(
-                    "No `embedding`/`vector` column declared on this dataset. "
+                    "No `embedding`/`vector` tensor declared on this dataset. "
                     "Add one with `htype='embedding'` (float32), populate it, "
                     "then build an index via `ds.create_vector_index(...)`."
                 )
             else:
-                # Allow choosing any column that *has* an index, even if its
+                # Allow choosing any tensor that *has* an index, even if its
                 # declared htype is not literally 'embedding' — so users with
-                # generic float columns + an index are not blocked.
-                selectable = sorted(set(vec_columns) | set(idx_map.keys()))
+                # generic float tensors + an index are not blocked.
+                selectable = sorted(set(vec_tensors) | set(idx_map.keys()))
                 col_t, col_i, col_k = st.columns([2, 2, 1])
                 with col_t:
-                    v_column = st.selectbox(
-                        "Embedding column", selectable, key="qs_vec_column"
+                    v_tensor = st.selectbox(
+                        "Embedding tensor", selectable, key="qs_vec_tensor"
                     )
-                indexes_for_column = idx_map.get(v_column, [])
+                indexes_for_tensor = idx_map.get(v_tensor, [])
                 with col_i:
-                    if indexes_for_column:
+                    if indexes_for_tensor:
                         v_index = st.selectbox(
-                            "Vector index", indexes_for_column, key="qs_vec_index"
+                            "Vector index", indexes_for_tensor, key="qs_vec_index"
                         )
                     else:
                         v_index = st.text_input(
                             "Vector index (will be created)",
                             value="demo_flat",
                             key="qs_vec_index_new",
-                            help="No existing index on this column; one will be "
+                            help="No existing index on this tensor; one will be "
                             "built on the current commit when you run the search.",
                         )
                 with col_k:
@@ -1784,7 +1784,7 @@ elif page == "🔍 Query & Search":
                         key="qs_vec_topk",
                     )
 
-                dim = tensor_embedding_dim(ds, v_column)
+                dim = tensor_embedding_dim(ds, v_tensor)
                 qv_help = (
                     f"Comma/space-separated floats. Expected dimension: {dim}"
                     if dim else "Comma/space-separated floats."
@@ -1798,13 +1798,13 @@ elif page == "🔍 Query & Search":
                 col_metric, col_type = st.columns(2)
                 with col_metric:
                     metric = st.selectbox("Metric", ["l2", "cosine", "ip"], key="qs_vec_metric",
-                                          disabled=bool(indexes_for_column),
+                                          disabled=bool(indexes_for_tensor),
                                           help="Ignored when reusing an existing index "
                                           "(that index was built with its own metric).")
                 with col_type:
                     index_type = st.selectbox("Index type", ["FLAT", "IVF", "IVFPQ"],
                                               key="qs_vec_idx_type",
-                                              disabled=bool(indexes_for_column),
+                                              disabled=bool(indexes_for_tensor),
                                               help="Used only when creating a new index.")
 
                 if st.button("Run Vector Search", type="primary", key="qs_run_vec"):
@@ -1812,12 +1812,12 @@ elif page == "🔍 Query & Search":
                     if perr:
                         st.error(perr)
                     else:
-                        if not indexes_for_column:
+                        if not indexes_for_tensor:
                             with st.spinner(
-                                f"Building vector index '{v_index}' on '{v_column}'…"
+                                f"Building vector index '{v_index}' on '{v_tensor}'…"
                             ):
                                 ierr = ensure_vector_index(
-                                    ds, v_column, v_index,
+                                    ds, v_tensor, v_index,
                                     index_type=index_type, metric=metric,
                                 )
                             if ierr:
@@ -1825,7 +1825,7 @@ elif page == "🔍 Query & Search":
                                 st.stop()
                         with st.spinner("Searching…"):
                             result_ds, positions, dists, verr = run_vector_search(
-                                ds, v_column, v_index, qvec, topk=int(topk),
+                                ds, v_tensor, v_index, qvec, topk=int(topk),
                             )
                         if verr:
                             st.error(verr)
@@ -1833,12 +1833,12 @@ elif page == "🔍 Query & Search":
                             n_hits = len(result_ds) if result_ds is not None else 0
                             st.session_state["qs_result_ds"] = result_ds
                             st.session_state["qs_result_desc"] = (
-                                f"Vector search on `{v_column}` (index `{v_index}`, "
+                                f"Vector search on `{v_tensor}` (index `{v_index}`, "
                                 f"top-{int(topk)}) → {n_hits} hits"
                             )
                             st.session_state["qs_result_meta"] = {
                                 "source": "vector",
-                                "column": v_column,
+                                "tensor": v_tensor,
                                 "index": v_index,
                                 "topk": int(topk),
                                 "positions": list(positions or []),
@@ -1930,7 +1930,7 @@ elif page == "🔍 Query & Search":
                             img_tensors_r[0]
                             if len(img_tensors_r) == 1
                             else st.selectbox(
-                                "Image column", img_tensors_r, key="qs_view_img_col"
+                                "Image tensor", img_tensors_r, key="qs_view_img_col"
                             )
                         )
 
@@ -2224,7 +2224,7 @@ elif page == "🌿 Version Control":
         else:
             st.caption(
                 f"Compare the current branch (`{ds.branch}`, *ours*) against another "
-                "branch (*theirs*). Shows column-level schema changes (created / "
+                "branch (*theirs*). Shows tensor-level schema changes (created / "
                 "renamed / deleted columns) and per-column row changes each side made "
                 "since their common ancestor."
             )
@@ -2258,7 +2258,7 @@ elif page == "🌿 Version Control":
                         label = "ours" if side_key == "ours" else "theirs"
                         st.markdown(f"**`{side['branch']}` ({label})**")
 
-                        # --- Columnar-level changes first ---
+                        # --- Tensor-level changes first ---
                         schema_lines = []
                         for c in side["created_cols"]:
                             schema_lines.append(f"🟢 created column `{c}`")
@@ -2266,18 +2266,18 @@ elif page == "🌿 Version Control":
                             schema_lines.append(f"🔵 renamed column `{old}` → `{new}`")
                         for c in side["deleted_cols"]:
                             schema_lines.append(f"🔴 deleted column `{c}`")
-                        st.markdown("_Column-level changes_")
+                        st.markdown("_Tensor-level changes_")
                         if schema_lines:
                             st.markdown("\n".join(f"- {ln}" for ln in schema_lines))
                         else:
-                            st.caption("No column-level changes.")
+                            st.caption("No tensor-level changes.")
 
                         # --- Row-level rollup second ---
                         st.markdown("_Row-level changes_")
                         if side["row_changes"]:
                             rows = [
                                 {
-                                    "Column": cname,
+                                    "Tensor": cname,
                                     "Added": stats["added"],
                                     "Updated": stats["updated"],
                                     "Deleted": stats["deleted"],
@@ -2320,10 +2320,10 @@ elif page == "🌿 Version Control":
                     st.session_state.pop("_merge_detect_state", None)
                     st.error(err)
                 else:
-                    # Check column-level conflicts (renames/deletes)
-                    has_column_conflicts = bool(result["columns"])
+                    # Check tensor-level conflicts (renames/deletes)
+                    has_tensor_conflicts = bool(result["columns"])
 
-                    # Check sample-level conflicts across ALL common columns.
+                    # Check sample-level conflicts across ALL common tensors.
                     # MULLER's `detect_merge_conflict` returns *differences vs. LCA*
                     # in `del_ori_idx / del_tar_idx / app_ori_idx / app_tar_idx`,
                     # NOT conflicts. A real conflict requires divergence on the
@@ -2337,7 +2337,7 @@ elif page == "🌿 Version Control":
                     #   - delete: only a conflict when both sides popped the SAME
                     #     LCA index (`pop_resolution` is needed). One-sided deletes
                     #     merge cleanly without a strategy.
-                    columns_with_sample_conflicts = []
+                    tensors_with_sample_conflicts = []
                     for col_name, cdata in result.get("records", {}).items():
                         has_append = bool(cdata.get("app_ori_idx") and cdata.get("app_tar_idx"))
                         has_update = False
@@ -2348,73 +2348,73 @@ elif page == "🌿 Version Control":
                         tar_del = set(cdata.get("del_tar_idx") or [])
                         has_delete = bool(ori_del & tar_del)
                         if has_append or has_update or has_delete:
-                            columns_with_sample_conflicts.append(col_name)
-                    columns_with_delete_diffs = [
+                            tensors_with_sample_conflicts.append(col_name)
+                    tensors_with_delete_diffs = [
                         col_name
                         for col_name, cdata in result.get("records", {}).items()
                         if (cdata.get("del_ori_idx") or cdata.get("del_tar_idx"))
                     ]
                     _merge_detect_state = {
                         "ctx": _merge_detect_ctx,
-                        "has_conflicts": bool(has_column_conflicts or columns_with_sample_conflicts),
+                        "has_conflicts": bool(has_tensor_conflicts or tensors_with_sample_conflicts),
                         "result": result,
-                        "columns_with_sample_conflicts": columns_with_sample_conflicts,
-                        "columns_with_delete_diffs": columns_with_delete_diffs,
+                        "tensors_with_sample_conflicts": tensors_with_sample_conflicts,
+                        "tensors_with_delete_diffs": tensors_with_delete_diffs,
                     }
                     st.session_state["_merge_detect_state"] = _merge_detect_state
 
             if _merge_detect_state:
                 result = _merge_detect_state["result"]
-                columns_with_sample_conflicts = _merge_detect_state["columns_with_sample_conflicts"]
-                columns_with_delete_diffs = _merge_detect_state.get("columns_with_delete_diffs", [])
-                has_column_conflicts = bool(result["columns"])
+                tensors_with_sample_conflicts = _merge_detect_state["tensors_with_sample_conflicts"]
+                tensors_with_delete_diffs = _merge_detect_state.get("tensors_with_delete_diffs", [])
+                has_tensor_conflicts = bool(result["columns"])
 
-                # `result["columns"]` is NOT a list of column names. When there
-                # is a column-level (rename / delete) conflict MULLER returns a
+                # `result["columns"]` is NOT a list of tensor names. When there
+                # is a tensor-level (rename / delete) conflict MULLER returns a
                 # dict shaped like ``{"original": {old: new_ours},
                 # "target": {old: new_theirs}}`` (``original`` = current branch,
                 # ``target`` = the branch being merged in). Flatten it to the set
-                # of conflicting LCA column names + the two proposed renames so
-                # the UI can name the real column instead of "target/original".
-                _col_conf = result["columns"] if isinstance(result["columns"], dict) else {}
-                _col_conf_ours = _col_conf.get("original", {}) or {}
-                _col_conf_theirs = _col_conf.get("target", {}) or {}
-                column_conflict_names = set(_col_conf_ours) | set(_col_conf_theirs)
+                # of conflicting LCA tensor names + the two proposed renames so
+                # the UI can name the real tensor instead of "target/original".
+                _tensor_conf = result["columns"] if isinstance(result["columns"], dict) else {}
+                _tensor_conf_ours = _tensor_conf.get("original", {}) or {}
+                _tensor_conf_theirs = _tensor_conf.get("target", {}) or {}
+                tensor_conflict_names = set(_tensor_conf_ours) | set(_tensor_conf_theirs)
 
                 if _merge_detect_state["has_conflicts"]:
                     conflict_summary = []
-                    if has_column_conflicts:
+                    if has_tensor_conflicts:
                         conflict_summary.append(
-                            f"Column conflicts: {', '.join(sorted(column_conflict_names))}"
+                            f"Tensor conflicts: {', '.join(sorted(tensor_conflict_names))}"
                         )
-                    if columns_with_sample_conflicts:
-                        conflict_summary.append(f"Sample conflicts in: {', '.join(columns_with_sample_conflicts)}")
+                    if tensors_with_sample_conflicts:
+                        conflict_summary.append(f"Sample conflicts in: {', '.join(tensors_with_sample_conflicts)}")
                     st.warning(" | ".join(conflict_summary))
 
-                    if has_column_conflicts:
-                        col_conf_rows = []
-                        for cname in sorted(column_conflict_names):
-                            col_conf_rows.append({
-                                "Column (at ancestor)": cname,
-                                "Current (ours)": _col_conf_ours.get(cname, "— (unchanged/deleted)"),
-                                "Source (theirs)": _col_conf_theirs.get(cname, "— (unchanged/deleted)"),
+                    if has_tensor_conflicts:
+                        tensor_conf_rows = []
+                        for tname in sorted(tensor_conflict_names):
+                            tensor_conf_rows.append({
+                                "Tensor (at ancestor)": tname,
+                                "Current (ours)": _tensor_conf_ours.get(tname, "— (unchanged/deleted)"),
+                                "Source (theirs)": _tensor_conf_theirs.get(tname, "— (unchanged/deleted)"),
                             })
-                        st.markdown("**Column-level (schema) conflicts:**")
-                        st.dataframe(pd.DataFrame(col_conf_rows), width="stretch", hide_index=True)
+                        st.markdown("**Tensor-level (schema) conflicts:**")
+                        st.dataframe(pd.DataFrame(tensor_conf_rows), width="stretch", hide_index=True)
                         st.caption(
-                            "The same column was renamed/deleted differently on both "
-                            "branches. Resolve by ticking **Force column conflict "
+                            "The same tensor was renamed/deleted differently on both "
+                            "branches. Resolve by ticking **Force tensor conflict "
                             "resolution** below (registers the source's version as a "
-                            "new column here), or rename both sides to the same name first."
+                            "new tensor here), or rename both sides to the same name first."
                         )
 
-                    # Show details for all columns that have any conflict
-                    all_conflict_columns = set(columns_with_sample_conflicts)
-                    if has_column_conflicts:
-                        all_conflict_columns.update(column_conflict_names)
+                    # Show details for all tensors that have any conflict
+                    all_conflict_tensors = set(tensors_with_sample_conflicts)
+                    if has_tensor_conflicts:
+                        all_conflict_tensors.update(tensor_conflict_names)
 
                     summary_rows = []
-                    for col_name in sorted(all_conflict_columns):
+                    for col_name in sorted(all_conflict_tensors):
                         cdata = result["records"].get(col_name, {})
                         update_ori = (cdata.get("update_values") or {}).get("update_ori", [])
                         update_tar = (cdata.get("update_values") or {}).get("update_tar", [])
@@ -2426,8 +2426,8 @@ elif page == "🌿 Version Control":
                         del_ori = set(cdata.get("del_ori_idx") or [])
                         del_tar = set(cdata.get("del_tar_idx") or [])
                         summary_rows.append({
-                            "Column": col_name,
-                            "Column conflict": "yes" if col_name in column_conflict_names else "",
+                            "Tensor": col_name,
+                            "Tensor conflict": "yes" if col_name in tensor_conflict_names else "",
                             "Append rows (ours/theirs)": (
                                 f"{len(cdata.get('app_ori_idx') or [])} / "
                                 f"{len(cdata.get('app_tar_idx') or [])}"
@@ -2441,7 +2441,7 @@ elif page == "🌿 Version Control":
                         st.dataframe(pd.DataFrame(summary_rows), width="stretch", hide_index=True)
 
                     with st.expander("Show conflict details (optional)", expanded=False):
-                        for col_name in sorted(all_conflict_columns):
+                        for col_name in sorted(all_conflict_tensors):
                             st.markdown(f"#### `{col_name}`")
                             cdata = result["records"].get(col_name, {})
 
@@ -2508,17 +2508,17 @@ elif page == "🌿 Version Control":
                     with c3:
                         update_res = st.radio("Update", ["ours", "theirs"], key="m_upd")
 
-                    # Column-level (rename / delete) conflicts cannot be settled by
+                    # Tensor-level (rename / delete) conflicts cannot be settled by
                     # the row-level radios above — they need `force=True`, which tells
-                    # MULLER to register the source branch's renamed column as a *new*
-                    # column on the current branch instead of aborting the merge.
+                    # MULLER to register the source branch's renamed tensor as a *new*
+                    # tensor on the current branch instead of aborting the merge.
                     force_merge = False
-                    if has_column_conflicts:
+                    if has_tensor_conflicts:
                         force_merge = st.checkbox(
-                            "Force column conflict resolution (register source's "
-                            "renamed/added column as a new column here)",
+                            "Force tensor conflict resolution (register source's "
+                            "renamed/added tensor as a new tensor here)",
                             key="m_force",
-                            help="Required to merge when the same column was "
+                            help="Required to merge when the same tensor was "
                             "renamed/deleted differently on both branches. Without it "
                             "the merge aborts with a MergeConflictError.",
                         )
@@ -2539,15 +2539,15 @@ elif page == "🌿 Version Control":
                             st.rerun()
                 else:
                     st.success("No conflicts detected — safe to merge.")
-                    if columns_with_delete_diffs:
+                    if tensors_with_delete_diffs:
                         st.caption(
                             "This merge still includes one-sided deletes. Choose how delete records should apply."
                         )
                         delete_rows = []
-                        for col_name in sorted(columns_with_delete_diffs):
+                        for col_name in sorted(tensors_with_delete_diffs):
                             cdata = result["records"].get(col_name, {})
                             delete_rows.append({
-                                "Column": col_name,
+                                "Tensor": col_name,
                                 "Current-only deletes": len(set(cdata.get("del_ori_idx") or [])),
                                 "Source-only deletes": len(set(cdata.get("del_tar_idx") or [])),
                             })
@@ -2599,11 +2599,11 @@ elif page == "⚡ Benchmarks":
         ds = st.session_state.dataset
         st.subheader("MULLER vs Parquet: Query Performance & Storage")
 
-        column_names = list(ds.columns.keys())
+        tensor_names = list(ds.tensors.keys())
 
         col1, col2, col3 = st.columns(3)
         with col1:
-            bm_field = st.selectbox("Field", column_names, key="bm_field")
+            bm_field = st.selectbox("Field", tensor_names, key="bm_field")
         with col2:
             bm_op = st.selectbox("Operator", [">", "<", "==", ">=", "<=", "!="], key="bm_op")
         with col3:
@@ -2662,9 +2662,9 @@ elif page == "ℹ️ About":
 
 ```
 Dataset
-├── Column
+├── Tensor (column)
 │   ├── ChunkEngine (variable-sized chunks)
-│   └── TensorMeta (internal storage metadata)
+│   └── TensorMeta (htype, dtype, compression)
 ├── VersionControl
 │   ├── CommitDAG
 │   └── MergeStrategies (ours / theirs / both)
