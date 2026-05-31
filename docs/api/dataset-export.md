@@ -20,7 +20,7 @@ Convert the dataset to a pandas DataFrame. This is useful for data analysis and 
 
 #### Parameters
 
-- **columns** (`List[str]`, optional): The columns to export. If not provided, all columns will be exported. The legacy `tensor_list` keyword remains supported.
+- **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
 - **index_list** (`List[int]`, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to `None`.
 - **force** (`bool`, optional): If `True`, exports the dataset regardless of size. Datasets with more than `TO_DATAFRAME_SAFE_LIMIT` samples might take a long time to export. Defaults to `False`.
 
@@ -39,15 +39,15 @@ ds = muller.load("./my_dataset")
 df = ds.to_dataframe()
 print(df.head())
 
-# Export specific columns
-df = ds.to_dataframe(columns=["images", "labels"])
+# Export specific tensors
+df = ds.to_dataframe(tensor_list=["images", "labels"])
 
 # Export specific rows
 df = ds.to_dataframe(index_list=[0, 1, 2, 10, 20])
 
-# Export specific columns and rows
+# Export specific tensors and rows
 df = ds.to_dataframe(
-    columns=["labels", "categories"],
+    tensor_list=["labels", "categories"],
     index_list=[1, 2, 4, 8, 16]
 )
 
@@ -80,7 +80,7 @@ Export the dataset to JSON format. This creates a JSON file or returns JSON data
 #### Parameters
 
 - **path** (`str`, optional): Path where the JSON file will be saved. If not provided, returns JSON string. Defaults to `None`.
-- **columns** (`List[str]`, optional): The columns to export. If not provided, all columns will be exported. The legacy `tensors` keyword remains supported.
+- **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
 - **index_list** (`List[int]`, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to `None`.
 - **indent** (`int`, optional): Number of spaces for JSON indentation. Defaults to `2`.
 
@@ -98,8 +98,8 @@ ds = muller.load("./my_dataset")
 # Export to JSON file
 ds.to_json("./output/dataset.json")
 
-# Export specific columns
-ds.to_json("./output/labels_only.json", columns=["labels"])
+# Export specific tensors
+ds.to_json("./output/labels_only.json", tensor_list=["labels"])
 
 # Export specific samples
 ds.to_json("./output/sample_subset.json", index_list=[0, 1, 2, 3, 4])
@@ -126,7 +126,7 @@ Convert the dataset to Apache Arrow format. This is useful for interoperability 
 
 #### Parameters
 
-- **columns** (`List[str]`, optional): The columns to export. If not provided, all columns will be exported.
+- **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
 - **index_list** (`List[int]`, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to `None`.
 
 #### Returns
@@ -144,8 +144,8 @@ ds = muller.load("./my_dataset")
 arrow_table = ds.to_arrow()
 print(arrow_table.schema)
 
-# Arrow export includes all columns
-arrow_table = ds.to_arrow()
+# Export specific tensors
+arrow_table = ds.to_arrow(tensor_list=["labels", "features"])
 
 # Export specific samples
 arrow_table = ds.to_arrow(index_list=range(100))
@@ -176,7 +176,7 @@ Export the dataset to MindRecord format, which is used by MindSpore framework. T
 #### Parameters
 
 - **path** (`str`): Path where the MindRecord files will be saved.
-- This method exports all columns.
+- **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
 - **index_list** (`List[int]`, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to `None`.
 - **num_shards** (`int`, optional): Number of MindRecord shards to create. Defaults to `1`.
 - **overwrite** (`bool`, optional): If `True`, overwrites existing files. Defaults to `False`.
@@ -198,8 +198,11 @@ ds.to_mindrecord("./output/dataset.mindrecord")
 # Export with multiple shards
 ds.to_mindrecord("./output/dataset.mindrecord", num_shards=8)
 
-# Export all columns
-ds.to_mindrecord("./output/images_labels.mindrecord")
+# Export specific tensors
+ds.to_mindrecord(
+    "./output/images_labels.mindrecord",
+    tensor_list=["images", "labels"]
+)
 
 # Export subset of data
 ds.to_mindrecord(
@@ -235,7 +238,7 @@ Write the dataset to Parquet format. Parquet is a columnar storage format that i
 #### Parameters
 
 - **path** (`str`): Path where the Parquet file(s) will be saved.
-- **columns** (`List[str]`, optional): The columns to export. If not provided, all columns will be exported.
+- **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
 - **index_list** (`List[int]`, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to `None`.
 - **compression** (`str`, optional): Compression codec to use (e.g., "snappy", "gzip", "brotli"). Defaults to `"snappy"`.
 - **row_group_size** (`int`, optional): Number of rows per row group. Defaults to `None` (automatic).
@@ -257,10 +260,10 @@ ds.write_to_parquet("./output/dataset.parquet")
 # Write with specific compression
 ds.write_to_parquet("./output/dataset.parquet", compression="gzip")
 
-# Write specific columns
+# Write specific tensors
 ds.write_to_parquet(
     "./output/labels_only.parquet",
-    columns=["labels", "categories"]
+    tensor_list=["labels", "categories"]
 )
 
 # Write subset of data

@@ -15,7 +15,7 @@ import os
 import numpy as np
 
 # Add project root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 try:
     import muller
@@ -147,37 +147,35 @@ def export_to_json(args):
 
 
 def export_to_numpy(args):
-    """Convert a column to a NumPy array."""
+    """Convert tensor to NumPy array."""
     try:
         ds = muller.load(args.path, read_only=True)
 
-        column = args.column or args.tensor
-        if not column:
+        if not args.tensor:
             return {
                 "success": False,
                 "operation": "to_numpy",
                 "error": "ValueError",
-                "message": "Column name is required for NumPy export"
+                "message": "Tensor name is required for NumPy export"
             }
 
-        # Get column data
-        column_data = ds[column].numpy()
+        # Get tensor data
+        tensor_data = ds[args.tensor].numpy()
 
         if args.output:
-            np.save(args.output, column_data)
+            np.save(args.output, tensor_data)
 
             return {
                 "success": True,
                 "operation": "to_numpy",
                 "result": {
                     "path": args.path,
-                    "column": column,
-                    "tensor": column,
+                    "tensor": args.tensor,
                     "output": args.output,
-                    "shape": column_data.shape,
-                    "dtype": str(column_data.dtype)
+                    "shape": tensor_data.shape,
+                    "dtype": str(tensor_data.dtype)
                 },
-                "message": f"Exported column to NumPy: {args.output}"
+                "message": f"Exported tensor to NumPy: {args.output}"
             }
         else:
             return {
@@ -185,12 +183,11 @@ def export_to_numpy(args):
                 "operation": "to_numpy",
                 "result": {
                     "path": args.path,
-                    "column": column,
-                    "tensor": column,
-                    "shape": column_data.shape,
-                    "dtype": str(column_data.dtype)
+                    "tensor": args.tensor,
+                    "shape": tensor_data.shape,
+                    "dtype": str(tensor_data.dtype)
                 },
-                "message": "Converted column to NumPy (in-memory)"
+                "message": "Converted tensor to NumPy (in-memory)"
             }
     except Exception as e:
         return {
@@ -240,7 +237,6 @@ def get_export_info(args):
             "result": {
                 "path": args.path,
                 "num_samples": ds.num_samples,
-                "columns": list(ds.columns.keys()),
                 "tensors": list(ds.tensors.keys()),
                 "supported_formats": [
                     "arrow",
@@ -284,10 +280,9 @@ def main():
     to_json_parser.add_argument("--pretty", action="store_true", help="Pretty print")
 
     # To NumPy command
-    to_numpy_parser = subparsers.add_parser("to-numpy", help="Export column to NumPy")
+    to_numpy_parser = subparsers.add_parser("to-numpy", help="Export tensor to NumPy")
     to_numpy_parser.add_argument("--path", required=True, help="Dataset path")
-    to_numpy_parser.add_argument("--column", help="Column name")
-    to_numpy_parser.add_argument("--tensor", help=argparse.SUPPRESS)
+    to_numpy_parser.add_argument("--tensor", required=True, help="Tensor name")
     to_numpy_parser.add_argument("--output", help="Output .npy file")
 
     # To MindRecord command

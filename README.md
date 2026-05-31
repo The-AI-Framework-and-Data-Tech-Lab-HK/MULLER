@@ -188,13 +188,11 @@ import muller
 # Create dataset
 ds = muller.dataset(path='test_dataset/', overwrite=True)
 
-# Create columns
-ds.create_column('my_images', htype='image', sample_compression='jpg')
-ds.create_column('labels', htype='generic', dtype='int')
-ds.create_column('categories', htype='text')
-ds.create_column('description', htype='text')
-
-# Backward compatibility: create_tensor/delete_tensor remain supported aliases.
+# Create tensors (columns)
+ds.create_tensor('my_images', htype='image', sample_compression='jpg')
+ds.create_tensor('labels', htype='generic', dtype='int')
+ds.create_tensor('categories', htype='text')
+ds.create_tensor('description', htype='text')
 
 # Append data
 with ds:
@@ -230,15 +228,15 @@ res_3 = ds.filter_vectorized([("description", "CONTAINS", "cat"), ("labels", "<"
 
 # Aggregation
 res_4 = ds.aggregate_vectorized(
-    group_by_columns=['categories'],
-    selected_columns=['labels', 'categories'],
-    aggregate_columns=["*"]
+    group_by_tensors=['categories'],
+    selected_tensors=['labels', 'categories'],
+    aggregate_tensors=["*"]
 )
 
 # Vector similarity search
 import numpy as np
 ds_vec = muller.dataset(path="test_vec/", overwrite=True)
-ds_vec.create_column("embeddings", htype="vector", dtype="float32", dimension=32)
+ds_vec.create_tensor("embeddings", htype="vector", dtype="float32", dimension=32)
 ds_vec.embeddings.extend(np.random.rand(10000, 32).astype(np.float32))
 
 ds_vec.commit()
@@ -246,7 +244,7 @@ ds_vec.create_vector_index("embeddings", index_name="hnsw", index_type="HNSWFLAT
 ds_vec.load_vector_index("embeddings", index_name="hnsw")
 
 query = np.random.rand(100, 32)
-distances, indices = ds_vec.vector_search(query_vector=query, column_name="embeddings", index_name="hnsw", topk=10)
+distances, indices = ds_vec.vector_search(query_vector=query, tensor_name="embeddings", index_name="hnsw", topk=10)
 ```
 
 ### Version Control
@@ -334,7 +332,7 @@ ds.merge("dev-2",
 ```python
 import numpy as np
 ds.checkout("dev-3", create=True)
-ds.create_column("features", htype="generic", dtype="float")
+ds.create_tensor("features", htype="generic", dtype="float")
 ds.features.extend(np.arange(0, 1.1, 0.1))
 ds.commit()
 
