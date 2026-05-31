@@ -43,6 +43,7 @@ from muller.util.exceptions import (
 )
 from muller.core.storage_keys import (
     get_chunk_id_encoder_key,
+    get_chunk_key,
     get_creds_encoder_key,
     get_dataset_meta_key,
     get_tensor_commit_chunk_map_key,
@@ -1367,16 +1368,12 @@ def copy_tensors(
 
     dest_ds_meta = dest_ds.meta
     hidden_tensors = []
-    dest_new_ori = {}
     src_tensor_names += hidden_tensors
     if dest_tensor_names is None:
         dest_tensor_names = src_tensor_names
     else:
         if len(src_tensor_names) != len(dest_tensor_names):
             raise Exception
-    for dest_tensor_name in dest_tensor_names:
-        if src_ds.version_state.get('tensor_names', {}).get(dest_tensor_name, {}):
-            dest_new_ori[dest_tensor_name] = src_ds.version_state.get('tensor_names', {}).get(dest_tensor_name, {})
 
     src_keys, dest_keys = _get_src_and_dst_keys(src_ds,
                           src_tensor_names,
@@ -1385,10 +1382,14 @@ def copy_tensors(
 
     _copy_objects((src_keys, dest_keys), src_ds.base_storage, dest_ds.base_storage)
     dest_ds_meta.tensors += dest_tensor_names
-    if dest_new_ori:
-        dest_ds_meta.tensor_names.update({k: dest_new_ori.get(k, k) for k in dest_new_ori})
-    else:
-        dest_ds_meta.tensor_names.update({k: k for k in dest_tensor_names})
+    # The copied tensor's meta, encoders and chunk-map are all written on the
+    # destination under ``dest_tensor_name`` (see ``_get_src_and_dst_keys``), so
+    # the visible-name -> internal-key map must be identity. A previous version
+    # mirrored the *source's* internal key here, which for a tensor that was
+    # renamed on the source branch (internal key != visible name, e.g. a
+    # force-merged rename-vs-delete) pointed at a key that does not exist on the
+    # destination and raised ``TensorDoesNotExistError`` from ``populate_meta``.
+    dest_ds_meta.tensor_names.update({k: k for k in dest_tensor_names})
     dest_ds_meta.hidden_tensors += hidden_tensors
     dest_ds.base_storage[get_dataset_meta_key(dest_ds.pending_commit_id)] = dest_ds_meta.tobytes()
     dest_ds.storage.clear_cache_without_flush()
@@ -1406,7 +1407,8 @@ def _get_src_and_dst_keys(src_ds,
         dest_keys.append(get_tensor_meta_key("", dest_ds.pending_commit_id))
 
     for src_tensor_name, dest_tensor_name in zip(src_tensor_names, dest_tensor_names):
-        chunks = _get_chunks_for_tensor(src_ds[src_tensor_name], dest_ds.pending_commit_id, dest_tensor_name)
+        src_tensor = src_ds[src_tensor_name]
+        chunks = _get_chunks_for_tensor(src_tensor, dest_ds.pending_commit_id, dest_tensor_name)
         dest_chunk_map_key = get_tensor_commit_chunk_map_key(
             dest_tensor_name, dest_ds.pending_commit_id
         )
@@ -1414,7 +1416,19 @@ def _get_src_and_dst_keys(src_ds,
         for chunk in chunks:
             dest_chunk_map.add(*chunk)
         dest_ds.base_storage[dest_chunk_map_key] = dest_chunk_map.tobytes()
-        src_keys += _get_meta_files_for_tensor(src_ds[src_tensor_name].key,
+        # Chunk binaries are addressed by ``<tensor_internal_key>/chunks/<name>``
+        # (commit-independent) and the read path resolves them from the tensor's
+        # own key, NOT from the chunk-map ``key`` redirect. When the source tensor
+        # was renamed on its branch (internal key != destination visible name,
+        # e.g. a force-merged rename), the binaries therefore must be physically
+        # copied to the destination key path or reads raise ``GetChunkError``.
+        src_internal_key = src_tensor.key
+        if src_internal_key != dest_tensor_name:
+            for cid in src_tensor.chunk_engine.chunk_id_encoder.encoded[:, 0]:
+                cname = ChunkIdEncoder.name_from_id(cid)
+                src_keys.append(get_chunk_key(src_internal_key, cname))
+                dest_keys.append(get_chunk_key(dest_tensor_name, cname))
+        src_keys += _get_meta_files_for_tensor(src_tensor.key,
                                                src_ds.pending_commit_id,
                                                dest_ds.split_tensor_meta)
         dest_keys += _get_meta_files_for_tensor(dest_tensor_name,

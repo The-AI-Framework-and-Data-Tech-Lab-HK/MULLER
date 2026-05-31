@@ -871,11 +871,21 @@ def branch_ops(ds: Any, action: str, branch_name: Optional[str] = None,
 
         elif action == "merge":
             strategy = merge_strategy or {}
+            # ``delete_removed_tensors`` defaults to True here (the backend default
+            # is False). Without it, a column dropped on the source branch is
+            # *not* removed on merge — the merge silently keeps the column on the
+            # current branch. Propagating the column delete matches the intuition
+            # that merging a branch should carry over its schema changes
+            # (add/rename already propagate unconditionally). Callers can override
+            # via the ``delete_removed_tensors`` key. ``force`` is exposed the same
+            # way so a deliberate column rename/delete conflict can be forced.
             ds.merge(
                 branch_name,
                 append_resolution=strategy.get("append_resolution", "ours"),
                 pop_resolution=strategy.get("pop_resolution", "ours"),
                 update_resolution=strategy.get("update_resolution", "ours"),
+                delete_removed_tensors=strategy.get("delete_removed_tensors", True),
+                force=strategy.get("force", False),
             )
             return f"Merged '{branch_name}' into current branch", None
 
@@ -902,6 +912,94 @@ def branch_ops(ds: Any, action: str, branch_name: Optional[str] = None,
 
     except Exception as e:
         return None, f"Branch operation failed: {e}"
+
+
+def _aggregate_side_changes(dataset_side: List[Dict], tensor_side: List[Dict]) -> Dict[str, Any]:
+    """Collapse one branch's per-commit diff (since the LCA) into a single summary.
+
+    ``dataset_side`` is the list of per-commit *dataset* diffs (schema-level:
+    ``renamed`` / ``deleted`` columns), ``tensor_side`` the list of per-commit
+    *tensor* diffs (keyed by column name, with ``created`` / ``data_added`` /
+    ``data_updated`` / ``data_deleted``). Both come straight from
+    ``Dataset.diff(..., as_dict=True)``.
+
+    Returns a dict with the column-level (created / renamed / deleted) and a
+    per-column row-level (added / updated / deleted) rollup. This is what the
+    Version Control page's "Branch Diff" view renders — columnar-level changes
+    first, row-level counts second.
+    """
+    created_cols: List[str] = []
+    renamed_cols: Dict[str, str] = {}
+    deleted_cols: List[str] = []
+    row_changes: Dict[str, Dict[str, int]] = {}
+
+    for ds_change in dataset_side or []:
+        for old, new in (ds_change.get("renamed") or {}).items():
+            renamed_cols[old] = new
+        for name in (ds_change.get("deleted") or []):
+            if name not in deleted_cols:
+                deleted_cols.append(name)
+
+    for t_change in tensor_side or []:
+        for col_name, change in (t_change or {}).items():
+            if col_name == "commit_id" or not isinstance(change, dict):
+                continue
+            if change.get("created"):
+                if col_name not in created_cols:
+                    created_cols.append(col_name)
+            data_added = change.get("data_added", [0, 0]) or [0, 0]
+            added = max(0, int(data_added[1]) - int(data_added[0]))
+            updated = len(change.get("data_updated", set()) or set())
+            deleted = len(change.get("data_deleted", set()) or set())
+            if added or updated or deleted:
+                bucket = row_changes.setdefault(
+                    col_name, {"added": 0, "updated": 0, "deleted": 0}
+                )
+                bucket["added"] += added
+                bucket["updated"] += updated
+                bucket["deleted"] += deleted
+
+    return {
+        "created_cols": created_cols,
+        "renamed_cols": renamed_cols,
+        "deleted_cols": deleted_cols,
+        "row_changes": row_changes,
+    }
+
+
+def diff_branches(ds: Any, ours: str, theirs: str) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Diff ``ours`` against ``theirs`` and split the result by side.
+
+    Wraps ``Dataset.diff(ours, theirs, as_dict=True)``, which returns the
+    changes each branch accumulated *since their lowest common ancestor*. We
+    aggregate each side independently so the UI can show "what changed on the
+    current branch" vs "what changed on the other branch" — which is exactly
+    the columnar-level (create / rename / delete column) story a branch diff
+    is meant to surface, on top of the row-level counts.
+
+    Returns ``({"ours": {...}, "theirs": {...}}, None)`` on success.
+    """
+    try:
+        changes = ds.diff(ours, theirs, as_dict=True, show_value=False)
+        dataset_pair = changes.get("dataset")
+        tensor_pair = changes.get("tensor")
+        # When both ids are given MULLER returns a 2-tuple (ours_list, theirs_list)
+        # for each of "dataset" and "tensor"; guard the shape defensively.
+        if isinstance(dataset_pair, tuple) and len(dataset_pair) == 2:
+            ds_ours, ds_theirs = dataset_pair
+        else:
+            ds_ours, ds_theirs = (dataset_pair or []), []
+        if isinstance(tensor_pair, tuple) and len(tensor_pair) == 2:
+            t_ours, t_theirs = tensor_pair
+        else:
+            t_ours, t_theirs = (tensor_pair or []), []
+
+        return {
+            "ours": {"branch": ours, **_aggregate_side_changes(ds_ours, t_ours)},
+            "theirs": {"branch": theirs, **_aggregate_side_changes(ds_theirs, t_theirs)},
+        }, None
+    except Exception as e:
+        return None, f"Diff failed: {e}"
 
 
 def classify_deletable_branches(ds: Any) -> Dict[str, Optional[str]]:
