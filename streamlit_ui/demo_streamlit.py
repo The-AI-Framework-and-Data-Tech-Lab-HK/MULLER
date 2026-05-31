@@ -37,7 +37,7 @@ from utils import (
     pil_preview_available,
     is_coco2017_muller_schema, load_coco_category_id_to_name,
     pil_overlay_coco_bboxes, DEFAULT_COCO_INSTANCES_JSON,
-    branch_ops, benchmark_parquet_vs_muller,
+    branch_ops, diff_branches, benchmark_parquet_vs_muller,
     load_dataset, release_dataset_lock, commit_dataset, get_dataset_info,
     build_commit_graph_data, render_commit_graph_html,
     classify_deletable_branches,
@@ -2210,6 +2210,86 @@ elif page == "🌿 Version Control":
                     for bname, reason in blocked:
                         st.markdown(f"- `{bname}` — _{reason}_")
 
+        # --- Branch Diff ---
+        # Surfaces what each branch changed since their common ancestor, with
+        # columnar-level (created / renamed / deleted column) changes shown
+        # first and per-column row counts second. This is the read-only
+        # counterpart to Merge: inspect the divergence before resolving it.
+        st.markdown("---")
+        st.subheader("Branch Diff")
+
+        diff_branches_list = [b for b in branch_names if b != ds.branch]
+        if not diff_branches_list:
+            st.info("No other branches to diff against.")
+        else:
+            st.caption(
+                f"Compare the current branch (`{ds.branch}`, *ours*) against another "
+                "branch (*theirs*). Shows column-level schema changes (created / "
+                "renamed / deleted columns) and per-column row changes each side made "
+                "since their common ancestor."
+            )
+            diff_target = st.selectbox(
+                "Diff against branch", diff_branches_list, key="diff_target"
+            )
+            # Drop a stale diff when the user switched branches or picked a
+            # different target — the cached result would otherwise be misleading.
+            _branch_diff_ctx = (ds.branch, diff_target, getattr(ds, "commit_id", None))
+            _existing_diff = st.session_state.get("_branch_diff_state")
+            if _existing_diff and _existing_diff.get("ctx") != _branch_diff_ctx:
+                st.session_state.pop("_branch_diff_state", None)
+            if st.button("Compute Diff", key="compute_branch_diff"):
+                diff_res, diff_err = diff_branches(ds, ds.branch, diff_target)
+                if diff_err:
+                    st.session_state.pop("_branch_diff_state", None)
+                    st.error(diff_err)
+                else:
+                    st.session_state["_branch_diff_state"] = {
+                        "ctx": (ds.branch, diff_target, getattr(ds, "commit_id", None)),
+                        "result": diff_res,
+                    }
+
+            _branch_diff_state = st.session_state.get("_branch_diff_state")
+            if _branch_diff_state:
+                diff_res = _branch_diff_state["result"]
+                d_c1, d_c2 = st.columns(2)
+                for side_key, col in (("ours", d_c1), ("theirs", d_c2)):
+                    side = diff_res[side_key]
+                    with col:
+                        label = "ours" if side_key == "ours" else "theirs"
+                        st.markdown(f"**`{side['branch']}` ({label})**")
+
+                        # --- Columnar-level changes first ---
+                        schema_lines = []
+                        for c in side["created_cols"]:
+                            schema_lines.append(f"🟢 created column `{c}`")
+                        for old, new in side["renamed_cols"].items():
+                            schema_lines.append(f"🔵 renamed column `{old}` → `{new}`")
+                        for c in side["deleted_cols"]:
+                            schema_lines.append(f"🔴 deleted column `{c}`")
+                        st.markdown("_Column-level changes_")
+                        if schema_lines:
+                            st.markdown("\n".join(f"- {ln}" for ln in schema_lines))
+                        else:
+                            st.caption("No column-level changes.")
+
+                        # --- Row-level rollup second ---
+                        st.markdown("_Row-level changes_")
+                        if side["row_changes"]:
+                            rows = [
+                                {
+                                    "Column": cname,
+                                    "Added": stats["added"],
+                                    "Updated": stats["updated"],
+                                    "Deleted": stats["deleted"],
+                                }
+                                for cname, stats in sorted(side["row_changes"].items())
+                            ]
+                            st.dataframe(
+                                pd.DataFrame(rows), width="stretch", hide_index=True
+                            )
+                        else:
+                            st.caption("No row-level changes.")
+
         # --- Merge & Conflicts ---
         st.markdown("---")
         st.subheader("Merge & Conflict Resolution")
@@ -2289,18 +2369,49 @@ elif page == "🌿 Version Control":
                 columns_with_delete_diffs = _merge_detect_state.get("columns_with_delete_diffs", [])
                 has_column_conflicts = bool(result["columns"])
 
+                # `result["columns"]` is NOT a list of column names. When there
+                # is a column-level (rename / delete) conflict MULLER returns a
+                # dict shaped like ``{"original": {old: new_ours},
+                # "target": {old: new_theirs}}`` (``original`` = current branch,
+                # ``target`` = the branch being merged in). Flatten it to the set
+                # of conflicting LCA column names + the two proposed renames so
+                # the UI can name the real column instead of "target/original".
+                _col_conf = result["columns"] if isinstance(result["columns"], dict) else {}
+                _col_conf_ours = _col_conf.get("original", {}) or {}
+                _col_conf_theirs = _col_conf.get("target", {}) or {}
+                column_conflict_names = set(_col_conf_ours) | set(_col_conf_theirs)
+
                 if _merge_detect_state["has_conflicts"]:
                     conflict_summary = []
                     if has_column_conflicts:
-                        conflict_summary.append(f"Column conflicts: {', '.join(result['columns'])}")
+                        conflict_summary.append(
+                            f"Column conflicts: {', '.join(sorted(column_conflict_names))}"
+                        )
                     if columns_with_sample_conflicts:
                         conflict_summary.append(f"Sample conflicts in: {', '.join(columns_with_sample_conflicts)}")
                     st.warning(" | ".join(conflict_summary))
 
+                    if has_column_conflicts:
+                        col_conf_rows = []
+                        for cname in sorted(column_conflict_names):
+                            col_conf_rows.append({
+                                "Column (at ancestor)": cname,
+                                "Current (ours)": _col_conf_ours.get(cname, "— (unchanged/deleted)"),
+                                "Source (theirs)": _col_conf_theirs.get(cname, "— (unchanged/deleted)"),
+                            })
+                        st.markdown("**Column-level (schema) conflicts:**")
+                        st.dataframe(pd.DataFrame(col_conf_rows), width="stretch", hide_index=True)
+                        st.caption(
+                            "The same column was renamed/deleted differently on both "
+                            "branches. Resolve by ticking **Force column conflict "
+                            "resolution** below (registers the source's version as a "
+                            "new column here), or rename both sides to the same name first."
+                        )
+
                     # Show details for all columns that have any conflict
                     all_conflict_columns = set(columns_with_sample_conflicts)
                     if has_column_conflicts:
-                        all_conflict_columns.update(result["columns"])
+                        all_conflict_columns.update(column_conflict_names)
 
                     summary_rows = []
                     for col_name in sorted(all_conflict_columns):
@@ -2316,7 +2427,7 @@ elif page == "🌿 Version Control":
                         del_tar = set(cdata.get("del_tar_idx") or [])
                         summary_rows.append({
                             "Column": col_name,
-                            "Column conflict": "yes" if col_name in result.get("columns", []) else "",
+                            "Column conflict": "yes" if col_name in column_conflict_names else "",
                             "Append rows (ours/theirs)": (
                                 f"{len(cdata.get('app_ori_idx') or [])} / "
                                 f"{len(cdata.get('app_tar_idx') or [])}"
@@ -2397,11 +2508,27 @@ elif page == "🌿 Version Control":
                     with c3:
                         update_res = st.radio("Update", ["ours", "theirs"], key="m_upd")
 
+                    # Column-level (rename / delete) conflicts cannot be settled by
+                    # the row-level radios above — they need `force=True`, which tells
+                    # MULLER to register the source branch's renamed column as a *new*
+                    # column on the current branch instead of aborting the merge.
+                    force_merge = False
+                    if has_column_conflicts:
+                        force_merge = st.checkbox(
+                            "Force column conflict resolution (register source's "
+                            "renamed/added column as a new column here)",
+                            key="m_force",
+                            help="Required to merge when the same column was "
+                            "renamed/deleted differently on both branches. Without it "
+                            "the merge aborts with a MergeConflictError.",
+                        )
+
                     if st.button("Merge", type="primary", key="merge_with_strategy"):
                         strategy = {
                             "append_resolution": append_res,
                             "pop_resolution": pop_res,
                             "update_resolution": update_res,
+                            "force": force_merge,
                         }
                         res, err = branch_ops(ds, "merge", branch_name=merge_src, merge_strategy=strategy)
                         if err:

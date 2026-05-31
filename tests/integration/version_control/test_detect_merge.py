@@ -169,6 +169,103 @@ def test_delete_tensor(storage):
     assert len(ds.tensors) == 1
 
 
+def test_delete_tensor_not_removed(storage):
+    """ Delete tensor with ``delete_removed_tensors=False``: the column deleted on
+    ``dev`` is *not* propagated to the current branch on merge (this is the merge
+    default). Documents why the Streamlit UI must pass ``delete_removed_tensors=True``
+    for a branch-side column delete to actually carry over. """
+    ds = muller.dataset(path=official_path(storage, TEST_DETECT_MERGE),
+                       creds=official_creds(storage), overwrite=True)
+    ds.create_tensor(name="labels", htype="generic", dtype="int")
+    ds.labels.extend([0, 1, 2, 3, 4])
+    ds.create_tensor(name="categories", htype="text")
+    ds.categories.extend(["a", "b", "c", "d", "e"])
+
+    ds.checkout("dev", create=True)
+    ds.delete_tensor("labels")
+    ds.commit()
+
+    ds.checkout("main")
+    # Default delete_removed_tensors=False keeps the column on the current branch.
+    ds.merge("dev")
+    assert len(ds.tensors) == 2
+    assert "labels" in ds.tensors
+
+
+def test_rename_tensor_conflict(storage):
+    """ Rename-vs-rename conflict: both branches rename the *same* LCA column to
+    *different* names. ``detect_merge_conflict`` reports the conflict, a plain merge
+    raises ``MergeConflictError``, and ``force=True`` resolves it by registering the
+    target's renamed column as a new column on the current branch. """
+    ds = muller.dataset(path=official_path(storage, TEST_DETECT_MERGE),
+                       creds=official_creds(storage), overwrite=True)
+    ds.create_tensor(name="labels", htype="generic", dtype="int")
+    ds.labels.extend([0, 1, 2, 3, 4])
+    ds.create_tensor(name="categories", htype="text")
+    ds.categories.extend(["a", "b", "c", "d", "e"])
+
+    ds.checkout("dev", create=True)
+    ds.rename_tensor("labels", "dev_labels")
+    ds.commit()
+
+    ds.checkout("main")
+    ds.rename_tensor("labels", "main_labels")
+    ds.commit()
+
+    conflict_tensors, _ = ds.detect_merge_conflict(target_id="dev", show_value=True)
+    assert conflict_tensors != {}
+    assert conflict_tensors["target"] == {"labels": "dev_labels"}
+    assert conflict_tensors["original"] == {"labels": "main_labels"}
+
+    try:
+        ds.merge("dev")
+        assert False, "No exception raises"
+    except MergeConflictError as e:
+        assert True, f"Raises MergeConflictError {e}"
+
+    # force=True registers the target's renamed column as a new column here. Both
+    # columns must survive as *distinct* tensors with their own data — this guards
+    # the copy_tensors fix (identity visible->internal key map + physical chunk
+    # copy for a renamed-on-source tensor).
+    ds.merge("dev", force=True)
+    assert "main_labels" in ds.tensors
+    assert "dev_labels" in ds.tensors
+    assert ds.main_labels.numpy(aslist=True) == [[0], [1], [2], [3], [4]]
+    assert ds.dev_labels.numpy(aslist=True) == [[0], [1], [2], [3], [4]]
+
+
+def test_rename_delete_tensor_conflict(storage):
+    """ Rename-vs-delete conflict: ``dev`` renames an LCA column that the current
+    branch deleted. ``detect_merge_conflict`` flags it (target rename vs. original
+    'Deleted') and a plain merge raises ``MergeConflictError`` to protect the user
+    from silently losing one side's intent. """
+    ds = muller.dataset(path=official_path(storage, TEST_DETECT_MERGE),
+                       creds=official_creds(storage), overwrite=True)
+    ds.create_tensor(name="labels", htype="generic", dtype="int")
+    ds.labels.extend([0, 1, 2, 3, 4])
+    ds.create_tensor(name="categories", htype="text")
+    ds.categories.extend(["a", "b", "c", "d", "e"])
+
+    ds.checkout("dev", create=True)
+    ds.rename_tensor("labels", "renamed_labels")
+    ds.commit()
+
+    ds.checkout("main")
+    ds.delete_tensor("labels")
+    ds.commit()
+
+    conflict_tensors, _ = ds.detect_merge_conflict(target_id="dev", show_value=True)
+    assert conflict_tensors != {}
+    assert conflict_tensors["target"] == {"labels": "renamed_labels"}
+    assert conflict_tensors["original"] == {"labels": "Deleted"}
+
+    try:
+        ds.merge("dev")
+        assert False, "No exception raises"
+    except MergeConflictError as e:
+        assert True, f"Raises MergeConflictError {e}"
+
+
 def test_conflict_records_append_both(storage):
     """ Test conflict records: append """
     ds = muller.dataset(path=official_path(storage, TEST_DETECT_MERGE),
