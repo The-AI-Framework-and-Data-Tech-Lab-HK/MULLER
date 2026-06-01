@@ -1680,6 +1680,31 @@ def list_vector_indexes(ds: Any) -> Dict[str, List[str]]:
     return out
 
 
+def vector_index_meta(ds: Any, tensor_name: str, index_name: str) -> Dict[str, Any]:
+    """Read a built vector index's stored params (``index_type``, ``metric``,
+    ``dimension``) from its ``meta.json``.
+
+    Layout mirrors ``list_vector_indexes``:
+        <ds.path>/_vector_index/<branch>/<tensor_name>/<index_name>/meta.json
+
+    Returns an empty dict if the meta cannot be read. These params are fixed at
+    build time, so this is how the UI shows the truth for a *reused* index
+    (rather than whatever the disabled selectboxes happen to display)."""
+    try:
+        mp = (Path(ds.path) / "_vector_index" / ds.branch / tensor_name
+              / index_name / "meta.json")
+        if mp.exists():
+            m = json.loads(mp.read_text(encoding="utf-8"))
+            return {
+                "index_type": m.get("index_type"),
+                "metric": m.get("metric"),
+                "dimension": m.get("dimension"),
+            }
+    except Exception:
+        pass
+    return {}
+
+
 def parse_query_vector(text: str, expected_dim: Optional[int] = None) -> Tuple[Optional[np.ndarray], Optional[str]]:
     """Parse comma/space/newline-separated floats into a 1-D float32 vector.
 

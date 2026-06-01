@@ -43,12 +43,25 @@ from utils import (
     classify_deletable_branches,
     list_vector_tensor_names, list_vector_indexes, parse_query_vector,
     run_vector_search, ensure_vector_index, tensor_embedding_dim,
+    vector_index_meta,
     save_query_view, list_saved_views, load_saved_view, delete_saved_view,
     get_view_entry, current_user, set_current_user,
 )
 import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
+
+# CLIP image/text query support for the Vector Search tab. Configure the
+# embedding env (OMP single-thread, offline HF cache) and install MULLER's
+# thread-pool shim for full-tensor reads BEFORE torch/faiss initialize their
+# OpenMP runtimes — otherwise mixing them segfaults. Importing the module is
+# cheap (no torch yet); the model is loaded lazily on first image/text query.
+try:
+    import clip_embedding as _clip_embedding
+    _clip_embedding._configure_env()
+    _clip_embedding.install_to_numpy_thread_shim()
+except Exception:
+    pass
 
 # ---------------------------------------------------------------------------
 # Page config
@@ -1765,15 +1778,29 @@ elif page == "🔍 Query & Search":
                         "Embedding tensor", selectable, key="qs_vec_tensor"
                     )
                 indexes_for_tensor = idx_map.get(v_tensor, [])
+                _NEW_IDX = "➕ Build new index…"
                 with col_i:
                     if indexes_for_tensor:
-                        v_index = st.selectbox(
-                            "Vector index", indexes_for_tensor, key="qs_vec_index"
+                        _choice = st.selectbox(
+                            "Vector index", indexes_for_tensor + [_NEW_IDX],
+                            key="qs_vec_index",
+                            help="Reuse an existing index, or pick "
+                            f"'{_NEW_IDX}' to build another with a different "
+                            "type/metric.",
                         )
+                        building_new = (_choice == _NEW_IDX)
+                        if building_new:
+                            v_index = st.text_input(
+                                "New index name", value="clip_hnsw",
+                                key="qs_vec_index_new2",
+                            )
+                        else:
+                            v_index = _choice
                     else:
+                        building_new = True
                         v_index = st.text_input(
                             "Vector index (will be created)",
-                            value="demo_flat",
+                            value="clip_flat",
                             key="qs_vec_index_new",
                             help="No existing index on this tensor; one will be "
                             "built on the current commit when you run the search.",
@@ -1785,34 +1812,116 @@ elif page == "🔍 Query & Search":
                     )
 
                 dim = tensor_embedding_dim(ds, v_tensor)
-                qv_help = (
-                    f"Comma/space-separated floats. Expected dimension: {dim}"
-                    if dim else "Comma/space-separated floats."
-                )
-                qv_text = st.text_area(
-                    "Query vector", key="qs_vec_text", height=100, help=qv_help,
-                    placeholder="e.g. 0.12, -0.03, 0.88, ..." if not dim else
-                    ", ".join(["0.0"] * min(int(dim), 8)) + (", ..." if dim and dim > 8 else ""),
-                )
 
-                col_metric, col_type = st.columns(2)
-                with col_metric:
-                    metric = st.selectbox("Metric", ["l2", "cosine", "ip"], key="qs_vec_metric",
-                                          disabled=bool(indexes_for_tensor),
-                                          help="Ignored when reusing an existing index "
-                                          "(that index was built with its own metric).")
-                with col_type:
-                    index_type = st.selectbox("Index type", ["FLAT", "IVF", "IVFPQ"],
-                                              key="qs_vec_idx_type",
-                                              disabled=bool(indexes_for_tensor),
-                                              help="Used only when creating a new index.")
+                # Query input mode. "Image"/"Text" encode the query with CLIP
+                # (openai/clip-vit-base-patch32, 512-d, joint image/text space)
+                # so the demo can run "find images similar to THIS image" and
+                # the cross-modal "find images matching THIS sentence" — both
+                # only make sense against a 512-d CLIP embedding column.
+                qmode = st.radio(
+                    "Query by", ["Vector", "Image", "Text"], horizontal=True,
+                    key="qs_vec_qmode",
+                    help="Image/Text are CLIP-encoded to a 512-d vector. Use "
+                    "them only with a CLIP `clip_embedding` column (build it "
+                    "with embed_column.py).",
+                )
+                qv_text, qv_image, qv_phrase = "", None, ""
+                if qmode == "Vector":
+                    qv_help = (
+                        f"Comma/space-separated floats. Expected dimension: {dim}"
+                        if dim else "Comma/space-separated floats."
+                    )
+                    qv_text = st.text_area(
+                        "Query vector", key="qs_vec_text", height=100, help=qv_help,
+                        placeholder="e.g. 0.12, -0.03, 0.88, ..." if not dim else
+                        ", ".join(["0.0"] * min(int(dim), 8)) + (", ..." if dim and dim > 8 else ""),
+                    )
+                elif qmode == "Image":
+                    qv_image = st.file_uploader(
+                        "Query image", type=["jpg", "jpeg", "png", "bmp", "webp"],
+                        key="qs_vec_image",
+                        help="Upload an image; CLIP encodes it to a 512-d vector.",
+                    )
+                    if qv_image is not None:
+                        st.image(qv_image, width=180, caption="query image")
+                else:  # Text
+                    qv_phrase = st.text_input(
+                        "Query text", key="qs_vec_phrase",
+                        placeholder="e.g. a photo of a dog on the beach",
+                        help="CLIP encodes this sentence into the same space as "
+                        "the image embeddings (text→image search).",
+                    )
+
+                # Metric / index type are independent: ANY type works with ANY
+                # metric (l2 / cosine / ip). When building a NEW index both are
+                # editable; when REUSING an existing one its params are fixed at
+                # build time, so we show the index's real stored values (read
+                # from meta.json) instead of leaving stale, disabled selectboxes
+                # that would misleadingly keep showing the last-built params.
+                if building_new:
+                    col_metric, col_type = st.columns(2)
+                    with col_metric:
+                        metric = st.selectbox(
+                            "Metric (new index)", ["l2", "cosine", "ip"],
+                            key="qs_vec_metric",
+                            help="Distance metric for the new index — independent "
+                            "of the index type. CLIP vectors are L2-normalized, so "
+                            "l2 / cosine / ip rank identically.")
+                    with col_type:
+                        index_type = st.selectbox(
+                            "Index type (new index)", ["FLAT", "HNSWFLAT", "IVFPQ"],
+                            key="qs_vec_idx_type",
+                            help="FAISS backends: FLAT = exact brute force; "
+                            "HNSWFLAT = graph ANN (fast, near-exact); IVFPQ = "
+                            "compressed ANN (approximate/lossy). (DISKANN also "
+                            "exists but needs the diskannpy extra.)")
+                else:
+                    _imeta = vector_index_meta(ds, v_tensor, v_index)
+                    metric = _imeta.get("metric") or "l2"
+                    index_type = _imeta.get("index_type") or "FLAT"
+                    st.caption(
+                        f"Reusing **`{v_index}`** — index type **{index_type}**, "
+                        f"metric **{metric}** (fixed when the index was built; not "
+                        f"editable for an existing index). Pick **➕ Build new "
+                        f"index…** above to try a different type/metric."
+                    )
 
                 if st.button("Run Vector Search", type="primary", key="qs_run_vec"):
-                    qvec, perr = parse_query_vector(qv_text, expected_dim=dim)
+                    qvec, perr = None, None
+                    if qmode == "Vector":
+                        qvec, perr = parse_query_vector(qv_text, expected_dim=dim)
+                    elif qmode == "Image":
+                        if qv_image is None:
+                            perr = "Upload a query image first."
+                        else:
+                            try:
+                                import clip_embedding as _ce
+                                from PIL import Image as _PILImage
+                                _img = _PILImage.open(qv_image).convert("RGB")
+                                with st.spinner("CLIP-encoding query image…"):
+                                    qvec = _ce.encode_images([np.asarray(_img)])[0]
+                            except Exception as _e:
+                                perr = f"CLIP image encoding failed: {_e}"
+                    else:  # Text
+                        if not (qv_phrase or "").strip():
+                            perr = "Enter a query sentence first."
+                        else:
+                            try:
+                                import clip_embedding as _ce
+                                with st.spinner("CLIP-encoding query text…"):
+                                    qvec = _ce.encode_texts([qv_phrase.strip()])[0]
+                            except Exception as _e:
+                                perr = f"CLIP text encoding failed: {_e}"
+                    if perr is None and qvec is not None and dim and len(qvec) != int(dim):
+                        perr = (
+                            f"Query vector dim {len(qvec)} ≠ embedding column dim "
+                            f"{int(dim)}. Image/Text query needs a 512-d CLIP "
+                            f"`clip_embedding` column."
+                        )
                     if perr:
                         st.error(perr)
                     else:
-                        if not indexes_for_tensor:
+                        if v_index and v_index not in indexes_for_tensor:
                             with st.spinner(
                                 f"Building vector index '{v_index}' on '{v_tensor}'…"
                             ):
