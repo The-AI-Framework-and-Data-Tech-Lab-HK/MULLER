@@ -9,7 +9,7 @@ This Streamlit application showcases MULLER's key features:
 - **Dataset Management**: Create datasets, add/edit/delete samples with multimodal data
 - **Query & Search**: Conditional filtering, full-text search, and vector similarity search
 - **Version Control**: Git-like branching, merging, and conflict resolution
-- **Performance Benchmarks**: Compare MULLER vs Parquet for query latency and storage efficiency
+- **Export**: Export a dataset, a saved view, or a specific commit to Parquet, Arrow, CSV, JSON, NumPy, or MindRecord
 
 ## Installation
 
@@ -117,18 +117,19 @@ Supported operators:
 **Commit Log:**
 - View full commit history with timestamps and messages
 
-### 4. Performance Benchmarks
+### 4. Export
 
-**Run Benchmark:**
-1. Configure query (field, operator, value)
-2. Click "Run Benchmark"
-3. View comparison chart:
-   - Query time (seconds)
-   - Storage size (MB)
+**Export a dataset, view, or commit:**
+1. Pick the source: entire dataset, a saved view, or a specific commit
+   (commits open in a separate read-only session, so your working branch is untouched)
+2. Choose a format and, for tabular/columnar formats, optionally a subset of columns
+3. Set the output directory and file name
+4. Click "Export", then download the produced file(s)
 
-The benchmark exports dataset to Parquet and compares:
-- Query execution time
-- File size on disk
+Supported formats: Parquet, Arrow/Feather, CSV, JSON, JSONL, NumPy (`.npz`),
+and MindRecord (MindSpore). Parquet/Arrow only support image, video, audio,
+text, list, class_label and generic int/float tensors; use JSON / NumPy /
+MindRecord for richer types.
 
 ## Demo Workflow Example
 
@@ -154,9 +155,9 @@ The benchmark exports dataset to Parquet and compares:
    - Resolve with merge strategy
    - View final merged dataset
 
-5. **Query & Benchmark**
+5. **Query & Export**
    - Filter samples by category
-   - Compare performance vs Parquet
+   - Export the dataset, a view, or a commit to Parquet / CSV / JSON / …
 
 ## Project Structure
 
@@ -241,7 +242,7 @@ On page refresh, dataset is reloaded from `dataset_path`.
 - `add_samples()`: Append data with auto-commit
 - `run_query()`: Execute filter queries
 - `branch_ops()`: Version control operations
-- `benchmark_parquet_vs_muller()`: Performance comparison
+- `export_dataset()`: Export a dataset/view/commit to Parquet, Arrow, CSV, JSON, NumPy, or MindRecord
 
 ## Citation
 

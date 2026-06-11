@@ -13,7 +13,7 @@ This demo showcases MULLER's capabilities:
 - Dataset creation and CRUD operations
 - Conditional filtering and vector search
 - Git-like version control (branch, merge, conflict resolution)
-- Performance benchmarking vs Parquet
+- Exporting datasets, views, and commits to common formats
 """
 import streamlit as st
 import hashlib
@@ -37,7 +37,9 @@ from utils import (
     pil_preview_available,
     is_coco2017_muller_schema, load_coco_category_id_to_name,
     pil_overlay_coco_bboxes, DEFAULT_COCO_INSTANCES_JSON,
-    branch_ops, diff_branches, benchmark_parquet_vs_muller,
+    branch_ops, diff_branches,
+    EXPORT_FORMATS, IMAGE_STRATEGIES, list_dataset_commits, open_export_source,
+    export_dataset, package_for_download,
     load_dataset, release_dataset_lock, commit_dataset, get_dataset_info,
     build_commit_graph_data, render_commit_graph_html,
     classify_deletable_branches,
@@ -169,7 +171,7 @@ st.sidebar.markdown("---")
 page = st.sidebar.radio(
     "Navigation",
     ["📊 Dataset Management", "📝 View & Edit", "🔍 Query & Search",
-     "🌿 Version Control", "⚡ Benchmarks", "ℹ️ About"],
+     "🌿 Version Control", "📦 Export", "ℹ️ About"],
     key="nav_page",
 )
 
@@ -486,7 +488,7 @@ if page == "📊 Dataset Management":
         # ---- Load Existing Dataset (right column) ----
         with col_right:
             st.subheader("Load Existing Dataset")
-            _default_load_path = "/Users/sherrylin/Documents/research_data/muller_datasetcoco"
+            _default_load_path = "/Users/sherrylin/research_data/muller_coco_demo"
             load_path = st.text_input(
                 "Dataset Path",
                 value=_default_load_path,
@@ -828,7 +830,19 @@ elif page == "📝 View & Edit":
                 else:
                     start_idx = 0
                     end_idx = n
-                    show_details = False
+                    # Default thumbnail-page range; the COCO grid block below
+                    # overwrites these with the live page bounds. Keep a safe
+                    # default so the optional table render never NameErrors
+                    # (e.g. when Pillow is missing and the grid is skipped).
+                    thumb_offset = 0
+                    thumb_len = min(25, n)
+                    show_details = st.checkbox(
+                        "Show details",
+                        value=False,
+                        key="dm_show_table_details",
+                        help="Also render the tabular view for the samples on the "
+                        "current thumbnail page. Turn off for a lighter, image-only UI.",
+                    )
 
                 # Image strip preview (same row order as paginated rows; global # = row index in dataset)
                 if img_tensors:
@@ -1260,10 +1274,25 @@ elif page == "📝 View & Edit":
                                                             st.caption(_cap)
 
                 if show_details:
-                    df, err = dataset_to_dataframe(ds, start=start_idx, end=end_idx)
+                    # COCO layout has no row pagination (start/end span the whole
+                    # dataset for the grid), so scope the table to the samples on
+                    # the current thumbnail page — keeps it light and aligned with
+                    # what's on screen.
+                    if _coco_layout:
+                        _tbl_start = thumb_offset
+                        _tbl_end = thumb_offset + thumb_len
+                    else:
+                        _tbl_start = start_idx
+                        _tbl_end = end_idx
+                    df, err = dataset_to_dataframe(ds, start=_tbl_start, end=_tbl_end)
                     if err:
                         st.error(err)
                     else:
+                        if _coco_layout:
+                            st.caption(
+                                f"Tabular view for samples **{_tbl_start}–{_tbl_end - 1}** "
+                                "(current thumbnail page)."
+                            )
                         st.dataframe(dataframe_for_streamlit_display(df), width="stretch")
             _preview_ctx.__exit__(None, None, None)
 
@@ -1548,6 +1577,19 @@ elif page == "🔍 Query & Search":
             st.session_state["qs_result_ds"] = None
             st.session_state["qs_result_desc"] = None
             st.session_state["qs_result_meta"] = None
+
+        # Pin the query-mode selectors across the early `st.rerun()`s fired by
+        # the Saved-Views actions below (Load / Delete / Refresh) and the Save
+        # button. Those reruns abort the script *before* the mode radio (and the
+        # vector "Query by" radio) further down get re-rendered, so Streamlit
+        # garbage-collects their widget keys and the radios snap back to their
+        # first option. That is what made loading a view while in **Vector
+        # search** mode wrongly fall back to the **Conditional filter** builder.
+        # Re-assigning the keys to themselves marks them as user-set so they
+        # survive the abort.
+        for _persist_key in ("qs_mode", "qs_vec_qmode"):
+            if _persist_key in st.session_state:
+                st.session_state[_persist_key] = st.session_state[_persist_key]
 
         # ── Saved views (expander at top) ──────────────────────────────────
         _me = current_user()
@@ -2034,7 +2076,13 @@ elif page == "🔍 Query & Search":
                         "the image grid preview."
                     )
                 else:
-                    with st.expander("🖼️ Inspect images", expanded=(result_meta.get("source") == "view")):
+                    # Keep this open by default for *every* result source
+                    # (query / view / vector), and force `expanded=True` on each
+                    # rerun: an `expanded=False`-then-manually-opened expander
+                    # loses its open state on the first inner-widget interaction
+                    # (e.g. the very first grid-page "+" click), which made the
+                    # panel snap shut on page 1→2. A constant True sidesteps that.
+                    with st.expander("🖼️ Inspect images", expanded=True):
                         preview_col = (
                             img_tensors_r[0]
                             if len(img_tensors_r) == 1
@@ -2695,54 +2743,174 @@ elif page == "🌿 Version Control":
 
 
 # ============================================================================
-# PAGE 4: Benchmarks
+# PAGE 4: Export
 # ============================================================================
-elif page == "⚡ Benchmarks":
-    st.title("⚡ Performance Benchmarks")
+elif page == "📦 Export":
+    st.title("📦 Export Dataset")
+    st.caption(
+        "Export the whole dataset, a saved view, or a specific commit to a "
+        "common interchange format."
+    )
 
     if st.session_state.dataset is None:
         st.warning("Please create or load a dataset first.")
-    elif len(st.session_state.dataset) == 0:
-        st.warning("Dataset is empty — add samples before running benchmarks.")
     else:
         ds = st.session_state.dataset
-        st.subheader("MULLER vs Parquet: Query Performance & Storage")
 
-        tensor_names = list(ds.tensors.keys())
+        # -- 1. Choose what to export -------------------------------------
+        st.subheader("1 · What to export")
+        target_label = st.radio(
+            "Source",
+            ["Entire dataset", "Saved view", "Specific commit"],
+            horizontal=True,
+            key="export_target",
+        )
+        target_kind = {
+            "Entire dataset": "dataset",
+            "Saved view": "view",
+            "Specific commit": "commit",
+        }[target_label]
 
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            bm_field = st.selectbox("Field", tensor_names, key="bm_field")
-        with col2:
-            bm_op = st.selectbox("Operator", [">", "<", "==", ">=", "<=", "!="], key="bm_op")
-        with col3:
-            bm_val = st.text_input("Value", value="0", key="bm_val")
+        selected_view_id = None
+        selected_commit_id = None
 
-        num_runs = st.slider("Number of runs (for averaging)", 1, 10, 3)
+        if target_kind == "view":
+            rows, verr = list_saved_views(ds)
+            if verr:
+                st.error(verr)
+            elif not rows:
+                st.info("No saved views yet. Create one from the Query & Search page first.")
+            else:
+                view_labels = {
+                    f"{r['id']}  ·  {r['message'] or 'no message'}  ·  @{r['commit_id']}": r["id"]
+                    for r in rows
+                }
+                pick = st.selectbox("Saved view", list(view_labels.keys()), key="export_view_pick")
+                selected_view_id = view_labels.get(pick)
 
-        if st.button("Run Benchmark", type="primary"):
-            # Parse value
-            try:
-                parsed = int(bm_val)
-            except ValueError:
-                try:
-                    parsed = float(bm_val)
-                except ValueError:
-                    parsed = bm_val
+        elif target_kind == "commit":
+            commits, cerr = list_dataset_commits(ds)
+            if cerr:
+                st.error(cerr)
+            elif not commits:
+                st.info("No commits found. Commit some changes first.")
+            else:
+                commit_labels = {
+                    f"{c['short_id']}  ·  [{c['branch']}]  {c['message'] or 'no message'}  ·  {c['time']}": c["id"]
+                    for c in commits
+                }
+                pick = st.selectbox("Commit", list(commit_labels.keys()), key="export_commit_pick")
+                selected_commit_id = commit_labels.get(pick)
+                st.caption(
+                    "The commit is opened in a separate read-only session — your "
+                    "current branch and staged changes are left untouched."
+                )
 
-            with st.spinner(f"Running benchmark ({num_runs} runs)..."):
-                conditions = [(bm_field, bm_op, parsed)]
-                fig, err = benchmark_parquet_vs_muller(ds, conditions, num_runs=num_runs)
+        # -- 2. Choose format & columns -----------------------------------
+        st.subheader("2 · Format & columns")
+        fmt_labels = {meta["label"]: key for key, meta in EXPORT_FORMATS.items()}
+        col_a, col_b = st.columns([1, 2])
+        with col_a:
+            fmt_label = st.selectbox("Format", list(fmt_labels.keys()), key="export_fmt")
+            fmt_key = fmt_labels[fmt_label]
+            st.caption(EXPORT_FORMATS[fmt_key]["help"])
+        with col_b:
+            all_tensors = list(ds.tensors.keys())
+            # NumPy / MindRecord always emit every tensor; column subsetting is
+            # only meaningful for the tabular/columnar formats.
+            supports_subset = fmt_key in ("parquet", "arrow", "csv", "json", "jsonl")
+            if supports_subset:
+                selected_tensors = st.multiselect(
+                    "Columns (leave empty for all)",
+                    options=all_tensors,
+                    default=[],
+                    key="export_tensors",
+                )
+            else:
+                selected_tensors = []
+                st.caption(f"`{fmt_label}` exports all {len(all_tensors)} tensors.")
+
+        # Image / media handling — only relevant for the tabular/columnar
+        # formats (NumPy/MindRecord keep the raw tensors). Nested annotation
+        # arrays (bbox, area, …) are always serialised losslessly as JSON lists.
+        media_tensors = [n for n, t in ds.tensors.items() if t.htype in ("image", "video", "audio")]
+        image_strategy = "external"
+        if media_tensors and fmt_key in ("parquet", "arrow", "csv", "json", "jsonl"):
+            strat_labels = {v: k for k, v in IMAGE_STRATEGIES.items()}
+            strat_pick = st.selectbox(
+                f"Media handling ({', '.join('`'+m+'`' for m in media_tensors)})",
+                list(strat_labels.keys()),
+                key="export_img_strategy",
+                help="How to represent image/video/audio pixels in a flat format. "
+                     "Pixel arrays can't sit in a CSV/Parquet cell, so pick how to "
+                     "carry them.",
+            )
+            image_strategy = strat_labels[strat_pick]
+
+        # -- 3. Output location -------------------------------------------
+        st.subheader("3 · Output location")
+        default_dir = "/Users/sherrylin/Documents/research_data/export_data"
+        out_dir = st.text_input("Output directory", value=default_dir, key="export_out_dir")
+        ext = EXPORT_FORMATS[fmt_key]["ext"]
+        suffix = {"dataset": "dataset", "view": "view", "commit": "commit"}[target_kind]
+        default_name = f"muller_{suffix}{ext}"
+        out_name = st.text_input("File name", value=default_name, key="export_out_name")
+        max_rows = st.number_input(
+            "Max rows (0 = all)",
+            min_value=0, value=0, step=100, key="export_max_rows",
+            help="Cap the number of exported samples. Handy when inlining/"
+                 "writing media for a large dataset.",
+        )
+
+        # -- 4. Run --------------------------------------------------------
+        st.markdown("---")
+        if st.button("Export", type="primary", key="export_run_btn"):
+            src_ds, src_label, src_err = open_export_source(
+                ds, target_kind,
+                view_id=selected_view_id,
+                commit_id=selected_commit_id,
+            )
+            if src_err:
+                st.error(src_err)
+            else:
+                if max_rows and len(src_ds) > max_rows:
+                    src_ds = src_ds[0:int(max_rows)]
+                    src_label += f" (first {int(max_rows)} rows)"
+                output_path = os.path.join(out_dir.strip() or default_dir, out_name.strip() or default_name)
+                with st.spinner(f"Exporting {src_label} → {fmt_label} ..."):
+                    result, err = export_dataset(
+                        src_ds, fmt_key, output_path,
+                        tensors=selected_tensors or None,
+                        image_strategy=image_strategy,
+                    )
                 if err:
                     st.error(err)
                 else:
-                    st.plotly_chart(fig, width="stretch")
-                    st.markdown("""
-                    **Key Takeaways:**
-                    - MULLER uses chunk-based storage with lazy loading for efficient I/O
-                    - Parquet requires full table scan for non-indexed queries
-                    - MULLER supports Git-like versioning without data duplication
-                    """)
+                    st.success(
+                        f"Exported **{result['num_rows']}** rows from {src_label} "
+                        f"to `{result['primary']}`."
+                    )
+                    written = result["paths"]
+                    total_bytes = sum(
+                        os.path.getsize(p) for p in written if os.path.exists(p)
+                    )
+                    st.caption(
+                        f"{len(written)} file(s), {total_bytes / 1024:.1f} KiB total."
+                    )
+                    with st.expander("Files written", expanded=False):
+                        for p in written:
+                            size = os.path.getsize(p) if os.path.exists(p) else 0
+                            st.code(f"{p}  ({size / 1024:.1f} KiB)", language=None)
+
+                    data, dl_name, mime = package_for_download(written)
+                    if data is not None:
+                        st.download_button(
+                            "Download",
+                            data=data,
+                            file_name=dl_name,
+                            mime=mime,
+                            key="export_download_btn",
+                        )
 
 
 # ============================================================================
@@ -2786,7 +2954,7 @@ Dataset
 1. **Create Dataset** → define schema, add samples
 2. **Query & Search** → conditional filtering, vector similarity
 3. **Version Control** → branch, modify, merge with conflict resolution
-4. **Benchmark** → compare with Parquet on query latency & storage
+4. **Export** → dataset / view / commit → Parquet, Arrow, CSV, JSON, NumPy, MindRecord
 
 ---
 *SIGMOD 2026 Demo Track Submission*
