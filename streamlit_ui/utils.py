@@ -1980,3 +1980,392 @@ def get_dataset_info(ds: Any) -> Dict[str, Any]:
         }
     except Exception as e:
         return {"error": str(e)}
+
+
+# ---------------------------------------------------------------------------
+# Export helpers
+# ---------------------------------------------------------------------------
+# All exporters below build on MULLER's native conversion methods:
+#   - to_arrow().to_table()  -> Parquet / Arrow(Feather)
+#   - to_dataframe()         -> CSV
+#   - to_json()              -> JSON / JSONL
+#   - per-tensor .numpy()    -> NumPy (.npz)
+#   - to_mindrecord()        -> MindRecord (MindSpore)
+# TFRecord is intentionally not supported (no native MULLER path for it).
+
+# Registry of formats the Export page exposes. ``ext`` is the canonical output
+# extension; ``multi`` flags formats that may emit sibling files (zipped for
+# download).
+EXPORT_FORMATS: Dict[str, Dict[str, Any]] = {
+    "parquet":    {"label": "Parquet",          "ext": ".parquet",    "multi": False,
+                   "help": "Columnar storage for analytics (via Arrow)."},
+    "arrow":      {"label": "Arrow / Feather",  "ext": ".arrow",      "multi": False,
+                   "help": "Apache Arrow IPC (Feather v2) for zero-copy exchange."},
+    "csv":        {"label": "CSV",              "ext": ".csv",        "multi": False,
+                   "help": "Flat table via pandas. Best for scalar/structured tensors."},
+    "json":       {"label": "JSON",             "ext": ".json",       "multi": False,
+                   "help": "Row-oriented JSON array."},
+    "jsonl":      {"label": "JSONL",            "ext": ".jsonl",      "multi": False,
+                   "help": "One JSON object per line (streaming-friendly)."},
+    "numpy":      {"label": "NumPy (.npz)",     "ext": ".npz",        "multi": False,
+                   "help": "Per-tensor arrays bundled into a single .npz archive."},
+    "mindrecord": {"label": "MindRecord",       "ext": ".mindrecord", "multi": True,
+                   "help": "MindSpore native format (emits a sidecar .db file)."},
+}
+
+
+def list_dataset_commits(ds: Any) -> Tuple[List[Dict[str, Any]], Optional[str]]:
+    """Return committed nodes (newest-first) for the export commit picker.
+
+    Reuses ``build_commit_graph_data`` and drops uncommitted head nodes (those
+    have no ``time``), since you can only export a materialised commit.
+    Each row carries ``id``, ``short_id``, ``branch``, ``message``, ``time``,
+    ``author``.
+    """
+    try:
+        graph = build_commit_graph_data(ds)
+    except Exception as e:
+        return [], f"Failed to read commit history: {e}"
+    commits = [c for c in graph.get("commits", []) if c.get("time")]
+    commits.sort(key=lambda c: c.get("depth", 0), reverse=True)
+    return commits, None
+
+
+def open_export_source(
+    ds: Any,
+    target_kind: str,
+    view_id: Optional[str] = None,
+    commit_id: Optional[str] = None,
+) -> Tuple[Optional[Any], Optional[str], Optional[str]]:
+    """Resolve the dataset object to export from.
+
+    ``target_kind`` is one of ``"dataset"`` / ``"view"`` / ``"commit"``.
+    Returns ``(source_ds, label, error)``.
+
+    For a commit we open a *fresh read-only* handle and check it out, so the
+    user's working dataset (its branch / HEAD / staged changes) is never
+    disturbed by the export.
+    """
+    if target_kind == "dataset":
+        return ds, f"dataset @ branch `{getattr(ds, 'branch', '?')}`", None
+    if target_kind == "view":
+        if not view_id:
+            return None, None, "Please select a saved view to export."
+        view_ds, _entry, err = load_saved_view(ds, view_id)
+        if err:
+            return None, None, err
+        return view_ds, f"view `{view_id}`", None
+    if target_kind == "commit":
+        if not commit_id:
+            return None, None, "Please select a commit to export."
+        try:
+            src = muller.load(ds.path, read_only=True)
+            src.checkout(commit_id)
+            return src, f"commit `{commit_id[:8]}`", None
+        except Exception as e:
+            return None, None, f"Failed to open commit {commit_id[:8]}: {e}"
+    return None, None, f"Unknown export target: {target_kind}"
+
+
+# htypes that carry binary/large media (handled specially, never inlined raw).
+_MEDIA_HTYPES = {"image", "video", "audio"}
+# Image-pixel handling strategies for tabular/columnar formats.
+IMAGE_STRATEGIES = {
+    "external": "Write images to a sibling folder, store relative path",
+    "exclude": "Drop pixel columns (keep ids / other columns)",
+    "base64": "Inline original bytes as base64 (large output)",
+}
+
+
+def _cell_to_jsonable(value: Any, htype: str, scalar: bool) -> Any:
+    """Convert one sample's raw tensor value into a JSON-friendly Python value.
+
+    ``value`` is what ``Tensor.numpy(aslist=True)[i]`` yields for a single
+    sample (typically an ndarray; an object array for ``json``/``text``).
+    ``scalar`` marks columns we collapse to a single value (e.g. ``image_id``,
+    ``description``); everything else is preserved as a (possibly nested) list
+    so variable-length per-sample annotations stay lossless.
+    """
+    if value is None:
+        return None
+
+    if htype == "json":
+        v = value
+        if isinstance(v, np.ndarray):
+            v = v.tolist()
+        if isinstance(v, list) and len(v) == 1:
+            v = v[0]
+        return v
+
+    if htype == "text":
+        v = value
+        if isinstance(v, np.ndarray):
+            v = v.tolist()
+        if isinstance(v, list):
+            v = v[0] if v else ""
+        return "" if v is None else str(v)
+
+    arr = np.asarray(value)
+    if scalar:
+        flat = arr.reshape(-1)
+        return flat[0].item() if flat.size else None
+    return arr.tolist()
+
+
+def _media_column(
+    source_ds: Any,
+    name: str,
+    n: int,
+    strategy: str,
+    media_dir: str,
+    id_values: Optional[List[Any]] = None,
+) -> List[Any]:
+    """Materialise a media (image/video/audio) column per ``strategy``.
+
+    - ``external``: re-encode each sample to JPEG under ``media_dir`` and store
+      the relative path.
+    - ``base64``: inline a base64 JPEG string.
+    - ``exclude`` is handled by the caller (column dropped before we get here).
+    """
+    import base64 as _b64
+
+    out: List[Any] = []
+    use_files = strategy == "external"
+    if use_files:
+        os.makedirs(media_dir, exist_ok=True)
+    rel_dir = os.path.basename(media_dir.rstrip("/"))
+
+    for i in range(n):
+        try:
+            from PIL import Image  # local import; pillow is a demo dependency
+            arr = source_ds[i][name].numpy()
+            img = Image.fromarray(arr.astype(np.uint8)) if arr.ndim >= 2 else None
+            if img is None:
+                out.append(None)
+                continue
+            stem = str(id_values[i]) if id_values is not None and i < len(id_values) else str(i)
+            if use_files:
+                fname = f"{name}_{stem}.jpg"
+                img.convert("RGB").save(os.path.join(media_dir, fname), format="JPEG")
+                out.append(os.path.join(rel_dir, fname))
+            else:  # base64
+                buf = io.BytesIO()
+                img.convert("RGB").save(buf, format="JPEG")
+                out.append("data:image/jpeg;base64," + _b64.b64encode(buf.getvalue()).decode("ascii"))
+        except Exception as e:
+            out.append(f"<media-error: {e}>")
+    return out
+
+
+def _extract_columns(
+    source_ds: Any,
+    names: List[str],
+    image_strategy: str,
+    media_dir: str,
+) -> Tuple[Dict[str, List[Any]], Dict[str, bool], List[str]]:
+    """Read selected tensors and convert them into JSON-friendly columns.
+
+    Returns ``(columns, is_scalar, ordered_names)``. Non-media tensors are read
+    once with ``aslist=True`` (cheap — these arrays are small), so dynamic /
+    variable-length shapes are handled natively. A column is treated as scalar
+    only when *every* sample flattens to a single element (so ``image_id`` /
+    ``description`` collapse, while per-annotation arrays stay as lists).
+    """
+    n = len(source_ds)
+    columns: Dict[str, List[Any]] = {}
+    is_scalar: Dict[str, bool] = {}
+    ordered: List[str] = []
+
+    # An id-like column to name external media files meaningfully.
+    id_values = None
+    for cand in ("image_id", "id"):
+        if cand in names and cand in source_ds.tensors:
+            try:
+                id_values = [int(np.asarray(v).reshape(-1)[0]) for v in source_ds[cand].numpy(aslist=True)]
+            except Exception:
+                id_values = None
+            break
+
+    for name in names:
+        if name not in source_ds.tensors:
+            continue
+        htype = source_ds.tensors[name].htype
+        if htype in _MEDIA_HTYPES:
+            if image_strategy == "exclude":
+                continue
+            columns[name] = _media_column(source_ds, name, n, image_strategy, media_dir, id_values)
+            is_scalar[name] = True
+            ordered.append(name)
+            continue
+
+        vals = source_ds[name].numpy(aslist=True)
+        if htype in ("text", "json"):
+            scalar = True
+        else:
+            scalar = all(np.asarray(v).size == 1 for v in vals) and htype not in ("bbox", "embedding", "vector")
+        is_scalar[name] = scalar
+        columns[name] = [_cell_to_jsonable(v, htype, scalar) for v in vals]
+        ordered.append(name)
+
+    return columns, is_scalar, ordered
+
+
+def _is_primitive(v: Any) -> bool:
+    return v is None or isinstance(v, (bool, int, float, str))
+
+
+def export_dataset(
+    source_ds: Any,
+    fmt: str,
+    output_path: str,
+    tensors: Optional[List[str]] = None,
+    image_strategy: str = "external",
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Export ``source_ds`` to ``output_path`` in ``fmt``.
+
+    Unlike MULLER's built-in ``to_dataframe`` / ``to_arrow`` / ``to_json``
+    (which assume flat, fixed-shape, scalar-per-cell tables and break on
+    nested / variable-length / multimodal data such as COCO), this builds a
+    robust row representation first:
+
+    - every tensor is read with ``aslist=True`` (handles dynamic shapes);
+    - per-annotation arrays (``area`` / ``bbox`` / ``category_id`` / …) are kept
+      as nested JSON lists, scalars (``image_id`` / ``description``) collapse;
+    - media columns are handled per ``image_strategy``
+      (``external`` / ``exclude`` / ``base64``).
+
+    Format routing:
+    - JSON / JSONL : real nested objects (fully lossless).
+    - Parquet/Arrow: native list types for numeric arrays, JSON strings for
+      ``json``-htype / arbitrary nested cells.
+    - CSV          : scalars stay native, everything nested is JSON-stringified.
+
+    ``tensors`` optionally restricts columns. Returns ``(result, error)`` with
+    ``result`` = {``paths``, ``primary``, ``num_rows``}.
+    """
+    if fmt not in EXPORT_FORMATS:
+        return None, f"Unsupported format: {fmt}"
+
+    try:
+        out_dir = os.path.dirname(os.path.abspath(output_path)) or "."
+        os.makedirs(out_dir, exist_ok=True)
+        n = len(source_ds)
+        names = list(tensors) if tensors else list(source_ds.tensors.keys())
+
+        # MindRecord is a native MULLER format; pass straight through.
+        if fmt == "mindrecord":
+            source_ds.to_mindrecord(output_path, overwrite=True)
+            import glob
+            base = os.path.basename(output_path)
+            produced = sorted(glob.glob(os.path.join(out_dir, base + "*"))) or [output_path]
+            return {"paths": produced, "primary": output_path, "num_rows": n}, None
+
+        # NumPy: per-tensor arrays bundled into one .npz (object arrays cope
+        # with dynamic shapes). Media tensors are decoded as object arrays too.
+        if fmt == "numpy":
+            arrays: Dict[str, Any] = {}
+            for name in names:
+                try:
+                    arrays[name] = source_ds[name].numpy()
+                except Exception:
+                    arrays[name] = np.array(source_ds[name].numpy(aslist=True), dtype=object)
+            np.savez(output_path, **arrays)
+            final = output_path if output_path.endswith(".npz") else output_path + ".npz"
+            return {"paths": [final], "primary": final, "num_rows": n}, None
+
+        # Everything else flows through the robust row representation.
+        base_stem = os.path.splitext(os.path.basename(output_path))[0]
+        media_dir = os.path.join(out_dir, f"{base_stem}_images")
+        columns, is_scalar, ordered = _extract_columns(
+            source_ds, names, image_strategy, media_dir,
+        )
+        extra_paths: List[str] = []
+        if image_strategy == "external" and os.path.isdir(media_dir):
+            import glob
+            extra_paths = sorted(glob.glob(os.path.join(media_dir, "*")))
+
+        if fmt in ("json", "jsonl"):
+            rows = [
+                {name: columns[name][i] for name in ordered}
+                for i in range(n)
+            ]
+            if fmt == "jsonl":
+                with open(output_path, "w", encoding="utf-8") as f:
+                    for row in rows:
+                        f.write(json.dumps(row, ensure_ascii=False) + "\n")
+            else:
+                with open(output_path, "w", encoding="utf-8") as f:
+                    json.dump(rows, f, ensure_ascii=False, indent=2)
+            return {"paths": [output_path] + extra_paths, "primary": output_path,
+                    "num_rows": n}, None
+
+        if fmt == "csv":
+            data = {}
+            for name in ordered:
+                col = columns[name]
+                data[name] = [
+                    c if _is_primitive(c) else json.dumps(c, ensure_ascii=False)
+                    for c in col
+                ]
+            pd.DataFrame(data, columns=ordered).to_csv(output_path, index=False)
+            return {"paths": [output_path] + extra_paths, "primary": output_path,
+                    "num_rows": n}, None
+
+        if fmt in ("parquet", "arrow"):
+            import pyarrow as pa
+            pa_arrays = []
+            field_names = []
+            for name in ordered:
+                col = columns[name]
+                htype = source_ds.tensors[name].htype
+                # Arbitrary nested JSON -> stringify (struct inference is fragile).
+                if htype == "json":
+                    arr = pa.array(
+                        [json.dumps(c, ensure_ascii=False) if c is not None else None for c in col],
+                        type=pa.string(),
+                    )
+                else:
+                    try:
+                        arr = pa.array(col)  # native scalars / list<...> / list<list<...>>
+                    except Exception:
+                        arr = pa.array(
+                            [c if _is_primitive(c) else json.dumps(c, ensure_ascii=False) for c in col],
+                            type=pa.string(),
+                        )
+                pa_arrays.append(arr)
+                field_names.append(name)
+            table = pa.Table.from_arrays(pa_arrays, names=field_names)
+            if fmt == "parquet":
+                import pyarrow.parquet as pq
+                pq.write_table(table, output_path)
+            else:
+                import pyarrow.feather as feather
+                feather.write_feather(table, output_path)
+            return {"paths": [output_path] + extra_paths, "primary": output_path,
+                    "num_rows": table.num_rows}, None
+
+        return None, f"Unsupported format: {fmt}"
+    except Exception as e:
+        return None, f"Export failed ({fmt}): {e}"
+
+
+def package_for_download(paths: List[str]) -> Tuple[Optional[bytes], Optional[str], Optional[str]]:
+    """Bundle produced files into bytes for a Streamlit download button.
+
+    A single file is returned verbatim; multiple files (e.g. a data file plus
+    its sibling image folder) are zipped. Returns ``(data, filename, mime)`` or
+    ``(None, None, None)`` if nothing exists.
+    """
+    import zipfile
+
+    real = [p for p in paths if os.path.exists(p)]
+    if not real:
+        return None, None, None
+    if len(real) == 1:
+        with open(real[0], "rb") as f:
+            return f.read(), os.path.basename(real[0]), "application/octet-stream"
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for p in real:
+            zf.write(p, arcname=os.path.basename(p))
+    return buf.getvalue(), "muller_export.zip", "application/zip"
