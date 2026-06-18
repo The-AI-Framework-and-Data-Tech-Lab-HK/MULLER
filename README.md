@@ -225,6 +225,16 @@ ds.commit()
 ds.create_index_vectorized("description")
 res = ds.filter_vectorized([("description", "CONTAINS", "cat")])
 
+# Faster indexing with the native C++ engine (local datasets only, fuzzy_match only)
+ds.create_index_vectorized("description", use_cpp=True)
+
+# Parallelize the build/search on large datasets:
+#   num_of_batches -> build parallelism, num_of_shards -> search parallelism,
+#   max_workers    -> caps both (set near your CPU core count)
+ds.create_index_vectorized(
+    "description", use_cpp=True, num_of_batches=16, num_of_shards=16, max_workers=16
+)
+
 # Comparison and complex queries
 res_1 = ds.filter_vectorized([("labels", ">", 1)])
 res_2 = ds.filter_vectorized([("description", "LIKE", "ca[t]")])
@@ -250,6 +260,14 @@ ds_vec.load_vector_index("embeddings", index_name="hnsw")
 query = np.random.rand(100, 32)
 distances, indices = ds_vec.vector_search(query_vector=query, tensor_name="embeddings", index_name="hnsw", topk=10)
 ```
+
+> **Tuning `create_index_vectorized()`:** `num_of_batches` controls build-time parallelism,
+> `num_of_shards` controls search-time parallelism (and is fixed at creation), and `max_workers`
+> simply caps both — so raising `max_workers` alone does nothing if `num_of_batches`/`num_of_shards`
+> stay at their default of `1`. The C++ engine (`use_cpp=True`) requires the compiled extension,
+> works on local datasets only, and supports `fuzzy_match` indexes only. See the
+> [Indexing API reference](https://the-ai-framework-and-data-tech-lab-hk.github.io/MULLER/api/dataset-query/#dscreate_index_vectorized)
+> for full parameter details and selection guidance.
 
 ### Version Control
 
