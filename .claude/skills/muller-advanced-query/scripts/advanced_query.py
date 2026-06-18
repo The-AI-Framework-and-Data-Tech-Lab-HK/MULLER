@@ -30,21 +30,53 @@ except ImportError:
 
 
 def create_index(args):
-    """Create inverted index for text search."""
+    """Create a vectorized inverted index for text search."""
     try:
         ds = muller.load(args.path)
 
         tensors = args.tensors.split(",") if args.tensors else None
-        ds.create_index(tensors)
+        if not tensors:
+            return {
+                "success": False,
+                "operation": "create_index",
+                "error": "ValueError",
+                "message": "At least one tensor (column) is required.",
+                "suggestion": "Pass a comma-separated list, e.g. --tensors description,title"
+            }
+
+        # Only forward tuning options when explicitly set so the library
+        # defaults (num_of_shards=1, num_of_batches=1, max_workers=16) are kept.
+        kwargs = {}
+        if args.num_of_shards is not None:
+            kwargs["num_of_shards"] = args.num_of_shards
+        if args.num_of_batches is not None:
+            kwargs["num_of_batches"] = args.num_of_batches
+        if args.max_workers is not None:
+            kwargs["max_workers"] = args.max_workers
+
+        # create_index_vectorized indexes a single column, so loop over the list.
+        for tensor in tensors:
+            ds.create_index_vectorized(
+                tensor,
+                index_type=args.index_type,
+                use_cpp=args.use_cpp,
+                force_create=args.force_create,
+                **kwargs
+            )
 
         return {
             "success": True,
             "operation": "create_index",
             "result": {
                 "path": args.path,
-                "tensors": tensors
+                "tensors": tensors,
+                "index_type": args.index_type,
+                "use_cpp": args.use_cpp,
+                "num_of_shards": kwargs.get("num_of_shards", 1),
+                "num_of_batches": kwargs.get("num_of_batches", 1),
+                "max_workers": kwargs.get("max_workers", 16)
             },
-            "message": f"Created inverted index for {len(tensors) if tensors else 'all'} tensors"
+            "message": f"Created vectorized inverted index for {len(tensors)} tensor(s)"
         }
     except Exception as e:
         return {
@@ -52,7 +84,9 @@ def create_index(args):
             "operation": "create_index",
             "error": type(e).__name__,
             "message": str(e),
-            "suggestion": "Ensure dataset is committed before creating index"
+            "suggestion": ("Commit the dataset before creating an index. "
+                           "For --use-cpp the dataset must be local and "
+                           "--index-type must be 'fuzzy_match'.")
         }
 
 
@@ -284,9 +318,24 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
 
     # Create index command
-    create_index_parser = subparsers.add_parser("create-index", help="Create inverted index")
+    create_index_parser = subparsers.add_parser("create-index", help="Create vectorized inverted index")
     create_index_parser.add_argument("--path", required=True, help="Dataset path")
-    create_index_parser.add_argument("--tensors", help="Comma-separated tensor names")
+    create_index_parser.add_argument("--tensors", required=True, help="Comma-separated tensor (column) names")
+    create_index_parser.add_argument("--index-type", default="fuzzy_match",
+                                     help="fuzzy_match (default) or exact_match "
+                                          "(exact_match is not supported with --use-cpp)")
+    create_index_parser.add_argument("--use-cpp", action="store_true",
+                                     help="Use the native C++ engine (local datasets only, "
+                                          "fuzzy_match only; requires the compiled extension)")
+    create_index_parser.add_argument("--num-of-shards", type=int,
+                                     help="Number of index shards = search-time parallelism, "
+                                          "fixed at creation (default 1)")
+    create_index_parser.add_argument("--num-of-batches", type=int,
+                                     help="Number of build batches = build-time parallelism (default 1)")
+    create_index_parser.add_argument("--max-workers", type=int,
+                                     help="Cap on parallel workers for build/optimize/search (default 16)")
+    create_index_parser.add_argument("--force-create", action="store_true",
+                                     help="Rebuild from scratch instead of appending to an existing index")
 
     # Create vector index command
     create_vector_index_parser = subparsers.add_parser("create-vector-index", help="Create vector index")

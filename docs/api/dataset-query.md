@@ -262,17 +262,120 @@ filtered = ds.filter_vectorized("labels == 5")  # Much faster with index
 
 #### Overview
 
-Create an index optimized for vectorized operations. This is useful for large-scale filtering.
+Create a **vectorized inverted index** on a tensor column to power fast full-text
+(`CONTAINS` / `LIKE`) and exact-match queries through `ds.filter_vectorized()` and
+`ds.query()`. The index is built in parallel and automatically optimized (shard files
+are merged) at the end of creation, so you do **not** need to call `ds.optimize_index()`
+separately after a successful build.
+
+If an index already exists for the column, calling this method again updates it in an
+**append-only** manner (only the newly added rows are indexed) unless you pass
+`force_create=True` to rebuild from scratch.
+
+> **Note:** The dataset must be committed (no uncommitted head changes) before building an
+> index; otherwise the call warns and does nothing.
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor to index.
-- **num_workers** (`int`, optional): Number of workers for parallel index creation. Defaults to `0`.
-- **scheduler** (`str`, optional): Scheduler type. Defaults to `"threaded"`.
+- **tensor_column** (`str`): Name of the tensor column to index.
+- **index_type** (`str`, optional): `"fuzzy_match"` (tokenized full-text search, the
+  default) or `"exact_match"` (whole-value match). `"exact_match"` is **not** supported
+  together with `use_cpp=True`.
+- **use_uuid** (`bool`, optional): Index by the row UUIDs instead of positional indices.
+  Defaults to `False`.
+- **force_create** (`bool`, optional): If `True`, delete any existing index and rebuild it
+  from scratch instead of appending. Defaults to `False`.
+- **delete_old_index** (`bool`, optional): Whether to delete the previous index folder once
+  the new one is built and promoted. Defaults to `True`.
+- **use_cpp** (`bool`, optional): Use the native C++ indexing engine instead of the pure
+  Python implementation. Defaults to `False`. See
+  [Using the C++ engine](#using-the-c-engine-use_cpptrue) below.
+
+The following tuning options are accepted as keyword arguments (`**kwargs`):
+
+- **num_of_shards** (`int`, optional): Number of hash-partitioned shards the postings are
+  split across. Defaults to `1`. Controls **search-time** parallelism and storage layout,
+  and is **fixed at creation time** (changing it later requires `ds.reshard_index()`).
+- **num_of_batches** (`int`, optional): Number of independent batches the row range is split
+  into during construction. Defaults to `1`. Controls **build-time** parallelism.
+- **max_workers** (`int`, optional): Upper bound on the number of parallel
+  processes/threads used during build, optimize, and search. Defaults to `16`.
+- **tokenizer** (`str`, optional): Tokenizer for `fuzzy_match`. Defaults to `"jieba"`.
+- **cut_all** (`bool`, optional): Use jieba's full-cut mode. Defaults to `False`.
+- **stop_words_list** (`list[str]`, optional): Extra stop words to ignore during tokenization.
+- **compulsory_words** (`str`, optional): Words that must be kept as a single token.
+- **case_sensitive** (`bool`, optional): Whether matching is case sensitive. Defaults to `False`.
 
 #### Returns
 
 - **None**
+
+#### Choosing `num_of_shards`, `num_of_batches`, and `max_workers`
+
+These three options control different things and are commonly misunderstood. The key point:
+**`max_workers` is only an upper bound** — the parallelism that actually happens is capped by
+how many work units exist.
+
+| Option | Governs | Effective parallelism | Default |
+|---|---|---|---|
+| `num_of_batches` | **Build** (index creation) | `min(num_of_batches, max_workers)` | `1` |
+| `num_of_shards` | **Search & optimize** + storage layout | `min(num_of_shards, max_workers)` | `1` |
+| `max_workers` | Cap on all of the above | — | `16` |
+
+- **`num_of_batches`** splits the dataset row range into independent construction tasks.
+  Because the default is `1`, **raising `max_workers` alone does not parallelize the build** —
+  you must increase `num_of_batches` first. Larger values also give finer restart granularity:
+  if a build is interrupted, only the unfinished batches need to be re-run by calling
+  `create_index_vectorized()` again.
+- **`num_of_shards`** hash-partitions the inverted index. It is persisted in the index
+  metadata at creation time and determines how many shards search and optimization can run in
+  parallel. More shards means more query-time parallelism and smaller per-shard files (good for
+  large datasets / large vocabularies), but too many shards on a small dataset only adds file
+  overhead. To change it after the fact, use `ds.reshard_index()`.
+- **`max_workers`** simply caps parallelism everywhere; set it close to the machine's CPU core
+  count.
+
+**Rules of thumb:**
+
+- **Small datasets:** keep the defaults (`num_of_shards=1`, `num_of_batches=1`, `max_workers=16`).
+- **Large datasets, faster build:** set `num_of_batches` to roughly `max_workers` (or a small
+  multiple) so every worker stays busy, and set `max_workers` near the CPU core count.
+- **High query concurrency / large vocabulary:** increase `num_of_shards` (e.g. into the tens)
+  to parallelize search and keep per-shard files small.
+
+#### Using the C++ engine (`use_cpp=True`)
+
+MULLER ships a native C++ inverted-index engine that is significantly faster than the pure
+Python path for both construction and search. Enable it with `use_cpp=True`. Important
+constraints:
+
+- **Requires the compiled C++ extension.** It is built automatically during a standard
+  `pip install .` (via `muller/util/sparsehash/build_proj.sh`). If MULLER was installed with
+  `BUILD_CPP=false`, the C++ engine is unavailable.
+- **Local datasets only.** The C++ engine reads and writes the local filesystem directly
+  (bypassing MULLER's storage abstraction), so it raises `UnsupportedMethod` on remote-backed
+  datasets (e.g. S3/object storage). Use `use_cpp=False` for those.
+- **`fuzzy_match` only.** Combining `index_type="exact_match"` with `use_cpp=True` raises
+  `UnsupportedMethod`; use the Python engine (`use_cpp=False`) for exact-match indexes.
+
+```python
+import muller
+
+ds = muller.load("./my_dataset")
+ds.commit()  # an index requires a clean (committed) head
+
+# Build a C++ full-text index on a local dataset
+ds.create_index_vectorized("description", use_cpp=True)
+
+# Parallel build on a large local dataset
+ds.create_index_vectorized(
+    "description",
+    use_cpp=True,
+    num_of_batches=16,   # parallelize construction
+    num_of_shards=16,    # parallelize search / shard the postings
+    max_workers=16,      # cap parallelism near CPU core count
+)
+```
 
 #### Examples
 
@@ -280,16 +383,25 @@ Create an index optimized for vectorized operations. This is useful for large-sc
 import muller
 
 ds = muller.load("./my_dataset")
+ds.commit()
 
-# Create vectorized index
-ds.create_index_vectorized("labels")
+# Create a vectorized full-text index (Python engine, defaults)
+ds.create_index_vectorized("description")
 
-# Create with multiple workers for faster indexing
-ds.create_index_vectorized("categories", num_workers=4)
+# Query through the index
+res = ds.filter_vectorized([("description", "CONTAINS", "cat")])
 
-# Create vectorized indexes on multiple tensors
-for tensor_name in ["labels", "user_id", "timestamp"]:
-    ds.create_index_vectorized(tensor_name, num_workers=4)
+# Parallelize the build on a larger dataset
+ds.create_index_vectorized("description", num_of_batches=8, max_workers=8)
+
+# Shard the index for query-time parallelism
+ds.create_index_vectorized("description", num_of_shards=16, max_workers=16)
+
+# Exact-match index (Python engine only)
+ds.create_index_vectorized("categories", index_type="exact_match")
+
+# Rebuild an existing index from scratch instead of appending
+ds.create_index_vectorized("description", force_create=True)
 ```
 
 ---
