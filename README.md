@@ -360,17 +360,25 @@ To reproduce the experiment results from our paper, see [exp_scripts/README.md](
 
 Please ⭐ star our repository and cite our paper if you like our work!
 
-📄 **Paper**: [MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows](https://dl.acm.org/doi/10.1145/3788853.3801585)
+📄 **Paper**: [MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows (SIGMOD 2026)](https://dl.acm.org/doi/10.1145/3788853.3801585)
 
 ```bibtex
-@inproceedings{lin2026muller,
-  title     = {MULLER: A Multimodal Data Lake Format for Collaborative AI Data Workflows},
-  author    = {Lin, Xueling and Liu, Bingyu and Cong, Gao},
-  booktitle = {Companion of the International Conference on Management of Data (SIGMOD Companion '26)},
-  year      = {2026},
-  publisher = {Association for Computing Machinery},
-  doi       = {10.1145/3788853.3801585},
-  url       = {https://doi.org/10.1145/3788853.3801585},
+@inproceedings{DBLP:conf/sigmod/LinLC26,
+  author       = {Xueling Lin and
+                  Bingyu Liu and
+                  Gao Cong},
+  title        = {{MULLER:} {A} Multimodal Data Lake Format for Collaborative {AI} Data
+                  Workflows},
+  booktitle    = {Companion of the International Conference on Management of Data, {SIGMOD}
+                  Companion 2026, Bengaluru, India, 31 May 2026- 5 June 2026},
+  pages        = {82--85},
+  publisher    = {{ACM}},
+  year         = {2026},
+  url          = {https://doi.org/10.1145/3788853.3801585},
+  doi          = {10.1145/3788853.3801585},
+  timestamp    = {Wed, 10 Jun 2026 10:19:51 +0200},
+  biburl       = {https://dblp.org/rec/conf/sigmod/LinLC26.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 ```
 
