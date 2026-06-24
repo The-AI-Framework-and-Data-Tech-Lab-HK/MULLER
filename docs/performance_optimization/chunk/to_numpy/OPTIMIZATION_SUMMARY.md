@@ -6,7 +6,7 @@ Enable the three fast methods (`get_samples_continuous`, `get_samples_full`, `ge
 ## Key Modifications
 
 ### 1. Added Auto-Detection Function `_detect_access_pattern()`
-**Location**: [chunk_engine_to_numpy_interface.py:163-203](muller/core/chunk/interface/chunk_engine_to_numpy_interface.py#L163-L203)
+**Location**: `chunk_engine_to_numpy_interface.py:163-203`
 
 This function automatically determines the optimal access pattern based on `index` characteristics:
 
@@ -23,7 +23,7 @@ This function automatically determines the optimal access pattern based on `inde
   - Use cases: `ds[[1, 5, 10, 20]]` or passing `index_list`
 
 ### 2. Modified `protected_numpy()` Function
-**Location**: [chunk_engine_to_numpy_interface.py:77-160](muller/core/chunk/interface/chunk_engine_to_numpy_interface.py#L77-L160)
+**Location**: `chunk_engine_to_numpy_interface.py:77-160`
 
 After `_validate_batch_samples()` check passes, if the user hasn't explicitly specified access mode parameters, automatically calls `_detect_access_pattern()` for detection:
 
@@ -37,7 +37,7 @@ if not continuous and not full and not batch_random_access:
 ```
 
 ### 3. Enhanced `get_samples_batch_random_access()` Function
-**Location**: [chunk_engine_to_numpy_interface.py:301-339](muller/core/chunk/interface/chunk_engine_to_numpy_interface.py#L301-L339)
+**Location**: `chunk_engine_to_numpy_interface.py:301-339`
 
 - Added optional `index` parameter
 - Automatically extracts index list from `index` when `index_list` is not provided

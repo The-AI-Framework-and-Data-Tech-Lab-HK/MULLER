@@ -440,5 +440,5 @@ ds.embeddings.append(np.random.rand(128).astype(np.float32))
 
 ## See Also
 
-- [Dataset Methods: create_tensor()](../dataset-methods/#create_tensor) - Detailed API for creating tensors
-- [Getting Started: Creating a MULLER Dataset](../../getting_started/2_create_muller_dataset/) - Tutorial on dataset creation
+- [Dataset Methods: create_tensor()](dataset-methods.md#dscreate_tensor) - Detailed API for creating tensors
+- [Getting Started: Creating a MULLER Dataset](../getting_started/2_create_muller_dataset.md) - Tutorial on dataset creation

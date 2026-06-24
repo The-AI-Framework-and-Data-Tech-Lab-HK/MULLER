@@ -84,7 +84,17 @@ class ComputeFunction:
         return self.func(sample_in, *self.args, **self.kwargs)
 
     def eval(self, *args, **kwargs):
-        """Function to run eval."""
+        """Evaluate this transform and write the generated samples.
+
+        In normal mode, call ``eval(data_in, ds_out=None, ...)``. If
+        ``ds_out`` is omitted, ``data_in`` is transformed in place.
+
+        In ``batch_enable=True`` mode, pass one list-like input for each
+        decorated function parameter before ``sample_out``, followed by the
+        output dataset: ``eval(data_1, data_2, ..., ds_out, ...)``. All data
+        inputs must have the same length and are split into aligned worker
+        slices.
+        """
         if self.batch_enable:
             if len(args) < self.num_data_params:
                 raise ValueError(
@@ -288,7 +298,14 @@ class Pipeline:
             ignore_errors: bool = False,
             **kwargs,
     ):
-        """Eval the transform process."""
+        """Evaluate the pipeline on ``data_in`` and write into ``ds_out``.
+
+        ``data_in`` must be list-like or a MULLER dataset. If ``ds_out`` is
+        omitted, the input dataset is overwritten in place. ``num_workers`` and
+        ``scheduler`` control the compute provider; ``num_workers <= 0`` runs
+        serially. ``skip_ok`` allows skipped or partial outputs, while
+        ``ignore_errors`` continues past supported sample-level failures.
+        """
 
         num_workers, scheduler = sanitize_workers_scheduler(num_workers, scheduler)
         overwrite = ds_out is None
@@ -471,7 +488,17 @@ class Pipeline:
 
 
 def compute(fn=None, *, name: Optional[str] = None, batch_enable: bool = False):
-    """Function to decorate."""
+    """Decorate a transform function for use with ``ComputeFunction.eval``.
+
+    Args:
+        fn: Function to decorate. Usually supplied by ``@muller.compute``.
+        name: Optional display name for progress output.
+        batch_enable: If ``True``, the transform receives aligned slices from
+            multiple list-like inputs instead of one sample at a time.
+
+    Returns:
+        A wrapper that creates a ``ComputeFunction`` when called.
+    """
     def decorator(func):
         def inner(*args, **kwargs):
             return ComputeFunction(func, args, kwargs, name, batch_enable)

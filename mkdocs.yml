@@ -61,10 +61,14 @@ nav:
     - Top-Level Functions: api/top-level-functions.md
     - Dataset Creation: api/dataset-creation.md
     - Dataset Methods: api/dataset-methods.md
+    - Tensor API: api/tensor.md
     - Dataset Query: api/dataset-query.md
     - Dataset Version Control: api/dataset-version-control.md
     - Dataset Export: api/dataset-export.md
     - Advanced: api/advanced.md
     - Htypes Reference: api/htypes.md
-    
-  - FAQ: faq.md
+  - Performance Optimization:
+    - "@muller.compute batch_enable": performance_optimization/@muller.compute/batch_enable_optimization.md
+    - "Tensor.to_numpy Usage Examples": performance_optimization/chunk/to_numpy/USAGE_EXAMPLES.md
+    - "Tensor.to_numpy Technical Notes": performance_optimization/chunk/to_numpy/TECHNICAL_NOTES.md
+    - "Tensor.to_numpy Optimization Summary": performance_optimization/chunk/to_numpy/OPTIMIZATION_SUMMARY.md

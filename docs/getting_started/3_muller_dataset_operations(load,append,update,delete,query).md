@@ -20,10 +20,10 @@ To load a specific commit (if available), append `@{commit_id}` to the path:
 >>> ds = muller.load(path="my_muller_dataset@3e49cded62b6b335c74ff07e97f8451a37aca7b2")
 ```
 
-* The usage of `path` is the same as described in [Creating an Empty Dataset]. Please add the appropriate prefix based on the storage backend.
+* The usage of `path` is the same as described in [Construct a MULLER dataset](2_create_muller_dataset.md). Please add the appropriate prefix based on the storage backend.
 * In addition to `muller.load()`, you may also use `muller.dataset()` to load an existing dataset (do not set overwrite=True).
-* For details on branches and commit versions, see [Section 5: Version Management].
-* Additional parameters and advanced usage are documented in the API reference: [`muller.load()`](../api/dataset-creation/#mullerload).
+* For details on branches and commit versions, see [Version Control](4_muller_version_control.md).
+* Additional parameters and advanced usage are documented in the API reference: [`muller.load()`](../api/dataset-creation.md#mullerload).
 
 ## 2. Inspecting Dataset Metadata
 To view schema-level information for all columns in a dataset:
@@ -39,28 +39,28 @@ my_photos   image   (4, 400, 300:500, 3)   uint8    jpeg
  my_text    text           (4, 1)           str     None
 ```
 
-- Usage reference: [`dataset.summary()`](../api/dataset-methods/#summary)
+- Usage reference: [`dataset.summary()`](../api/dataset-methods.md#dssummary)
 
 Additional APIs for inspecting dataset properties include:
 
-- List all columns: [`dataset.tensors`](../api/dataset-methods/#tensors)
-- Get the number of samples (rows): [`dataset.num_samples`](../api/dataset-methods/#num_samples)
+- List all columns: [`dataset.tensors`](../api/dataset-methods.md#dstensors)
+- Get the number of samples (rows): [`dataset.num_samples`](../api/dataset-methods.md#dsnum_samples)
 - Get the maximum and minimum lengths across columns:
-  [`dataset.max_len`](../api/dataset-methods/#max_len), [`dataset.min_len`](../api/dataset-methods/#min_len)
+  `dataset.max_len`, `dataset.min_len`
 - Dataset-level statistics (e.g., per-column min / max / median / variance):
-  [`dataset.statistics()`](../api/dataset-methods/#statistics)
+  [`dataset.statistics()`](../api/dataset-methods.md#dsstatistics)
 
 APIs for inspecting detailed tensor (column) metadata include:
 
-- Column type: [`tensor.htype`](../api/dataset-methods/#htype)
-- Column data type: [`tensor.dtype`](../api/dataset-methods/#dtype)
+- Column type: [`tensor.htype`](../api/tensor.md#tensorhtype)
+- Column data type: [`tensor.dtype`](../api/tensor.md#tensordtype)
 - Tensor shape (column-level or per-sample):
-  [`tensor.shape_interval`](../api/dataset-methods/#shape_interval), [`tensor.shape`](../api/dataset-methods/#shape)
-- Tensor dimensionality: [`tensor.ndim`](../api/dataset-methods/#ndim)
+  [`tensor.shape_interval`](../api/tensor.md#tensorshape_interval), [`tensor.shape`](../api/tensor.md#tensorshape)
+- Tensor dimensionality: [`tensor.ndim`](../api/tensor.md#tensorndim)
 - Number of samples (rows) in a column:
-  [`tensor.num_samples`](../api/dataset-methods/#num_samples), [`tensor.__len__()`](../api/dataset-methods/#__len__)
+  [`tensor.num_samples`](../api/tensor.md#tensornum_samples), `len(tensor)`
 - Source file metadata for a specific sample:
-  [`tensor.sample_info`](../api/dataset-methods/#sample_info)
+  [`tensor.sample_info`](../api/tensor.md#tensorsample_info)
   *(Effective for recovering image/video/audio metadata; requires
   `create_sample_info_tensor=True` when calling `create_tensor()`.)*
 
@@ -91,7 +91,7 @@ described in Section 3.1 (Step 3: Adding Data to Tensor Columns).
 # number of samples, set `large_ok=True` to explicitly confirm the operation
 # and prevent accidental data loss.
 ```
-- For detailed usage, see [`pop()`](../api/dataset-methods/#pop) and [`delete_tensor()`](../api/dataset-methods/#delete_tensor).
+- For detailed usage, see [`pop()`](../api/dataset-methods.md#dspop) and [`delete_tensor()`](../api/dataset-methods.md#dsdelete_tensor).
 - **Note:** To ensure dataset integrity, data can only be deleted **by entire rows or entire columns**.
 
 #### Deleting a dataset (Method 1):
@@ -105,7 +105,7 @@ For a dataset that is not currently loaded, you can delete it using the `muller`
 ```python
 >>> muller.delete(path="/your/data/path/", creds={'optional'})
 ```
-- For detailed usage, see [`dataset.delete()`](../api/dataset-methods/#delete) and [`muller.delete()`](../api/dataset-creation/#mullerdelete).
+- For detailed usage, see [`dataset.delete()`](../api/dataset-methods.md#dsdelete) and [`muller.delete()`](../api/dataset-creation.md#mullerdelete).
 
 ## 5. Inspecting Data by random access (via row id and column name) and full scan
 
@@ -145,14 +145,14 @@ array([1], dtype=int32)
 #### Access the value of columns in multiple rows (first access the row, then the column):
 
 ```python
->>> ds[1:4].my_label.numpy()  # You may alsi use .data()['value']
+>>> ds[1:4].my_label.numpy()  # You may also use .data()['value']
 array([[2],
        [3],
        [4]], dtype=int32)
 ```
 Lazy loading for rows and columns involves several `Tensor`-related APIs, each with additional optional parameters. Refer to the API documentation for more details:
 
-- [`tensor.numpy()`](../api/dataset-methods/#numpy). Note that there are three important parameters:
+- [`tensor.numpy()`](../api/tensor.md#tensornumpy). Note the following parameters:
 > * `aslist` (`bool`):  
 >   If `True`, returns data as a list of `np.ndarray`s. Recommended for dynamic-shape tensors.  
 >   If `False`, returns a single `np.ndarray`. May raise an error if samples have dynamic shapes.  
@@ -166,16 +166,14 @@ Lazy loading for rows and columns involves several `Tensor`-related APIs, each w
 >     2. The chunk being accessed contains more than 128 samples.  
 >   Default can be adjusted as needed.
 
-> * `asrow` (`bool`):  
->   If `True`, returns samples in **row-oriented** format as a list of dictionaries, one dict per row.  
->   If samples have inconsistent lengths, an error will be raised (use `False` to avoid this).
->   If `False`, returns data in **column-oriented** format as a dictionary, where each key maps to a list containing the column data.
+> * `max_workers` (`int`):  
+>   Maximum worker count used by the chunk engine while reading.
 
-- [`tensor.data()`](../api/dataset-methods/#data)
-- [`tensor.tobytes()`](../api/dataset-methods/#tobytes)
-- [`tensor.text()`](../api/dataset-methods/#text)
-- [`tensor.dict()`](../api/dataset-methods/#dict)
-- [`tensor.list()`](../api/dataset-methods/#list)
+- [`tensor.data()`](../api/tensor.md#tensordata)
+- [`tensor.tobytes()`](../api/tensor.md#tensortobytes)
+- [`tensor.text()`](../api/tensor.md#tensortext)
+- [`tensor.dict()`](../api/tensor.md#tensordict)
+- [`tensor.list()`](../api/tensor.md#tensorlist)
 
 ## 6. Update Data
 #### Method 1: Directly update the i-th row in a given column
@@ -188,8 +186,8 @@ ds.my_tensor[i] = muller.read("image.jpg")
 ds[i].update({"my_tensor": muller.read("image.jpg")})
 ```
 
-* Method 1 API: [`tensor.__setitem__()`](../api/dataset-methods/#__setitem__)
-* Method 2 API: [`dataset.update()`](../api/dataset-methods/#update)
+* Method 1 API: [Tensor index assignment](../api/tensor.md#index-assignment)
+* Method 2 API: [`dataset.update()`](../api/dataset-methods.md#dsupdate)
 
 ## 7. Query Data
 MULLER provides a comprehensive suite of query functionalities tailored for AI data lakes:
@@ -476,9 +474,9 @@ array([["Write a Python program that uses regular expressions to match mobile ph
 ```
 * For detailed usage, please refer to the following API documentation:
 
-> * [`filter_vectorized()`](../api/dataset-query/#filter_vectorized): vectorized query interface for conditional filtering
-> * [`aggregate_vectorized()`](../api/dataset-query/#aggregate_vectorized): vectorized aggregation interface (e.g., group by + count(*))
-> * [`create_index()`](../api/dataset-query/#create_index): interface for creating inverted indexes
+> * [`filter_vectorized()`](../api/dataset-query.md#dsfilter_vectorized): vectorized query interface for conditional filtering
+> * [`aggregate_vectorized()`](../api/dataset-query.md#dsaggregate_vectorized): vectorized aggregation interface (e.g., group by + count(*))
+> * [`create_index()`](../api/dataset-query.md#dscreate_index): interface for creating inverted indexes
 
 #### Example 12: Vector Search
 
@@ -511,22 +509,22 @@ recall = np.ones(len(res_id))[(ground_truth==res_id).flatten()].sum() / len(res_
 ## 8. Saving and Loading Dataset Views
 Each query result can be persisted as a materialized view and assigned a unique ID. For subsequent identical queries, the corresponding materialized view can be loaded directly using this ID, avoiding redundant computation.
 ```python
-my_view = ds.filter([("lable", "==", 1)])
-my_view.save_view(id='my_query_id')  # Note: need to specify the `id`!
-my_view = ds.load_view(id='my_query_id') # Note: need to specify the `id`!
+my_view = ds.filter_vectorized([("label", "==", 1)])
+my_view.save_view(view_id="my_query_id")
+my_view = ds.load_view("my_query_id")
 ```
 
 Materialized view–related APIs support additional parameters to optimize read and write performance, such as `optimize` and `num_workers`. For details, please refer to the view-related API documentation.
 
 ## 9. Other Dataset-Related APIs
 
-For the complete API reference, see [Dataset Methods](../api/dataset-methods/) and related pages. Key APIs include:
+For the complete API reference, see [Dataset Methods](../api/dataset-methods.md) and related pages. Key APIs include:
 
 * Dataset copying:
-> * Full copy including all branches: [`dataset.deepcopy()`](../api/dataset-methods/#deepcopy)
-> * Copy only the latest commit on the main branch: [`dataset.copy()`](../api/dataset-methods/#copy)
-* Dataset rechunking (optimize chunk sizes for each tensor): [`dataset.rechunk()`](../api/advanced/#rechunk)
-* Export dataset to MindRecord: [`dataset.to_mindrecord()`](../api/dataset-export/#to_mindrecord)
-* Export dataset to JSON: [`dataset.to_json()`](../api/dataset-export/#to_json)
-* Export dataset to Arrow: [`dataset.to_arrow()`](../api/dataset-export/#to_arrow)
-* Convert dataset to a pandas DataFrame (for inspection and visualization): [`dataset.to_dataframe()`](../api/dataset-export/#to_dataframe)
+> * Full copy including all branches: `dataset.deepcopy()`
+> * Copy only the latest commit on the main branch: `dataset.copy()`
+* Dataset rechunking (optimize chunk sizes for each tensor): [`dataset.rechunk()`](../api/advanced.md#dsrechunk)
+* Export dataset to MindRecord: [`dataset.to_mindrecord()`](../api/dataset-export.md#dsto_mindrecord)
+* Export dataset to JSON: [`dataset.to_json()`](../api/dataset-export.md#dsto_json)
+* Export dataset to Arrow: [`dataset.to_arrow()`](../api/dataset-export.md#dsto_arrow)
+* Convert dataset to a pandas DataFrame (for inspection and visualization): [`dataset.to_dataframe()`](../api/dataset-export.md#dsto_dataframe)

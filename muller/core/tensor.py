@@ -567,7 +567,17 @@ class Tensor:
     def append(self,
                sample: InputSample,
                ignore_errors: bool = False):
-        """Append samples."""
+        """Append one sample to this tensor.
+
+        Args:
+            sample: Sample value to append. Accepted values depend on tensor
+                htype and compression configuration.
+            ignore_errors: If ``True``, skip samples that fail during append
+                processing where supported by the underlying chunk engine.
+
+        Returns:
+            None
+        """
         self.protected_extend([sample], progressbar=False, ignore_errors=ignore_errors)
 
     @invalid_view_op
@@ -578,13 +588,28 @@ class Tensor:
             progressbar: bool = False,
             ignore_errors: bool = False,
     ):
-        """Extend samples."""
+        """Append multiple samples to this tensor.
+
+        Args:
+            samples: Numpy array, sequence of sample values, or another
+                tensor whose selected data should be appended.
+            progressbar: If ``True``, display progress while extending.
+            ignore_errors: If ``True``, continue where supported when an
+                individual sample fails.
+
+        Returns:
+            None
+        """
         self.protected_extend(samples, progressbar=progressbar, ignore_errors=ignore_errors)
 
     @invalid_view_op
     @user_permission_check
     def clear(self):
-        """Deletes all samples from the tensor"""
+        """Delete all samples from this tensor.
+
+        Returns:
+            None
+        """
         self.chunk_engine.clear()
 
     @user_permission_check

@@ -4,6 +4,8 @@
 
 This document summarizes the bug fixes and optimizations made to the `batch_enable=True` mode in the `@muller.compute` decorator for parallel data import.
 
+For the public API contract, including `@muller.compute` parameters and `.eval()` arguments, see [`muller.compute()` in the Advanced API docs](../../api/advanced.md#mullercompute).
+
 ## Bug Fixes
 
 ### 1. `transform_tensor.py` - Fixed batch mode append logic
@@ -124,6 +126,9 @@ Added comprehensive test cases for `batch_enable=True` mode:
 ## Recommended Usage Pattern
 
 ```python
+import muller
+import numpy as np
+
 @muller.compute(batch_enable=True)
 def file_to_muller_optimized(images, labels, sample_out):
     sample_out.images.append(images)

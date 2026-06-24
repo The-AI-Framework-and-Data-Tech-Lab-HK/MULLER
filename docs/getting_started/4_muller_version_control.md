@@ -1,6 +1,6 @@
 ## Version Control
 
-MULLER provides Git-like commands to manage dataset changes. It works with datasets of any size and records key information about dataset evolution. For the full API reference, see [Dataset Version Control](../api/dataset-version-control/).
+MULLER provides Git-like commands to manage dataset changes. It works with datasets of any size and records key information about dataset evolution. For the full API reference, see [Dataset Version Control](../api/dataset-version-control.md).
 
 Below are several key commands.
 
@@ -27,7 +27,7 @@ You can then continue to modify the dataset and commit again.
 '637adeb5232f0152b866c9a2a49e8da19f00c1da'
 ```
 
-- For details, see [`dataset.commit()`](../api/dataset-version-control/#datasetcommit).
+- For details, see [`ds.commit()`](../api/dataset-version-control.md#dscommit).
 
 ### 2. Checkout
 
@@ -59,8 +59,8 @@ tensor    htype    shape    dtype  compression
 labels   generic  (5, 1)    int64    None
 ```
 
-- For details, see [`dataset.checkout()`](../api/dataset-version-control/#datasetcheckout).
-- For details, see [`dataset.branch`](../api/dataset-version-control/#datasetbranch).
+- For details, see [`ds.checkout()`](../api/dataset-version-control.md#dscheckout).
+- For details, see [`ds.branch`](../api/dataset-version-control.md#dsbranch).
 
 ### 3. Load a Specific Branch/Version and View History
 
@@ -84,13 +84,13 @@ Load a specific commit using `@{commit_id}`:
 ds = muller.load(path="/data/muller_exp@3e49cded62b6b335c74ff07e97f8451a37aca7b2")
 ```
 
-`ds.log()` prints the log to the console and returns commit records starting from the current version.
+`ds.log()` prints the log to the console. Use `ds.commits()` when you need commit records as Python objects.
 
 ```python
 >>> ds = muller.load(path="/data/muller_exp@dev")
 >>> ds.log()
 ---------------
-MULLER Version Log
+MULLER_F Version Log
 ---------------
 
 Current Branch: dev
@@ -110,16 +110,16 @@ Time   : 2025-02-28 03:32:53
 Message: first commit.
 ```
 
-- For details, see [`dataset.log()`](../api/dataset-version-control/#datasetlog).
+- For details, see [`ds.log()`](../api/dataset-version-control.md#dslog).
 - If needed, we may extend `log()` to also return the history of commits merged into the current branch.
 - Other related APIs:
-  - Get commit details: [`dataset.get_commit_details(commit_id)`](../api/dataset-version-control/#datasetget_commit_details)
-  - Get current commit ID: [`dataset.commit_id`](../api/dataset-version-control/#datasetcommit_id)
-  - Get the next (pending) commit ID: [`dataset.pending_commit_id`](../api/dataset-version-control/#datasetpending_commit_id)
-  - Check whether the current branch has uncommitted changes: [`dataset.has_head_changes`](../api/dataset-version-control/#datasethas_head_changes)
-  - List all commits (without printing): [`dataset.commits`](../api/dataset-version-control/#datasetcommits)
-  - List all branches: [`dataset.branches`](../api/dataset-version-control/#datasetbranches)
-  - Get commits between a version and a branch: [`dataset.commits_between()`](../api/dataset-version-control/#datasetcommits_between)
+  - Get commit details: `ds.get_commit_details(commit_id)`
+  - Get current commit ID: [`ds.commit_id`](../api/dataset-version-control.md#dscommit_id)
+  - Get the next (pending) commit ID: `ds.pending_commit_id`
+  - Check whether the current branch has uncommitted changes: `ds.has_head_changes`
+  - List all commits (without printing): [`ds.commits()`](../api/dataset-version-control.md#dscommits)
+  - List all branches: [`ds.branches`](../api/dataset-version-control.md#dsbranches)
+  - Get commits between a version and a branch: `ds.commits_between()`
 
 ### 4. Direct Diff (available in v0.6.10+)
 
@@ -356,7 +356,7 @@ Example: return values as a dict.
   [])}
 ```
 
-- For details, see [`dataset.diff()`](../api/dataset-version-control/#datasetdiff).
+- For details, see [`ds.diff()`](../api/dataset-version-control.md#dsdiff).
 
 ### 6. What Are HEAD Changes? How to Use `reset()` to Revert Uncommitted Changes
 
@@ -406,7 +406,7 @@ False
 Dataset in main branch has 5 samples in the labels tensor
 ```
 
-- For details, see [`dataset.reset()`](../api/dataset-version-control/#datasetreset).
+- For details, see [`ds.reset()`](../api/dataset-version-control.md#dsreset).
 
 ### 7. Merge (available in v0.6.7+)
 
@@ -557,8 +557,8 @@ Example:
  [800]]
 ```
 
-- For details, see [`dataset.detect_merge_conflict()`](../api/dataset-version-control/#datasetdetect_merge_conflict).
-- For details, see [`dataset.merge()`](../api/dataset-version-control/#datasetmerge).
+- For details, see [`ds.detect_merge_conflict()`](../api/dataset-version-control.md#dsdetect_merge_conflict).
+- For details, see [`ds.merge()`](../api/dataset-version-control.md#dsmerge).
 
 ### 8. Branch Permission Control for the Huashan Platform (available in v0.6.6+)
 
@@ -590,8 +590,8 @@ ds.merge()
 ds.delete_tensor()
 ds.pop()
 ds.rename()
-muller.api_dataset.create_dataset_from_dataframes()
-muller.api_dataset.create_dataset_from_file()
+muller.from_dataframes()
+muller.from_file()
 ds.<tensor>.clear()
 ds.create_index()
 ```
