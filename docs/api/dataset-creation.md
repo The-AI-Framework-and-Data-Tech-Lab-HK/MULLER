@@ -13,6 +13,8 @@ This page documents functions for creating, loading, and managing datasets.
 - [muller.from_file()](#mullerfrom_file)
 - [muller.from_dataframes()](#mullerfrom_dataframes)
 - [muller.from_csv()](#mullerfrom_csv)
+- [ds.add_data_from_file()](#dsadd_data_from_file)
+- [ds.add_data_from_dataframes()](#dsadd_data_from_dataframes)
 - [ds.add_data_from_csv()](#dsadd_data_from_csv)
 
 ---
@@ -75,7 +77,7 @@ Load an existing dataset from the given path. Unlike `dataset()`, this function 
 
 #### Parameters
 
-- **path** (`str` or `pathlib.Path`): The full path to the dataset.
+- **path** (`str` or `pathlib.Path`): The full path to the dataset. To load a versioned address, append `@branch` or `@commit` to the path, for example `./datasets/my_dataset@dev` or `./datasets/my_dataset@3e49cded62b6b335c74ff07e97f8451a37aca7b2`.
 - **read_only** (`bool`, optional): Opens dataset in read only mode if `True`. Defaults to `False`.
 - **memory_cache_size** (`int`, optional): The size of the memory cache to be used in MB. Defaults to `DEFAULT_MEMORY_CACHE_SIZE`.
 - **local_cache_size** (`int`, optional): The size of the local filesystem cache to be used in MB. Defaults to `DEFAULT_LOCAL_CACHE_SIZE`.
@@ -106,7 +108,16 @@ ds = muller.load("s3://mybucket/my_dataset", creds={"aws_access_key_id": "...", 
 
 # Load without integrity check for faster loading
 ds = muller.load("./datasets/large_dataset", check_integrity=False)
+
+# Load a branch or a commit
+ds = muller.load("./datasets/my_dataset@dev")
+ds = muller.load("./datasets/my_dataset@3e49cded62b6b335c74ff07e97f8451a37aca7b2")
 ```
+
+#### Notes
+
+- `muller.load()` only opens existing datasets. It does not create missing datasets.
+- `muller.load()` does not accept `reset`. If HEAD recovery is needed while opening a dataset, use `muller.dataset(path, reset=True)` or load a known-good commit with `muller.load("path@commit")`.
 
 ---
 
@@ -444,6 +455,103 @@ ds = muller.from_dataframes(
 
 ---
 
+### ds.add_data_from_file()
+
+#### Overview
+
+Append JSON-lines data from a file into an existing dataset. Tensors must already exist, and schema column names must match existing tensor names.
+
+#### Parameters
+
+- **ori_path** (`str`): Path to the source JSON-lines file.
+- **schema** (`dict`, optional): Schema definition used to select and flatten columns. If omitted, keys are inferred from the first record. Defaults to `None`.
+- **workers** (`int`, optional): Number of workers for parallel processing. `0` and `1` use direct appends. Defaults to `0`.
+- **scheduler** (`str`, optional): Scheduler type passed to compute execution when `workers > 1`. Defaults to `"processed"`.
+- **disable_rechunk** (`bool`, optional): Whether to disable rechunking in compute execution. Defaults to `True`.
+- **progressbar** (`bool`, optional): Whether to show a progress bar in compute execution. Defaults to `True`.
+- **ignore_errors** (`bool`, optional): Whether compute execution should continue after per-sample errors. Defaults to `True`.
+
+#### Returns
+
+- **Dataset**: The updated dataset.
+
+#### Examples
+
+```python
+import muller
+
+ds = muller.dataset(path="./datasets/my_dataset", overwrite=True)
+ds.create_tensor("text", htype="text")
+ds.create_tensor("label", htype="class_label", dtype="uint32")
+
+ds.add_data_from_file(
+    ori_path="./data/records.jsonl",
+    schema={
+        "text": ("text", "str", None),
+        "label": ("class_label", "uint32", None),
+    },
+    workers=0,
+)
+```
+
+#### Notes
+
+- This method appends data only; it does not create missing tensors.
+- Nested schema dictionaries are flattened with dot notation, matching `muller.from_file()`.
+
+---
+
+### ds.add_data_from_dataframes()
+
+#### Overview
+
+Append in-memory records into an existing dataset. Each item in `dataframes` should be a dictionary representing one record.
+
+#### Parameters
+
+- **dataframes** (`list`): List of dictionaries to append.
+- **schema** (`dict`, optional): Schema definition used to select and flatten columns. If omitted, keys are inferred from the first record. Defaults to `None`.
+- **workers** (`int`, optional): Number of workers for parallel processing. `0` and `1` use direct appends. Defaults to `0`.
+- **scheduler** (`str`, optional): Scheduler type passed to compute execution when `workers > 1`. Defaults to `"processed"`.
+- **disable_rechunk** (`bool`, optional): Whether to disable rechunking in compute execution. Defaults to `True`.
+- **progressbar** (`bool`, optional): Whether to show a progress bar in compute execution. Defaults to `True`.
+- **ignore_errors** (`bool`, optional): Whether compute execution should continue after per-sample errors. Defaults to `True`.
+
+#### Returns
+
+- **Dataset**: The updated dataset.
+
+#### Examples
+
+```python
+import muller
+
+ds = muller.dataset(path="./datasets/my_dataset", overwrite=True)
+ds.create_tensor("text", htype="text")
+ds.create_tensor("score", htype="generic", dtype="float32")
+
+records = [
+    {"text": "first sample", "score": 0.8},
+    {"text": "second sample", "score": 0.9},
+]
+
+ds.add_data_from_dataframes(
+    dataframes=records,
+    schema={
+        "text": ("text", "str", None),
+        "score": ("generic", "float32", None),
+    },
+    workers=0,
+)
+```
+
+#### Notes
+
+- This method appends data only; it does not create missing tensors.
+- Nested schema dictionaries are flattened with dot notation, matching `muller.from_dataframes()`.
+
+---
+
 ### muller.from_csv()
 
 #### Overview
@@ -542,7 +650,7 @@ Append data from a CSV file into an existing dataset. Tensors must already be cr
 #### Parameters
 
 - **csv_path** (`str`): Path to the source CSV file.
-- **schema** (`dict`, optional): Schema definition. If not provided, CSV column names are used directly. Defaults to `None`.
+- **schema** (`dict`, optional): Schema definition used to select columns. If not provided, CSV column names are used directly. Defaults to `None`.
 - **path_columns** (`dict`, optional): Dict mapping column names to their handling mode for file path values. Defaults to `None`.
   - `"read"`: Calls `muller.read(path)` to load the file as a Sample.
   - `"text"`: Stores the file path as a plain text string.

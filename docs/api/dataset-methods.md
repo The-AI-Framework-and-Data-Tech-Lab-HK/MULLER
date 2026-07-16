@@ -9,6 +9,8 @@ This page documents core instance methods for Dataset objects, including data op
 - [ds.extend()](#dsextend)
 - [ds.update()](#dsupdate)
 - [ds.pop()](#dspop)
+- [ds.delete()](#dsdelete)
+- [ds.rename()](#dsrename)
 
 ### Tensor Management
 - [ds.create_tensor()](#dscreate_tensor)
@@ -41,8 +43,8 @@ Append a single sample to the dataset. Each sample is a dictionary where keys ar
 #### Parameters
 
 - **sample** (`Dict[str, Any]`): Dictionary mapping tensor names to their values.
-- **skip_ok** (`bool`, optional): If `True`, allows skipping samples that cause errors. Defaults to `False`.
-- **append_empty** (`bool`, optional): If `True`, allows appending empty samples. Defaults to `False`.
+- **skip_ok** (`bool`, optional): If `True`, tensors missing from `sample` are skipped instead of raising an error. Defaults to `False`.
+- **append_empty** (`bool`, optional): If `True`, tensors missing from `sample` receive an empty value so tensor lengths stay aligned. Defaults to `False`.
 
 #### Returns
 
@@ -88,11 +90,11 @@ Extend the dataset with multiple samples at once. This is more efficient than ca
 
 #### Parameters
 
-- **samples** (`Dict[str, Any]`): Dictionary where keys are tensor names and values are lists/arrays of data to append.
-- **skip_ok** (`bool`, optional): If `True`, allows skipping samples that cause errors. Defaults to `False`.
-- **append_empty** (`bool`, optional): If `True`, allows appending empty samples. Defaults to `False`.
-- **ignore_errors** (`bool`, optional): If `True`, continues processing even if errors occur. Defaults to `False`.
-- **progressbar** (`bool`, optional): If `True`, displays a progress bar. Defaults to `False`.
+- **samples** (`Dict[str, Any]` or `Dataset`): Data to append. Usually a dictionary where keys are tensor names and values are lists, arrays, tensors, or other indexable sequences with the same length. A `Dataset` can also be passed; its tensors are used as the source data.
+- **skip_ok** (`bool`, optional): If `True`, tensors missing from `samples` are skipped instead of raising an error. Defaults to `False`.
+- **append_empty** (`bool`, optional): If `True`, tensors missing from `samples`, or receiving fewer values than other tensors, are padded with empty values. Defaults to `False`.
+- **ignore_errors** (`bool`, optional): If `True`, continues processing per-sample appends when one sample fails. This is ignored when extending from numpy arrays or tensors. Defaults to `False`.
+- **progressbar** (`bool`, optional): If `True`, displays a progress bar for per-sample extension. Defaults to `False`.
 
 #### Returns
 
@@ -143,7 +145,7 @@ Update existing samples in the dataset. This modifies data at specific indices.
 
 #### Parameters
 
-- **sample** (`Dict[str, Any]`): Dictionary mapping tensor names to their new values.
+- **sample** (`Dict[str, Any]`): Dictionary mapping tensor names to their new values. `ds.update()` updates the current dataset view/index; for partial sample updates on multi-index views, update tensors directly instead.
 
 #### Returns
 
@@ -213,6 +215,65 @@ with ds:
 
 ---
 
+### ds.delete()
+
+#### Overview
+
+Delete the dataset represented by this `Dataset` object. For local datasets this clears the underlying dataset storage; for views, the view entry is deleted.
+
+#### Parameters
+
+- **large_ok** (`bool`, optional): If `True`, allows deleting datasets larger than the safety threshold. Defaults to `False`.
+
+#### Returns
+
+- **None**
+
+#### Examples
+
+```python
+import muller
+
+ds = muller.load("./datasets/old_dataset")
+
+# Delete a small dataset
+ds.delete()
+
+# Delete a large dataset after explicitly acknowledging the safety check
+ds.delete(large_ok=True)
+```
+
+#### Warning
+
+This operation is irreversible.
+
+---
+
+### ds.rename()
+
+#### Overview
+
+Rename a local dataset to another path in the same parent directory.
+
+#### Parameters
+
+- **path** (`str` or `pathlib.Path`): New dataset path. The implementation accepts local storage rename operations only, and the new path must stay in the same directory as the current dataset path.
+
+#### Returns
+
+- **None**
+
+#### Examples
+
+```python
+import muller
+
+ds = muller.load("./datasets/my_dataset")
+ds.rename("./datasets/renamed_dataset")
+```
+
+---
+
 ## Tensor Management
 
 ### ds.create_tensor()
@@ -223,13 +284,25 @@ Create a new tensor in the dataset. Tensors are the columns of your dataset, eac
 
 #### Parameters
 
-- **name** (`str`): Name of the tensor to create.
-- **htype** (`str`, optional): The htype (high-level type) of the tensor (e.g., "image", "class_label", "text"). If not specified, defaults to "generic".
-- **dtype** (`str` or `np.dtype`, optional): The numpy dtype of the tensor data. If not specified, it's inferred from htype.
-- **sample_compression** (`str`, optional): Compression to apply to each sample (e.g., "jpeg", "png"). Defaults to `None`.
-- **chunk_compression** (`str`, optional): Compression to apply to chunks. Defaults to `None`.
-- **hidden** (`bool`, optional): If `True`, creates a hidden tensor. Defaults to `False`.
-- **kwargs**: Additional keyword arguments for tensor configuration.
+- **name** (`str`): Name of the tensor to create. Names are normalized internally and must not conflict with Dataset attributes, Python dictionary methods, or MULLER reserved keywords.
+- **htype** (`str`, optional): High-level tensor type. If omitted, MULLER uses the default `generic` htype. Confirmed htypes include `generic`, `image`, `image.rgb`, `image.gray`, `class_label`, `bbox`, `bbox.3d`, `video`, `binary_mask`, `instance_label`, `segment_mask`, `keypoints_coco`, `point`, `audio`, `text`, `json`, `list`, `dicom`, `nifti`, `point_cloud`, `intrinsics`, `polygon`, `mesh`, `embedding`, and `vector`.
+- **dtype** (`str` or `np.dtype`, optional): Numpy dtype for tensor samples. If omitted, the dtype is inferred from the selected `htype` when that htype defines a default, such as `uint8` for `image`, `uint32` for `class_label`, `float32` for `bbox`, `embedding`, `point_cloud`, `intrinsics`, and `polygon`, `str` for `text`, and `Any` for `json`.
+- **sample_compression** (`str` or `None`, optional): Compression applied to each sample. `image`, `image.rgb`, and `image.gray` support image compression formats and byte compression such as `lz4`; aliases like `jpg` and `jp2` are normalized internally. `dicom` defaults to `dcm`, `mesh` defaults to `ply`, and unspecified compression resolves to no sample compression unless the htype defines a default.
+- **chunk_compression** (`str` or `None`, optional): Compression applied at chunk level instead of individual samples. Uses supported MULLER compression names such as `lz4` where valid for the tensor configuration. Defaults to `None`.
+- **hidden** (`bool`, optional): If `True`, creates a hidden tensor that is tracked in dataset metadata but not exposed as a normal public tensor. Defaults to `False`.
+- **exist_ok** (`bool`, optional): If `True`, returns an existing tensor when its current configuration matches the requested configuration. Defaults to `False`.
+- **create_sample_info_tensor** (`bool`, optional): If `True`, creates a hidden sample-info tensor for supported media htypes (`image`, `audio`, `video`, `dicom`, `point_cloud`, `mesh`, `nifti`). Defaults to `False`.
+- **create_shape_tensor** (`bool`, optional): If `True`, creates a hidden shape tensor for htypes other than `text` and `json`. Defaults to `False`.
+- **create_id_tensor** (`bool`, optional): If `True`, creates a hidden per-sample id tensor. Defaults to `False`.
+- **downsampling** (`tuple[int, int]`, optional): Creates hidden downsampled tensors for image and mask htypes. The tuple is `(downsampling_factor, number_of_layers)`.
+- **max_chunk_size** (`int`, optional): Maximum chunk size metadata passed to the tensor engine.
+- **tiling_threshold** (`int`, optional): Tiling threshold metadata passed to the tensor engine.
+- Htype-specific **kwargs** confirmed by code:
+  - **intrinsics** (`Any`, optional): Stored in tensor info for `image`.
+  - **class_names** (`list`, optional): Stored in tensor info for `class_label` and `segment_mask`.
+  - **coords** (`dict`, optional): Stored in tensor info for `bbox` and `bbox.3d`; accepted keys are `type` and `mode` for `bbox`, and `mode` for `bbox.3d`.
+  - **keypoints** (`list`, optional) and **connections** (`list`, optional): Stored in tensor info for `keypoints_coco`.
+  - **dimension** (`Any`, optional): Stored in tensor info for `vector`.
 
 #### Returns
 
@@ -259,6 +332,18 @@ ds.create_tensor("boxes", htype="bbox", dtype="float32")
 
 # Create with chunk compression
 ds.create_tensor("embeddings", htype="embedding", chunk_compression="lz4")
+
+# Create a vector tensor with htype-specific metadata
+ds.create_tensor("vectors", htype="vector", dtype="float32", dimension=128)
+
+# Create an image tensor with hidden shape and sample-info tensors
+ds.create_tensor(
+    "images",
+    htype="image",
+    sample_compression="jpeg",
+    create_shape_tensor=True,
+    create_sample_info_tensor=True,
+)
 ```
 
 ---

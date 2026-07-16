@@ -417,7 +417,7 @@ class Dataset(
 
     @property
     def branch(self) -> str:
-        """The current branch of the dataset"""
+        """The current branch name of the dataset."""
         return self.version_state["branch"]
 
     @property
@@ -595,12 +595,16 @@ class Dataset(
 
     @property
     def branches(self):
-        """Lists all the branches of the dataset. """
+        """Branch metadata for all known branches, or ``"Not Supported"`` if unavailable."""
         return self.version_state.get("branch_info", "Not Supported")
 
     @property
     def commit_id(self) -> Optional[str]:
-        """The lasted committed commit id of the dataset. If there are no commits, this returns ``None``."""
+        """The latest committed commit ID visible from the current dataset state.
+
+        If the dataset is at a branch HEAD, this returns the parent committed
+        commit ID. If there are no committed snapshots, this returns ``None``.
+        """
         commit_node = self.version_state["commit_node"]
         if not commit_node.is_head_node:
             return commit_node.commit_id
@@ -831,7 +835,22 @@ class Dataset(
             hidden: bool = False,
             **kwargs,
     ):
-        """ Create tensors. """
+        """Create a tensor column.
+
+        Args:
+            name: Tensor name.
+            htype: High-level tensor type. Defaults to the generic htype when unspecified.
+            dtype: Numpy dtype or dtype name. Defaults may be inferred from ``htype``.
+            sample_compression: Per-sample compression, for example ``jpeg`` or ``lz4``.
+            chunk_compression: Chunk-level compression.
+            hidden: Whether to create the tensor as hidden metadata.
+            **kwargs: Tensor metadata/info options such as ``exist_ok``,
+                ``create_sample_info_tensor``, ``create_shape_tensor``,
+                ``create_id_tensor``, ``downsampling``, ``max_chunk_size``,
+                ``tiling_threshold``, and htype-specific info keys like
+                ``class_names``, ``coords``, ``intrinsics``, ``keypoints``,
+                ``connections``, or ``dimension``.
+        """
         return muller.core.dataset.create_tensor(self, name, htype, dtype, sample_compression,
                                                                   chunk_compression, hidden,
                                                                   **kwargs)
@@ -862,7 +881,15 @@ class Dataset(
             ignore_errors: bool = False,
             progressbar: bool = False,
     ):
-        """Extend samples to the dataset."""
+        """Extend the dataset with multiple samples.
+
+        Args:
+            samples: Mapping from tensor names to sequences of values, or another Dataset.
+            skip_ok: Skip missing tensors instead of requiring every tensor.
+            append_empty: Pad missing or shorter tensors with empty values.
+            ignore_errors: Continue per-sample appends after errors when possible.
+            progressbar: Show a progress bar for per-sample extension.
+        """
         muller.core.dataset.extend(self, samples, skip_ok, append_empty, ignore_errors, progressbar)
 
     @invalid_view_op
@@ -873,30 +900,49 @@ class Dataset(
             skip_ok: bool = False,
             append_empty: bool = False,
     ):
-        """Append samples to the dataset."""
+        """Append one sample to the dataset.
+
+        Args:
+            sample: Mapping from tensor names to values.
+            skip_ok: Skip tensors missing from ``sample``.
+            append_empty: Append empty values for tensors missing from ``sample``.
+        """
         muller.core.dataset.append(self, sample, skip_ok, append_empty)
 
     @user_permission_check
     def update(self, sample: Dict[str, Any]):
-        """Update samples in the dataset."""
+        """Update the samples selected by this dataset view/index.
+
+        Args:
+            sample: Mapping from tensor names to replacement values.
+        """
         muller.core.dataset.update(self, sample)
 
     @invalid_view_op
     @user_permission_check
     def pop(self, index: Optional[Union[List, int]] = None, rechunk: bool = False):
-        """Pop samples in the dataset."""
+        """Remove samples by index.
+
+        Args:
+            index: Index or list of indices to remove. Defaults to the last sample.
+            rechunk: Whether to rechunk tensors after removal.
+        """
         muller.core.dataset.pop(self, index, rechunk)
 
     @invalid_view_op
     @user_permission_check
     def delete(self, large_ok=False):
-        """Delete the dataset."""
+        """Delete this dataset.
+
+        Args:
+            large_ok: Allow deletion when the dataset exceeds the safety threshold.
+        """
         muller.core.dataset.delete(self, large_ok)
 
     @invalid_view_op
     @user_permission_check
     def rename(self, path: Union[str, pathlib.Path]):
-        """Renames the dataset to `path`. """
+        """Rename this dataset to ``path`` in the same parent directory."""
         # Note: currently we only accept the rename operation in LocalProvider and MemProvider
         muller.core.dataset.rename(self, path)
 
@@ -913,7 +959,7 @@ class Dataset(
     @user_permission_check
     def add_data_from_file(self, ori_path="", schema=None, workers=0, scheduler="processed", disable_rechunk=True,
                            progressbar=True, ignore_errors=True):
-        """Add samples from external files to the dataset."""
+        """Append JSON-lines samples from a file to existing tensors."""
         if not ori_path:
             raise ValueError("ori_path cannot be empty.")
 
@@ -925,7 +971,7 @@ class Dataset(
     @user_permission_check
     def add_data_from_dataframes(self, dataframes=None, schema=None, workers=0, scheduler="processed",
                                  disable_rechunk=True, progressbar=True, ignore_errors=True):
-        """Add samples from external dataframes to the dataset."""
+        """Append in-memory dictionary records to existing tensors."""
         if not dataframes:
             raise ValueError("dataframes cannot be empty.")
         if not isinstance(dataframes, list):
@@ -1017,7 +1063,11 @@ class Dataset(
             self[DATASET_UUID_NAME].pop(pop_index)
 
     def commits(self, ordered_by_date=False) -> List[Dict]:
-        """Lists all the commits leading to the current dataset state."""
+        """Lists all commits leading to the current dataset state.
+
+        Args:
+            ordered_by_date: If ``True``, sort commits by date from newest to oldest.
+        """
         return muller.core.version_control.commits(self, ordered_by_date)
 
     def get_commit_details(self, commit_id) -> Dict:
@@ -1028,7 +1078,12 @@ class Dataset(
     @invalid_view_op
     @user_permission_check
     def commit(self, message: Optional[str] = None, allow_empty=False) -> str:
-        """Stores a snapshot of the current state of the dataset."""
+        """Stores a snapshot of the current state of the dataset.
+
+        Args:
+            message: Optional commit message.
+            allow_empty: If ``True``, create a commit even when no changes are present.
+        """
 
         if not allow_empty and not self.has_head_changes:
             raise EmptyCommitError(
@@ -1044,12 +1099,22 @@ class Dataset(
         """
         Checks out to a specific commit_id or branch.
         If ``create = True``, creates a new branch named ``address``.
+
+        Args:
+            address: Commit ID or branch name.
+            create: Create and check out a new branch named ``address``.
+            reset: Reset corrupted HEAD changes and retry checkout if checkout fails.
         """
         return muller.core.version_control.checkout(self, address, create, reset)
 
     @invalid_view_op
     def detect_merge_conflict(self, target_id: str, show_value: bool = False):
-        """Detect the conflict between current stage and target stage of given commit id. """
+        """Detect conflicts between the current branch HEAD and a target commit or branch.
+
+        Args:
+            target_id: Commit ID or branch name to compare with the current branch.
+            show_value: If ``True``, include conflicting values in returned records.
+        """
         return muller.core.version_control.detect_merge_conflict(self, target_id, show_value)
 
     @spinner
@@ -1065,7 +1130,16 @@ class Dataset(
             delete_removed_tensors: bool = False,
             force: bool = False,
     ):
-        """Merges the target_id into the current dataset."""
+        """Merges the target commit or branch into the current dataset.
+
+        Args:
+            target_id: Commit ID or branch name to merge.
+            append_resolution: Append conflict strategy: ``None``, ``"ours"``, ``"theirs"``, or ``"both"``.
+            update_resolution: Update conflict strategy: ``None``, ``"ours"``, or ``"theirs"``.
+            pop_resolution: Pop conflict strategy: ``None``, ``"ours"``, ``"theirs"``, or ``"both"``.
+            delete_removed_tensors: Delete tensors removed by the merge when ``True``.
+            force: Force merge through supported rename-related conflicts.
+        """
         return muller.core.version_control.merge(self, target_id, append_resolution, update_resolution,
                                                 pop_resolution, delete_removed_tensors, force)
 
@@ -1088,7 +1162,14 @@ class Dataset(
 
     def direct_diff(self, id_1: str = None, id_2: str = None,
                     as_dataframe: Optional[bool] = False, force: Optional[bool] = False):
-        """Detect the direct difference of id_2 compared with id_1."""
+        """Detect the direct difference of ``id_2`` compared with ``id_1``.
+
+        Args:
+            id_1: First commit ID or branch name.
+            id_2: Second commit ID or branch name.
+            as_dataframe: Return pandas DataFrames when ``True``.
+            force: Allow DataFrame export beyond the safety limit.
+        """
         return muller.core.version_control.direct_diff(self, id_1, id_2, as_dataframe, force)
 
     def diff(
@@ -1105,6 +1186,15 @@ class Dataset(
         Returns/displays the differences between commits/branches.
         For each tensor this contains information about the sample indexes that were added/modified
         as well as whether the tensor was created.
+
+        Args:
+            id_1: First commit ID or branch name.
+            id_2: Second commit ID or branch name.
+            as_dict: Return structured diff records when ``True``.
+            show_value: Include appended, updated, and deleted values when ``True``.
+            offset: Number of value records to skip when ``show_value`` is ``True``.
+            limit: Maximum number of value records to return when ``show_value`` is ``True``.
+            asrow: Return shown values row-wise when tensor changes are aligned.
         """
 
         return muller.core.version_control.diff(self, id_1, id_2, as_dict, show_value, offset, limit, asrow)
@@ -1118,7 +1208,16 @@ class Dataset(
             limit: Optional[int] = None,
             asrow: bool = False
     ) -> Optional[Dict]:
-        """ Returns/displays the differences between the given commit/current commit and its previous commit. """
+        """Returns/displays differences between a commit and its previous commit.
+
+        Args:
+            commit_id: Commit ID to compare. If omitted, uses the current commit node.
+            as_dict: Return structured diff records when ``True``.
+            show_value: Include appended, updated, and deleted values when ``True``.
+            offset: Number of value records to skip when ``show_value`` is ``True``.
+            limit: Maximum number of value records to return when ``show_value`` is ``True``.
+            asrow: Return shown values row-wise when tensor changes are aligned.
+        """
         return muller.core.version_control.diff_to_prev(self, commit_id, as_dict, show_value, offset, limit, asrow)
 
     def commits_under(
@@ -1138,19 +1237,31 @@ class Dataset(
         return muller.core.version_control.get_children_nodes(self, target_commit_id)
 
     def log(self, ordered_by_date=False):
-        """Displays the details of all the past commits."""
+        """Displays the details of all past commits.
+
+        Args:
+            ordered_by_date: If ``True``, sort commits by date from newest to oldest.
+        """
         return muller.core.version_control.log(self, ordered_by_date)
 
     @invalid_view_op
     @user_permission_check
     def delete_branch(self, name: str) -> None:
-        """Delete a branch of the dataset."""
+        """Delete a branch of the dataset.
+
+        Args:
+            name: Branch name to delete.
+        """
         return muller.core.version_control.delete_branch(self, name)
 
     @spinner
     @user_permission_check
     def reset(self, force: bool = False):
         """Resets the uncommitted changes present in the branch.
+
+        Args:
+            force: If ``True``, run reset even when no uncommitted changes are detected.
+
         Note:The uncommitted data is deleted from underlying storage, this is not a reversible operation.
         """
         return muller.core.version_control.reset(self, force)
@@ -1276,7 +1387,15 @@ class Dataset(
         return InvertedIndex(self.storage, tensor, branch, use_uuid, optimize)
 
     def query(self, tensor_name, query):
-        """Query the target tensor column based on inverted index."""
+        """Query a tensor column through its inverted index.
+
+        Args:
+            tensor_name: Name of the tensor to query.
+            query: Query value or query string passed to the inverted index.
+
+        Returns:
+            A set of source indices matching the query.
+        """
         from muller.core.query.filter import query_with_inverted_index
         return query_with_inverted_index(self, tensor_name, query)
 
@@ -1289,7 +1408,19 @@ class Dataset(
             limit: Optional[int] = None,
             **kwargs
     ):
-        """Filter the dataset with specified function."""
+        """Filter the dataset with a callable, string expression, or indexed query.
+
+        Args:
+            function: Callable sample predicate or string query expression.
+            index_query: Optional expression evaluated against indexed query results.
+            connector: How to combine ``function`` and ``index_query``; supports
+                ``"AND"`` and ``"OR"``.
+            offset: Source index to start filtering from.
+            limit: Maximum number of matching rows to return.
+            **kwargs: Additional backend options such as ``num_workers``,
+                ``scheduler``, ``progressbar``, ``compute_future``,
+                ``save_result``, ``result_path``, and ``result_ds_args``.
+        """
         from muller.core.query.filter import filter_dataset_with_cache
         return filter_dataset_with_cache(self, function, index_query, connector, offset, limit, **kwargs)
 
@@ -1306,7 +1437,20 @@ class Dataset(
             progressbar: bool = True,
             method: str = "count",
     ):
-        """Conduct aggregation query on the dataset."""
+        """Aggregate rows by tensor values.
+
+        Args:
+            group_by_tensors: Tensor names used as group-by keys.
+            selected_tensors: Group-by tensor names to include in the output.
+            order_by_tensors: Optional tensor names used for sorting.
+            aggregate_tensors: Tensor names to aggregate. ``["*"]`` counts rows.
+            function: Optional callable row filter applied before aggregation.
+            order_direction: ``"DESC"`` or ``"ASC"``.
+            num_workers: Number of compute workers; ``0`` runs in-place.
+            scheduler: Compute scheduler used when ``num_workers > 0``.
+            progressbar: Whether to show aggregation progress.
+            method: Aggregation method. Supports ``"count"`` and ``"sum"``.
+        """
         from muller.core.query import aggregate_dataset
         return aggregate_dataset(
             self,
@@ -1331,7 +1475,17 @@ class Dataset(
             order_direction: Optional[str] = 'DESC',
             method: str = 'count'
     ):
-        """ A vectorized aggregate function accelerated by the parallel computing supported by numpy. """
+        """Aggregate rows with NumPy vectorized operations.
+
+        Args:
+            group_by_tensors: Tensor names used as group-by keys.
+            selected_tensors: Tensor names included in the output.
+            order_by_tensors: Optional tensor names used for sorting.
+            aggregate_tensors: Tensor names to aggregate. ``["*"]`` counts rows.
+            order_direction: ``"DESC"`` or ``"ASC"``.
+            method: One of ``"count"``, ``"sum"``, ``"avg"``, ``"min"``, or
+                ``"max"``.
+        """
 
         from muller.core.query import aggregate_vectorized_dataset
         return aggregate_vectorized_dataset(
@@ -1355,7 +1509,22 @@ class Dataset(
             max_workers: Optional[int] = 16,
             show_progress: bool = False,
     ):
-        """ A vectorized filtering function accelerated by the parallel computing supported by numpy. """
+        """Filter rows with vectorized conditions.
+
+        Args:
+            condition_list: List of condition tuples in the form
+                ``(tensor, operator, value)``,
+                ``(tensor, operator, value, use_inverted_index)``, or
+                ``(tensor, operator, value, use_inverted_index, negation)``.
+            connector_list: Optional list of ``"AND"``/``"OR"`` connectors.
+                Its length must be one less than ``condition_list``.
+            offset: Source index to start filtering from.
+            limit: Maximum number of matching rows to return.
+            compute_future: Whether to precompute the next page for limited queries.
+            use_local_index: Whether indexed conditions use the vectorized local index.
+            max_workers: Maximum workers used by indexed search paths.
+            show_progress: Whether to log condition-level progress.
+        """
         from muller.core.query import filter_vectorized_dataset
         return filter_vectorized_dataset(
             self,

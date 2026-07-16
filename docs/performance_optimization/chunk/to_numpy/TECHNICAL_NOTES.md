@@ -119,7 +119,7 @@ def _validate_batch_samples(chunk_engine, fetch_chunks):
 ## Implementation Details
 
 ### Validation Location
-[chunk_engine_to_numpy_interface.py:214-228](muller/core/chunk/interface/chunk_engine_to_numpy_interface.py#L214-L228)
+`chunk_engine_to_numpy_interface.py:214-228`
 
 ### Properties Used
 - `chunk_engine.chunk_compression`: Returns compression algorithm if chunk-wise compressed, else `None`

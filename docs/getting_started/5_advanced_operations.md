@@ -50,8 +50,8 @@ For large-scale ingestion, `eval()` also supports `checkpoint_interval=<commit_e
 
 With large datasets, not every sample path is guaranteed to be valid (e.g., invalid paths, wrong file formats such as treating PNG as JPEG). You may choose to ignore such errors via `.eval(..., ignore_errors=True)`; otherwise frequent exception handling can significantly slow down ingestion.
 
-- For details, see [`muller.compute()`](../api/advanced/#mullercompute).
-- For details, see [`eval()`](../api/advanced/#eval).
+- For details, see [`muller.compute()`](../api/advanced.md#mullercompute).
+- For details, see [`eval()`](../api/advanced.md#eval).
 
 ### 2. Use `with` for Better Write Performance
 
@@ -77,13 +77,13 @@ If your program is interrupted unexpectedly (e.g., a crash during append/pop), t
 1. **Scenario A:** The dataset (or some tensors) cannot be read (e.g., you see an error like below).
 
 ```text
-DatasetCorruptError: Exception occured (see Traceback). The dataset maybe corrupted. Try using `reset=True` to reset HEAD changes and load the previous commit. This will delete all uncommitted changes on the branch you are trying to load.
+DatasetCorruptError: Exception occured (see Traceback). The dataset maybe corrupted. Try using `reset=True` with `muller.dataset()` to reset HEAD changes and load the previous commit. This will delete all uncommitted changes on the branch you are trying to load.
 ```
 
-Recovery: reload with `reset=True`.
+Recovery: reopen with `muller.dataset(..., reset=True)`, or load a known-good commit with `muller.load("path@commit")`.
 
 ```python
-ds = muller.load(<dataset_path>, reset=True)
+ds = muller.dataset(<dataset_path>, reset=True)
 ```
 
 1. **Scenario B:** The dataset is corrupted (e.g., tensor lengths are inconsistent).
@@ -95,8 +95,8 @@ ds = muller.load(<dataset_path>, check_integrity=False)  # skip integrity check
 ds.reset()
 ```
 
-- For details on `check_integrity` during load, see [`muller.dataset()`](../api/dataset-creation/#mullerdataset) and [`muller.load()`](../api/dataset-creation/#mullerload).
-- For details on reset, see [`dataset.reset()`](../api/dataset-version-control/#datasetreset).
+- For details on `check_integrity` during load, see [`muller.dataset()`](../api/dataset-creation.md#mullerdataset) and [`muller.load()`](../api/dataset-creation.md#mullerload).
+- For details on reset, see [`dataset.reset()`](../api/dataset-version-control.md#dsreset).
 - Note: once you reset, all uncommitted changes will be deleted.
 - For large datasets, prefer **checkpointing** or **committing frequently** so recovery is easier after unexpected failures.
 

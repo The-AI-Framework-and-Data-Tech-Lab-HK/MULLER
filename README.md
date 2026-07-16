@@ -243,7 +243,7 @@ res_3 = ds.filter_vectorized([("description", "CONTAINS", "cat"), ("labels", "<"
 # Aggregation
 res_4 = ds.aggregate_vectorized(
     group_by_tensors=['categories'],
-    selected_tensors=['labels', 'categories'],
+    selected_tensors=['categories'],
     aggregate_tensors=["*"]
 )
 

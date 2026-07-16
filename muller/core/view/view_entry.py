@@ -109,4 +109,4 @@ class ViewEntry:
 
     def delete(self):
         """Deletes the view."""
-        self._ds.delete_view(id=self.info["id"])
+        self._ds.delete_view(view_id=self.info["id"])

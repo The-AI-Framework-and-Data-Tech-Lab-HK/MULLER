@@ -74,11 +74,11 @@ def get_views(ds, commit_id: Optional[str] = None) -> List[ViewEntry]:
 
 
 def get_view(ds, view_id: str) -> ViewEntry:
-    """Returns the dataset view corresponding to ``id``.
+    """Returns the dataset view corresponding to ``view_id``.
 
     Examples:
         >>> # save view
-        >>> ds[:100].save_view(id="first_100")
+        >>> ds[:100].save_view(view_id="first_100")
         >>> # load view
         >>> first_100 = ds.get_view("first_100").load()
         >>> # 100
@@ -88,7 +88,7 @@ def get_view(ds, view_id: str) -> ViewEntry:
 
     Args:
         ds (Dataset): Dataset to get views from.
-        view_id (str): id of required view.
+        view_id (str): Id of required view.
 
     Returns:
         ViewEntry
@@ -120,12 +120,12 @@ def save_view(
     Examples:
 
         >>> # Save to specified path
-        >>> vds_path = ds[:10].save_view(path="views/first_10", id="first_10")
+        >>> vds_path = ds[:10].save_view(path="views/first_10", view_id="first_10")
         >>> vds_path
         views/first_10
 
         >>> # Path unspecified
-        >>> vds_path = ds[:100].save_view(id="first_100", message="first 100 samples")
+        >>> vds_path = ds[:100].save_view(view_id="first_100", message="first 100 samples")
         >>> # vds_path = path/to/dataset
 
         >>> # Random id
@@ -162,7 +162,7 @@ def save_view(
     Raises:
         ReadOnlyModeError: When attempting to save a view inplace and the user doesn't have write access.
         DatasetViewSavingError: If HEAD node has uncommitted changes.
-        TypeError: If ``id`` is not of type ``str``.
+        TypeError: If ``view_id`` is not of type ``str``.
 
     Note:
         Specifying ``path`` makes the view external. External views cannot be accessed using

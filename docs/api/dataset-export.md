@@ -18,6 +18,16 @@ This page documents methods for exporting dataset data to various formats.
 
 Convert the dataset to a pandas DataFrame. This is useful for data analysis and integration with pandas-based workflows.
 
+#### Signature
+
+```python
+ds.to_dataframe(
+    tensor_list=None,
+    index_list=None,
+    force=False,
+)
+```
+
 #### Parameters
 
 - **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
@@ -75,18 +85,27 @@ print(df["labels"].value_counts())
 
 #### Overview
 
-Export the dataset to JSON format. This creates a JSON file or returns JSON data for the dataset.
+Export the dataset to a JSON or JSONL file, row by row.
+
+#### Signature
+
+```python
+ds.to_json(
+    path,
+    tensors=None,
+    num_workers=1,
+)
+```
 
 #### Parameters
 
-- **path** (`str`, optional): Path where the JSON file will be saved. If not provided, returns JSON string. Defaults to `None`.
-- **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
-- **index_list** (`List[int]`, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to `None`.
-- **indent** (`int`, optional): Number of spaces for JSON indentation. Defaults to `2`.
+- **path** (`str`): Output file path. The filename must end with `.json` or `.jsonl`.
+- **tensors** (`List[str]`, optional): Tensor columns to export. If not provided, all tensors are exported. Defaults to `None`.
+- **num_workers** (`int`, optional): Number of worker processes used to convert dataset slices before writing. Must be greater than `0`. Defaults to `1`.
 
 #### Returns
 
-- **str** or **None**: JSON string if `path` is not provided, otherwise `None` (writes to file).
+- **None**
 
 #### Examples
 
@@ -98,23 +117,24 @@ ds = muller.load("./my_dataset")
 # Export to JSON file
 ds.to_json("./output/dataset.json")
 
+# Export to JSONL file
+ds.to_json("./output/dataset.jsonl")
+
 # Export specific tensors
-ds.to_json("./output/labels_only.json", tensor_list=["labels"])
+ds.to_json("./output/labels_only.json", tensors=["labels"])
 
-# Export specific samples
-ds.to_json("./output/sample_subset.json", index_list=[0, 1, 2, 3, 4])
-
-# Get JSON string without saving
-json_str = ds.to_json()
-print(json_str)
-
-# Export with custom indentation
-ds.to_json("./output/dataset.json", indent=4)
+# Use multiple workers
+ds.to_json("./output/dataset.jsonl", num_workers=4)
 
 # Export filtered view
 filtered = ds.filter("labels == 5")
 filtered.to_json("./output/label_5_samples.json")
 ```
+
+#### Notes
+
+- `to_json()` writes to a file and does not return a JSON string.
+- The current API does not accept `index_list` or `indent`. Slice/filter the dataset before calling `to_json()` if you need a subset of rows.
 
 ---
 
@@ -122,16 +142,21 @@ filtered.to_json("./output/label_5_samples.json")
 
 #### Overview
 
-Convert the dataset to Apache Arrow format. This is useful for interoperability with Arrow-based tools and efficient data transfer.
+Create a MULLER-backed Arrow Dataset object. Use its Arrow Dataset methods, such as `to_table()`, `scanner()`, `head()`, and `count_rows()`, to materialize or inspect data.
+
+#### Signature
+
+```python
+ds.to_arrow()
+```
 
 #### Parameters
 
-- **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
-- **index_list** (`List[int]`, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to `None`.
+None
 
 #### Returns
 
-- **pyarrow.Table**: The dataset as an Arrow Table.
+- **MULLERArrowDataset**: A `pyarrow.dataset.Dataset` subclass backed by the MULLER dataset.
 
 #### Examples
 
@@ -140,30 +165,32 @@ import muller
 
 ds = muller.load("./my_dataset")
 
+# Create an Arrow Dataset wrapper
+arrow_ds = ds.to_arrow()
+print(arrow_ds.schema)
+
 # Convert to Arrow Table
-arrow_table = ds.to_arrow()
+arrow_table = arrow_ds.to_table()
 print(arrow_table.schema)
 
-# Export specific tensors
-arrow_table = ds.to_arrow(tensor_list=["labels", "features"])
-
-# Export specific samples
-arrow_table = ds.to_arrow(index_list=range(100))
+# Export specific columns
+arrow_table = arrow_ds.to_table(columns=["labels", "features"])
 
 # Write to Parquet using Arrow
-arrow_table = ds.to_arrow()
 import pyarrow.parquet as pq
 pq.write_table(arrow_table, "./output/dataset.parquet")
 
 # Convert to pandas via Arrow
-arrow_table = ds.to_arrow()
 df = arrow_table.to_pandas()
 
-# Use with Arrow datasets
-arrow_table = ds.to_arrow()
-import pyarrow.dataset as ds_arrow
-ds_arrow.write_dataset(arrow_table, "./output/arrow_dataset", format="parquet")
+# Inspect the first rows
+preview = arrow_ds.head(10)
 ```
+
+#### Notes
+
+- Supported Arrow conversions are defined by tensor htype/dtype. Unsupported combinations raise `UnsupportedArrowConvertError`.
+- Use Arrow Dataset methods to choose columns or materialize a table; `ds.to_arrow()` itself does not accept `tensor_list` or `index_list`.
 
 ---
 
@@ -173,13 +200,25 @@ ds_arrow.write_dataset(arrow_table, "./output/arrow_dataset", format="parquet")
 
 Export the dataset to MindRecord format, which is used by MindSpore framework. This is useful for training models with MindSpore.
 
+#### Signature
+
+```python
+ds.to_mindrecord(
+    file_name,
+    shard_num=1,
+    batch_size=100000,
+    overwrite=False,
+    scheduler="threaded",
+)
+```
+
 #### Parameters
 
-- **path** (`str`): Path where the MindRecord files will be saved.
-- **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
-- **index_list** (`List[int]`, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to `None`.
-- **num_shards** (`int`, optional): Number of MindRecord shards to create. Defaults to `1`.
-- **overwrite** (`bool`, optional): If `True`, overwrites existing files. Defaults to `False`.
+- **file_name** (`str`): Output MindRecord filename.
+- **shard_num** (`int`, optional): Number of MindRecord files to generate. Defaults to `1`.
+- **batch_size** (`int`, optional): Batch size used when reading NumPy data from MULLER. Defaults to `100000`.
+- **overwrite** (`bool`, optional): If `True`, overwrite existing files with the same name. Defaults to `False`.
+- **scheduler** (`str`, optional): Scheduler used while reading tensor batches. Supported values include `"serial"`, `"threaded"`, `"processed"`, and `"distributed"`. Defaults to `"threaded"`.
 
 #### Returns
 
@@ -196,29 +235,30 @@ ds = muller.load("./my_dataset")
 ds.to_mindrecord("./output/dataset.mindrecord")
 
 # Export with multiple shards
-ds.to_mindrecord("./output/dataset.mindrecord", num_shards=8)
+ds.to_mindrecord("./output/dataset.mindrecord", shard_num=8)
 
-# Export specific tensors
-ds.to_mindrecord(
-    "./output/images_labels.mindrecord",
-    tensor_list=["images", "labels"]
-)
-
-# Export subset of data
-ds.to_mindrecord(
+# Export a subset by slicing first
+train_subset = ds[:1000]
+train_subset.to_mindrecord(
     "./output/train_subset.mindrecord",
-    index_list=range(1000)
+    batch_size=1000,
 )
 
 # Overwrite existing files
 ds.to_mindrecord(
     "./output/dataset.mindrecord",
-    overwrite=True
+    overwrite=True,
+)
+
+# Choose a scheduler
+ds.to_mindrecord(
+    "./output/dataset.mindrecord",
+    scheduler="threaded",
 )
 
 # Export filtered view
 train_ds = ds.filter("split == 'train'")
-train_ds.to_mindrecord("./output/train.mindrecord", num_shards=4)
+train_ds.to_mindrecord("./output/train.mindrecord", shard_num=4)
 ```
 
 #### Notes
@@ -226,6 +266,7 @@ train_ds.to_mindrecord("./output/train.mindrecord", num_shards=4)
 - MindRecord format is optimized for MindSpore training workflows.
 - Multiple shards can improve parallel data loading performance.
 - Requires MindSpore to be installed.
+- The current API exports the dataset's tensors as a whole and does not accept `tensor_list` or `index_list`. Slice/filter the dataset before exporting a row subset.
 
 ---
 
@@ -233,15 +274,18 @@ train_ds.to_mindrecord("./output/train.mindrecord", num_shards=4)
 
 #### Overview
 
-Write the dataset to Parquet format. Parquet is a columnar storage format that is efficient for analytics and widely supported.
+Write the dataset to Parquet format through the dataset's storage backend.
+
+#### Signature
+
+```python
+ds.write_to_parquet(path, columns=None)
+```
 
 #### Parameters
 
-- **path** (`str`): Path where the Parquet file(s) will be saved.
-- **tensor_list** (`List[str]`, optional): The tensor columns to export. If not provided, all tensors will be exported. Defaults to `None`.
-- **index_list** (`List[int]`, optional): The indices of rows to export. If not provided, all rows will be exported. Defaults to `None`.
-- **compression** (`str`, optional): Compression codec to use (e.g., "snappy", "gzip", "brotli"). Defaults to `"snappy"`.
-- **row_group_size** (`int`, optional): Number of rows per row group. Defaults to `None` (automatic).
+- **path** (`str`): Storage key/path where the Parquet bytes will be written.
+- **columns** (`List[str]`, optional): Columns to include in the Parquet output. If omitted, all columns are exported. Defaults to `None`.
 
 #### Returns
 
@@ -257,26 +301,14 @@ ds = muller.load("./my_dataset")
 # Write to Parquet
 ds.write_to_parquet("./output/dataset.parquet")
 
-# Write with specific compression
-ds.write_to_parquet("./output/dataset.parquet", compression="gzip")
-
 # Write specific tensors
 ds.write_to_parquet(
     "./output/labels_only.parquet",
-    tensor_list=["labels", "categories"]
+    columns=["labels", "categories"]
 )
 
-# Write subset of data
-ds.write_to_parquet(
-    "./output/sample_subset.parquet",
-    index_list=range(1000)
-)
-
-# Write with custom row group size
-ds.write_to_parquet(
-    "./output/dataset.parquet",
-    row_group_size=10000
-)
+# Write a subset by slicing first
+ds[:1000].write_to_parquet("./output/sample_subset.parquet")
 
 # Write filtered view
 filtered = ds.filter("score > 80")
@@ -292,8 +324,8 @@ test_ds.write_to_parquet("./output/test.parquet")
 #### Notes
 
 - Parquet format is highly efficient for columnar data access.
-- Compression reduces file size but may increase read/write time.
 - Parquet files can be read by many tools including pandas, Spark, and DuckDB.
+- The current API does not expose compression, row group size, or row index parameters. Use `to_arrow().to_table()` with PyArrow directly if you need those writer options.
 
 ---
 

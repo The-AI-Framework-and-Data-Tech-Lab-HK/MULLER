@@ -65,9 +65,11 @@ class Sample:
                              If compressed, ``compression`` argument should be provided.
             compression (str): Specify in case of byte buffer.
             verify (bool): If a path is provided, verifies the sample if ``True``.
-            shape (Tuple[int]): Shape of the sample.
-            dtype (optional, str): Data type of the sample.
-            creds (optional, Dict): Credentials for s3, gcp and http urls.
+            shape (Tuple[int, ...]): Shape of the sample. Useful when creating a
+                sample from an uncompressed buffer.
+            dtype (optional, str): Data type of the sample. Useful when creating
+                a sample from an uncompressed buffer.
+            creds (optional, Dict): Credentials or connection options for remote paths.
             storage (optional, StorageProvider): Storage provider.
         """
         self._compressed_bytes = {}
@@ -139,6 +141,7 @@ class Sample:
 
     @property
     def is_lazy(self) -> bool:
+        """Whether array data has not been loaded into memory yet."""
         return self._array is None
 
     @property
@@ -161,6 +164,7 @@ class Sample:
 
     @property
     def buffer(self):
+        """Return the raw bytes or memoryview backing this sample."""
         if self._buffer is None and self.path is not None:
             self._read_from_path()
         if self._buffer is not None:
@@ -169,6 +173,7 @@ class Sample:
 
     @property
     def dtype(self):
+        """Return the NumPy dtype name for this sample."""
         if self._dtype is None:
             self._read_meta()
             self._dtype = np.dtype(self._typestr).name
@@ -176,11 +181,13 @@ class Sample:
 
     @property
     def shape(self):
+        """Return the sample shape."""
         self._read_meta()
         return self._shape
 
     @property
     def compression(self):
+        """Return the compression or file format for this sample."""
         if self._compression is None and self.path:
             self._read_meta()
         return self._compression

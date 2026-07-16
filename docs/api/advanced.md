@@ -6,8 +6,9 @@ This page documents advanced features including data transformation pipelines, r
 
 ### Data Transformation
 - [muller.compute()](#mullercompute)
-- [muller.ComputeFunction](#mullercomputefunction)
-- [muller.Pipeline](#mullerpipeline)
+- [ComputeFunction](#computefunction)
+- [Pipeline](#pipeline)
+- [`batch_enable` optimization guide](../performance_optimization/@muller.compute/batch_enable_optimization.md)
 
 ### Rechunking
 - [ds.rechunk()](#dsrechunk)
@@ -27,11 +28,22 @@ This page documents advanced features including data transformation pipelines, r
 
 #### Overview
 
-Decorator for creating data transformation functions that can be applied to datasets. This enables parallel processing and efficient data pipelines.
+Decorator for creating data transformation functions that can be applied to datasets or other list-like inputs. It returns a callable wrapper; call the decorated function first, then call `.eval()` on the resulting `ComputeFunction`.
+
+Signature:
+
+```python
+muller.compute(fn=None, *, name=None, batch_enable=False)
+```
 
 #### Parameters
 
-- **func** (`callable`): The function to decorate. Should take input data and output dataset as parameters.
+- **fn** (`callable`, optional): The function to decorate. This is supplied automatically when using `@muller.compute`.
+- **name** (`str`, optional): Display name used in transform progress output. Defaults to the decorated function's `__name__`.
+- **batch_enable** (`bool`, optional): Enables batch mode. Defaults to `False`.
+  - In normal mode, the decorated function must accept `(sample_in, sample_out, *extra_args, **extra_kwargs)` and is called once per input sample.
+  - In batch mode, the decorated function must accept one or more data parameters followed by `sample_out`, for example `(images, labels, sample_out)`. Each data parameter is passed a slice of the corresponding input list, and the function should append or extend that whole slice to the output tensors.
+  - Batch mode expects all data inputs passed to `.eval()` to be list-like and to have the same length.
 
 #### Returns
 
@@ -96,27 +108,85 @@ def filter_high_quality(sample_in, sample_out):
     return sample_out
 ```
 
+#### Batch Mode Example
+
+Use `batch_enable=True` when the transform can write whole input slices at once. This is useful for large ingestion jobs where per-sample Python overhead is significant.
+
+```python
+import muller
+import numpy as np
+
+ds = muller.dataset("./batch_dataset", overwrite=True)
+with ds:
+    ds.create_tensor("images", htype="image", sample_compression="jpg")
+    ds.create_tensor("labels", htype="class_label")
+
+images = [muller.read(path) for path in image_paths]
+labels = [np.uint32(label) for label in label_values]
+
+@muller.compute(batch_enable=True)
+def import_batch(images, labels, sample_out):
+    sample_out.images.append(images)
+    sample_out.labels.append(labels)
+    return sample_out
+
+with ds:
+    import_batch().eval(
+        images,
+        labels,
+        ds,
+        num_workers=4,
+        scheduler="processed",
+        cache_size=64,
+        disable_rechunk=True,
+    )
+```
+
+For more details and performance recommendations, see the [`batch_enable` optimization guide](../performance_optimization/@muller.compute/batch_enable_optimization.md).
+
 ---
 
-### muller.ComputeFunction
+### ComputeFunction
 
 #### Overview
 
-A class representing a compute function that can be evaluated on datasets. Created by the `@muller.compute` decorator.
+A public transform wrapper created by the `@muller.compute` decorator. It is available from `muller.api.transform` and `muller.api`; most users create it indirectly:
+
+```python
+compute_fn = decorated_transform(*extra_args, **extra_kwargs)
+```
 
 #### Methods
 
-- **eval()**: Evaluate the compute function on input data.
+<a id="eval"></a>
+
+- **eval()**: Evaluate the compute function on input data and write results to a dataset.
 
 #### Parameters for eval()
 
-- **data_in**: Input data (Dataset or iterable).
-- **ds_out** (`Dataset`): Output dataset.
-- **num_workers** (`int`, optional): Number of parallel workers. Defaults to `0`.
-- **scheduler** (`str`, optional): Scheduler type ("threaded", "processed", "serial"). Defaults to `"threaded"`.
+Signature in normal mode:
+
+```python
+compute_fn.eval(data_in, ds_out=None, *, num_workers=0, scheduler="threaded", progressbar=True, skip_ok=False, ignore_errors=False, **kwargs)
+```
+
+Signature in `batch_enable=True` mode:
+
+```python
+compute_fn.eval(data_1, data_2, ..., ds_out, *, num_workers=0, scheduler="threaded", progressbar=True, skip_ok=False, ignore_errors=False, **kwargs)
+```
+
+- **data_in**: Input data for normal mode. It must support `__getitem__` and `__len__`. It may be a `muller.Dataset`, tensor, view, list, or other list-like object.
+- **data_1, data_2, ...**: Batch mode data inputs. The number of data inputs must match the number of decorated function parameters before `sample_out`. All inputs must be list-like and have the same length. Workers receive aligned slices from each input, so `data_1[i]`, `data_2[i]`, and the other inputs describe the same output sample.
+- **ds_out** (`muller.Dataset`, optional): Output dataset. If omitted in normal mode, the transform overwrites `data_in` in place. In batch mode, `ds_out` is required and must be a `muller.Dataset`.
+- **num_workers** (`int`, optional): Number of parallel workers. Defaults to `0`. Values `<= 0` are normalized to one serial worker.
+- **scheduler** (`str`, optional): Compute scheduler. Common values are `"threaded"`, `"processed"`, and `"serial"`. Defaults to `"threaded"`, but `num_workers <= 0` forces `"serial"`.
 - **progressbar** (`bool`, optional): Show progress bar. Defaults to `True`.
-- **skip_ok** (`bool`, optional): Skip samples that cause errors. Defaults to `False`.
-- **ignore_errors** (`bool`, optional): Continue processing on errors. Defaults to `False`.
+- **skip_ok** (`bool`, optional): Allows transforms that intentionally skip samples or produce output for only a subset of tensors. Defaults to `False`.
+- **ignore_errors** (`bool`, optional): Continue processing after sample-level transform errors where supported and report a summary. Defaults to `False`.
+- **kwargs**: Additional transform options accepted by the implementation, such as `cache_size`, `disable_rechunk`, and `checkpoint_interval`.
+
+`ComputeFunction.eval()` returns `None`; results are written into `ds_out` or, for normal mode only, into `data_in` when `ds_out` is omitted.
 
 #### Examples
 
@@ -165,25 +235,26 @@ with target_ds:
 
 ---
 
-### muller.Pipeline
+### Pipeline
 
 #### Overview
 
-Create a pipeline of multiple transformation functions that are applied sequentially.
+Create a pipeline of multiple `ComputeFunction` objects that are applied sequentially in normal transform mode. `Pipeline` is available from `muller.api.transform` and `muller.api`.
 
 #### Parameters
 
 - **functions** (`List[ComputeFunction]`): List of compute functions to chain.
 
-#### Returns
+#### Methods
 
-- **Pipeline**: A pipeline object that can be evaluated.
+- **eval()**: Evaluate the pipeline with the same normal-mode parameters as `ComputeFunction.eval()`.
 
 #### Examples
 
 ```python
 import muller
 import numpy as np
+from muller.api.transform import Pipeline
 
 # Define transformation steps
 @muller.compute
@@ -215,9 +286,7 @@ def augment(sample_in, sample_out):
     return sample_out
 
 # Create pipeline
-from muller.core.transform import Pipeline
-
-pipeline = Pipeline([normalize, resize, augment])
+pipeline = Pipeline([normalize(), resize(), augment()])
 
 # Apply pipeline
 source_ds = muller.load("./raw_data")

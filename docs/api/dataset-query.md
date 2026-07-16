@@ -7,6 +7,8 @@ This page documents methods for querying, filtering, searching, and managing ind
 ### Query and Filter
 - [ds.filter()](#dsfilter)
 - [ds.filter_vectorized()](#dsfilter_vectorized)
+- [ds.aggregate()](#dsaggregate)
+- [ds.aggregate_vectorized()](#dsaggregate_vectorized)
 - [ds.query()](#dsquery)
 - [ds.vector_search()](#dsvector_search)
 
@@ -27,6 +29,7 @@ This page documents methods for querying, filtering, searching, and managing ind
 - [ds.save_view()](#dssave_view)
 - [ds.delete_view()](#dsdelete_view)
 - [ds.get_views()](#dsget_views)
+- [ds.get_view()](#dsget_view)
 
 ---
 
@@ -36,13 +39,29 @@ This page documents methods for querying, filtering, searching, and managing ind
 
 #### Overview
 
-Filter the dataset based on a query expression. Returns a filtered view of the dataset without modifying the original data.
+Filter the dataset with a Python callable, a string query expression, an optional inverted-index query, or a combination of them. Returns a filtered view and does not modify the original dataset.
+
+#### Signature
+
+```python
+ds.filter(
+    function=None,
+    index_query=None,
+    connector="AND",
+    offset=0,
+    limit=None,
+    **kwargs,
+)
+```
 
 #### Parameters
 
-- **expression** (`str` or `callable`): Filter expression or function. Can be:
-  - A string expression (e.g., `"labels == 5"`)
-  - A callable function that takes a sample and returns a boolean
+- **function** (`callable` or `str`, optional): Filtering condition. A callable receives a sample and returns `True` for rows to keep; a string is evaluated as a dataset query expression such as `"labels == 1"`.
+- **index_query** (`str`, optional): Query expression evaluated against the dataset's `query_string` for inverted-index results.
+- **connector** (`str`, optional): How to combine `function` and `index_query`. Supported values are `"AND"` and `"OR"`. Defaults to `"AND"`.
+- **offset** (`int`, optional): Start filtering from this dataset index. Defaults to `0`.
+- **limit** (`int`, optional): Maximum number of matching rows to return. Defaults to `None`.
+- **kwargs**: Additional execution options passed to the filtering backend, including `num_workers`, `scheduler`, `progressbar`, `save_result`, `result_path`, `result_ds_args`, and `compute_future`.
 
 #### Returns
 
@@ -55,32 +74,14 @@ import muller
 
 ds = muller.load("./my_dataset")
 
-# Filter with string expression
-filtered_ds = ds.filter("labels == 5")
+# String query expression
+filtered_ds = ds.filter("labels == 1")
 
-# Filter with comparison operators
-filtered_ds = ds.filter("age > 18")
-filtered_ds = ds.filter("score >= 90")
+# Callable filter
+filtered_ds = ds.filter(lambda sample: sample.labels.data()["value"] == 1)
 
-# Filter with logical operators
-filtered_ds = ds.filter("(labels == 1) | (labels == 2)")
-filtered_ds = ds.filter("(age > 18) & (score > 80)")
-
-# Filter with callable function
-def custom_filter(sample):
-    return sample["labels"].numpy() > 5
-
-filtered_ds = ds.filter(custom_filter)
-
-# Chain multiple filters
-filtered_ds = ds.filter("labels > 0").filter("score < 100")
-
-# Access filtered data
-print(f"Original: {ds.num_samples} samples")
-print(f"Filtered: {filtered_ds.num_samples} samples")
-
-for sample in filtered_ds:
-    print(sample)
+# Pagination
+page = ds.filter("labels >= 2", offset=10, limit=5)
 ```
 
 ---
@@ -89,17 +90,39 @@ for sample in filtered_ds:
 
 #### Overview
 
-Filter the dataset using vectorized operations for better performance. This method is optimized for large datasets and uses indexed tensors.
+Filter the dataset with vectorized NumPy operations and, where requested, inverted indexes. Conditions are passed as tuples in `condition_list`; this method does not accept a single string expression.
+
+#### Signature
+
+```python
+ds.filter_vectorized(
+    condition_list,
+    connector_list=None,
+    offset=0,
+    limit=None,
+    compute_future=True,
+    use_local_index=True,
+    max_workers=16,
+    show_progress=False,
+)
+```
 
 #### Parameters
 
-- **expression** (`str`): Filter expression using tensor names.
-- **scheduler** (`str`, optional): Scheduler type for parallel processing. Defaults to `"threaded"`.
-- **num_workers** (`int`, optional): Number of workers for parallel processing. Defaults to `0`.
+- **condition_list** (`list[tuple]`): Filtering conditions. Each condition is `(tensor, operator, value)`, `(tensor, operator, value, use_inverted_index)`, or `(tensor, operator, value, use_inverted_index, negation)`.
+- **connector_list** (`list[str]`, optional): Connectors between conditions. Each value must be `"AND"` or `"OR"`, and the list length must be `len(condition_list) - 1`.
+- **offset** (`int`, optional): Start filtering from this dataset index. Defaults to `0`.
+- **limit** (`int`, optional): Maximum number of matching rows to return. Defaults to `None`.
+- **compute_future** (`bool`, optional): If `True`, precomputes the next page of results for limited queries. Defaults to `True`.
+- **use_local_index** (`bool`, optional): Use the vectorized local inverted index when a condition requests index lookup. Defaults to `True`.
+- **max_workers** (`int`, optional): Maximum workers used by indexed search paths. Defaults to `16`.
+- **show_progress** (`bool`, optional): Log progress while computing individual conditions. Defaults to `False`.
+
+Supported operators are `>`, `<`, `>=`, `<=`, `==`, `!=`, `CONTAINS`, `BETWEEN`, and `LIKE`. `CONTAINS` and `BETWEEN` use an inverted index; `LIKE` performs regex matching on text tensors. The optional `negation` value is `"NOT"`.
 
 #### Returns
 
-- **Dataset**: A filtered view of the dataset.
+- **Dataset**: A filtered view of the dataset with `filtered_index` set to the matching source indices.
 
 #### Examples
 
@@ -108,18 +131,137 @@ import muller
 
 ds = muller.load("./my_dataset")
 
-# Vectorized filter (faster for large datasets)
-filtered_ds = ds.filter_vectorized("labels == 5")
+# Numeric comparison
+filtered_ds = ds.filter_vectorized([("labels", ">", 1)])
 
-# Use with multiple workers
-filtered_ds = ds.filter_vectorized("score > 80", num_workers=4)
+# Combine conditions
+filtered_ds = ds.filter_vectorized(
+    [("labels", ">=", 1), ("labels", "<", 4)],
+    ["AND"],
+)
 
-# Complex expressions
-filtered_ds = ds.filter_vectorized("(age >= 18) & (age <= 65)")
+# Text search with an inverted index
+ds.commit()
+ds.create_index_vectorized("description")
+text_matches = ds.filter_vectorized([("description", "CONTAINS", "cat")])
+```
 
-# Filter on indexed tensors for best performance
-ds.create_index("labels")
-filtered_ds = ds.filter_vectorized("labels == 3")
+---
+
+### ds.aggregate()
+
+#### Overview
+
+Aggregate rows by one or more tensors, optionally after applying a callable filter. This implementation can run in-process or with compute workers.
+
+#### Signature
+
+```python
+ds.aggregate(
+    group_by_tensors,
+    selected_tensors,
+    order_by_tensors=None,
+    aggregate_tensors=None,
+    function=None,
+    order_direction="DESC",
+    num_workers=0,
+    scheduler="processed",
+    progressbar=True,
+    method="count",
+)
+```
+
+#### Parameters
+
+- **group_by_tensors** (`list[str]`): Tensor names used as the group-by keys.
+- **selected_tensors** (`list[str]`): Group-by tensor names to include in the output. Each selected tensor must also appear in `group_by_tensors`.
+- **order_by_tensors** (`list[str]`, optional): Tensor names used to sort the result. Values must be selected tensors or aggregate tensors.
+- **aggregate_tensors** (`list[str]`, optional): Tensor names to aggregate. For `method="count"`, `["*"]` counts rows and omitted values default to `["*"]`.
+- **function** (`callable`, optional): Row filter applied before aggregation.
+- **order_direction** (`str`, optional): `"DESC"` or `"ASC"`. Defaults to `"DESC"`.
+- **num_workers** (`int`, optional): Number of compute workers. `0` runs in-place. Defaults to `0`.
+- **scheduler** (`str`, optional): Compute scheduler when `num_workers > 0`. Defaults to `"processed"`.
+- **progressbar** (`bool`, optional): Show progress during aggregation. Defaults to `True`.
+- **method** (`str`, optional): Aggregation method. The current non-vectorized implementation supports `"count"` and `"sum"`. Defaults to `"count"`.
+
+#### Returns
+
+- **numpy.ndarray**: Aggregated result. Columns are selected tensors followed by aggregate columns.
+
+#### Examples
+
+```python
+import muller
+
+ds = muller.load("./my_dataset")
+
+counts = ds.aggregate(
+    group_by_tensors=["categories"],
+    selected_tensors=["categories"],
+    aggregate_tensors=["*"],
+)
+
+high_score_counts = ds.aggregate(
+    function=lambda sample: sample.score.data()["value"] >= 4,
+    group_by_tensors=["categories"],
+    selected_tensors=["categories"],
+    aggregate_tensors=["*"],
+)
+```
+
+---
+
+### ds.aggregate_vectorized()
+
+#### Overview
+
+Aggregate rows using NumPy vectorized operations. This path supports more aggregate methods and does not accept a row-level filter function.
+
+#### Signature
+
+```python
+ds.aggregate_vectorized(
+    group_by_tensors,
+    selected_tensors,
+    order_by_tensors=None,
+    aggregate_tensors=None,
+    order_direction="DESC",
+    method="count",
+)
+```
+
+#### Parameters
+
+- **group_by_tensors** (`list[str]`): Tensor names used as the group-by keys.
+- **selected_tensors** (`list[str]`): Tensor names included in the output.
+- **order_by_tensors** (`list[str]`, optional): Tensor names used to sort the result. Values can refer to selected tensors or aggregate tensors.
+- **aggregate_tensors** (`list[str]`, optional): Tensor names to aggregate. For `method="count"`, use `["*"]` to append row counts.
+- **order_direction** (`str`, optional): `"DESC"` or `"ASC"`. Defaults to `"DESC"`.
+- **method** (`str`, optional): Aggregation method. Supported values are `"count"`, `"sum"`, `"avg"`, `"min"`, and `"max"`. Defaults to `"count"`.
+
+#### Returns
+
+- **numpy.ndarray**: Aggregated result. Columns are selected tensors followed by aggregate columns when `aggregate_tensors` is provided.
+
+#### Examples
+
+```python
+import muller
+
+ds = muller.load("./my_dataset")
+
+counts = ds.aggregate_vectorized(
+    group_by_tensors=["categories"],
+    selected_tensors=["categories"],
+    aggregate_tensors=["*"],
+)
+
+price_sum = ds.aggregate_vectorized(
+    group_by_tensors=["categories"],
+    selected_tensors=["categories"],
+    aggregate_tensors=["price"],
+    method="sum",
+)
 ```
 
 ---
@@ -128,16 +270,16 @@ filtered_ds = ds.filter_vectorized("labels == 3")
 
 #### Overview
 
-Query a specific tensor using a query expression. This is useful for searching within a single tensor.
+Query a single tensor through its inverted index. Create the index before calling this method.
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor to query.
-- **query** (`str`): Query expression.
+- **tensor_name** (`str`): Name of the indexed tensor to query.
+- **query**: Query value or query string passed to the tensor's inverted index search implementation.
 
 #### Returns
 
-- **Dataset**: A filtered view containing matching samples.
+- **set**: Source indices matching the indexed query. If the index stores UUIDs, they are mapped back to source indices.
 
 #### Examples
 
@@ -145,19 +287,11 @@ Query a specific tensor using a query expression. This is useful for searching w
 import muller
 
 ds = muller.load("./my_dataset")
+ds.commit()
+ds.create_index(["description"])
 
-# Query a specific tensor
-result = ds.query("labels", "value == 5")
-
-# Query with range
-result = ds.query("age", "value >= 18 and value <= 65")
-
-# Query text tensor
-result = ds.query("description", "value.contains('important')")
-
-# Access query results
-for sample in result:
-    print(sample["labels"], sample["description"])
+matching_indices = ds.query("description", "cat")
+result = ds[list(matching_indices)]
 ```
 
 ---
@@ -166,19 +300,37 @@ for sample in result:
 
 #### Overview
 
-Perform vector similarity search on a tensor with a vector index. This is useful for finding similar embeddings or features.
+Perform vector similarity search on a loaded vector index. This is useful for finding similar embeddings or features.
+
+`vector_search()` returns the raw nearest-neighbor result arrays from the vector index. It does **not** return a Dataset view; use the returned sample ids/indices to slice the dataset when you need samples.
+
+#### Signature
+
+```python
+ds.vector_search(
+    query_vector,
+    tensor_name,
+    index_name,
+    **kwargs,
+)
+```
 
 #### Parameters
 
-- **query_vector** (`np.ndarray` or `Tensor`): The query vector to search for.
+- **query_vector** (`np.ndarray` or `Tensor`): Query vector(s) to search for. FAISS-backed indexes expect a 2-D array shaped `(num_queries, dimension)`.
 - **tensor_name** (`str`): Name of the tensor to search in.
 - **index_name** (`str`): Name of the vector index to use.
-- **k** (`int`, optional): Number of nearest neighbors to return. Defaults to `10`.
-- **kwargs**: Additional arguments passed to the vector search backend.
+- **topk** (`int`, optional): Number of nearest neighbors to return per query. Defaults to `1` in the backend. The implementation reads `topk`; `k` is not a documented parameter for this API.
+- **refine_factor** (`float`, optional): For approximate indexes, search `topk * refine_factor` candidates and re-rank by exact distance when greater than `1`.
+- **nprobe** (`int`, optional): `IVFPQ` search parameter. Defaults to `8`.
+- **ef_search** (`int`, optional): `HNSWFLAT` search parameter. Defaults to `16`.
+- **complexity** (`int`, optional): `DISKANN` search parameter. Defaults to `8`.
+- **beam_width** (`int`, optional): `DISKANN` search parameter. Defaults to `1`.
+- **num_threads** (`int`, optional): `DISKANN` batch-search parameter. Defaults to `0`.
 
 #### Returns
 
-- **Dataset**: A view containing the k nearest neighbors.
+- **tuple[np.ndarray, np.ndarray]**: `(dist_list, id_list)`. `dist_list` contains distances/scores for each query and `id_list` contains the matching sample ids/positional indices stored in the index. MULLER builds vector indexes with positional ids (`0..len(ds)-1`).
 
 #### Examples
 
@@ -192,26 +344,26 @@ ds = muller.load("./my_dataset")
 ds.create_vector_index("embeddings", index_name="emb_idx")
 
 # Perform vector search
-query_vec = np.random.rand(512)
-results = ds.vector_search(
+query_vec = np.random.rand(1, 512)
+distances, indices = ds.vector_search(
     query_vector=query_vec,
     tensor_name="embeddings",
     index_name="emb_idx",
-    k=10
+    topk=10,
 )
 
-# Access search results
-print(f"Found {results.num_samples} similar samples")
-for i, sample in enumerate(results):
-    print(f"Rank {i+1}: {sample['id']}")
+# Access matching samples explicitly
+matches = ds[indices[0].tolist()]
+for rank, (distance, sample_idx) in enumerate(zip(distances[0], indices[0]), start=1):
+    print(f"Rank {rank}: sample={sample_idx}, distance={distance}")
 
 # Search with additional parameters
-results = ds.vector_search(
+distances, indices = ds.vector_search(
     query_vector=query_vec,
     tensor_name="embeddings",
     index_name="emb_idx",
-    k=20,
-    metric="cosine"
+    topk=20,
+    ef_search=64,
 )
 ```
 
@@ -223,12 +375,25 @@ results = ds.vector_search(
 
 #### Overview
 
-Create an index on a tensor to speed up filtering and querying operations.
+Create the legacy inverted index for one or more tensor columns. The dataset must be committed first; if there are uncommitted changes, the method warns and does nothing.
+
+This API indexes text-like, class-label, list, string, `int64`, and `float64` tensor data for `ds.query()` and indexed query paths. For the newer sharded/vectorized inverted index used by `filter_vectorized()`, prefer `ds.create_index_vectorized()`.
+
+#### Signature
+
+```python
+ds.create_index(
+    columns,
+    use_uuid=False,
+    batch_size=INVERTED_INDEX_BATCH_SIZE,
+)
+```
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor to index.
-- **index_type** (`str`, optional): Type of index to create. Defaults to `"hash"`.
+- **columns** (`list[str]`): Tensor names to index. The implementation iterates over `columns`, so pass a list even for a single tensor.
+- **use_uuid** (`bool`, optional): Store tensor UUIDs in the index instead of positional sample indices. Defaults to `False`.
+- **batch_size** (`int`, optional): Batch size used to split legacy index files. Defaults to `INVERTED_INDEX_BATCH_SIZE`.
 
 #### Returns
 
@@ -240,20 +405,13 @@ Create an index on a tensor to speed up filtering and querying operations.
 import muller
 
 ds = muller.load("./my_dataset")
+ds.commit()
 
-# Create index on labels tensor
-ds.create_index("labels")
+# Create a legacy index on one tensor
+ds.create_index(["labels"])
 
-# Create index with specific type
-ds.create_index("categories", index_type="hash")
-
-# Create indexes on multiple tensors
-for tensor_name in ["labels", "categories", "user_id"]:
-    ds.create_index(tensor_name)
-
-# Use indexed tensor for faster filtering
-ds.create_index("labels")
-filtered = ds.filter_vectorized("labels == 5")  # Much faster with index
+# Create legacy indexes on multiple tensors
+ds.create_index(["labels", "categories", "user_id"])
 ```
 
 ---
@@ -274,6 +432,20 @@ If an index already exists for the column, calling this method again updates it 
 
 > **Note:** The dataset must be committed (no uncommitted head changes) before building an
 > index; otherwise the call warns and does nothing.
+
+#### Signature
+
+```python
+ds.create_index_vectorized(
+    tensor_column,
+    index_type="fuzzy_match",
+    use_uuid=False,
+    force_create=False,
+    delete_old_index=True,
+    use_cpp=False,
+    **kwargs,
+)
+```
 
 #### Parameters
 
@@ -410,11 +582,29 @@ ds.create_index_vectorized("description", force_create=True)
 
 #### Overview
 
-Optimize an existing index to improve query performance. This reorganizes the index structure for better efficiency.
+Optimize a vectorized inverted index by merging shard files. `create_index_vectorized()` already calls this after a successful create/update, so you usually only need this when recovering or manually finishing an interrupted vectorized index build.
+
+#### Signature
+
+```python
+ds.optimize_index(
+    tensor,
+    use_uuid=None,
+    optimize_mode="create",
+    max_workers=16,
+    delete_old_index=True,
+    use_cpp=False,
+)
+```
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor whose index to optimize.
+- **tensor** (`str`): Name of the tensor whose vectorized inverted index to optimize.
+- **use_uuid** (`bool`, optional): Whether the index uses UUIDs. Defaults to the index loader default when `None`.
+- **optimize_mode** (`str`, optional): `"create"` to merge only temporary build shards, or `"update"` to merge temporary update shards together with the existing index. Defaults to `"create"`.
+- **max_workers** (`int`, optional): Maximum parallel workers. Defaults to `16`.
+- **delete_old_index** (`bool`, optional): Delete the previous index folder/prefix after promotion. Defaults to `True` at the Dataset API layer.
+- **use_cpp** (`bool`, optional): Use the native C++ index files. Defaults to `False` at the Dataset API layer.
 
 #### Returns
 
@@ -427,12 +617,11 @@ import muller
 
 ds = muller.load("./my_dataset")
 
-# Optimize index after many updates
-ds.optimize_index("labels")
+# Normally create_index_vectorized() optimizes automatically.
+ds.create_index_vectorized("description", num_of_shards=8)
 
-# Optimize all indexes
-for tensor_name in ds.indexed_tensors:
-    ds.optimize_index(tensor_name)
+# Manual recovery/maintenance path
+ds.optimize_index("description", optimize_mode="create", max_workers=8)
 ```
 
 ---
@@ -441,15 +630,39 @@ for tensor_name in ds.indexed_tensors:
 
 #### Overview
 
-Create a vector index for similarity search on embedding tensors. This enables fast nearest neighbor search.
+Create a vector index for similarity search on embedding tensors. The dataset must be committed first; if there are uncommitted changes, the method warns and does nothing.
+
+When the index is created, it is also cached in memory for immediate search. If you load the dataset in a later process/session, call `ds.load_vector_index()` before `ds.vector_search()`.
+
+#### Signature
+
+```python
+ds.create_vector_index(
+    tensor_name,
+    index_name,
+    index_type="FLAT",
+    metric="l2",
+    **kwargs,
+)
+```
 
 #### Parameters
 
 - **tensor_name** (`str`): Name of the tensor containing vectors/embeddings.
 - **index_name** (`str`): Name for the vector index.
-- **index_type** (`str`, optional): Type of vector index (e.g., "HNSW", "IVF"). Defaults to `"HNSW"`.
-- **metric** (`str`, optional): Distance metric (e.g., "cosine", "euclidean"). Defaults to `"cosine"`.
-- **kwargs**: Additional parameters for the vector index.
+- **index_type** (`str`, optional): Type of vector index. Supported values in code are `"FLAT"`, `"IVFPQ"`, `"HNSWFLAT"`, and `"DISKANN"`. Defaults to `"FLAT"`.
+- **metric** (`str`, optional): Distance metric. FAISS-backed indexes support `"l2"`, `"cosine"`, and `"inner_product"`. Defaults to `"l2"`.
+- **overwrite** (`bool`, optional): If `True`, replace an existing vector index with the same name. Defaults to `False`; otherwise an existing index raises `IndexExistsError`.
+- **nlist** (`int`, optional): `IVFPQ` create parameter. Defaults to `128`.
+- **m** (`int`, optional): `IVFPQ` product-quantizer segments, default `1`; `HNSWFLAT` graph degree parameter, default `32`.
+- **ef_construction** (`int`, optional): `HNSWFLAT` build parameter. Defaults to `40`.
+- **complexity** (`int`, optional): `DISKANN` build parameter. Defaults to `5`.
+- **graph_degree** (`int`, optional): `DISKANN` build parameter. Defaults to `5`.
+- **num_nodes_to_cache** (`int`, optional): `DISKANN` build parameter. Defaults to `1`.
+- **search_memory_maximum** (`float`, optional): `DISKANN` build parameter in GB. Defaults to `0.01`.
+- **build_memory_maximum** (`float`, optional): `DISKANN` build parameter in GB. Defaults to `0.01`.
+- **num_threads** (`int`, optional): `DISKANN` build parameter. Defaults to `4`.
+- **pq_disk_bytes** (`int`, optional): `DISKANN` build parameter. Defaults to `0`.
 
 #### Returns
 
@@ -461,25 +674,26 @@ Create a vector index for similarity search on embedding tensors. This enables f
 import muller
 
 ds = muller.load("./my_dataset")
+ds.commit()
 
 # Create vector index with default settings
-ds.create_vector_index("embeddings", index_name="emb_idx")
+ds.create_vector_index("embeddings", index_name="flat_idx")
 
 # Create with specific metric
 ds.create_vector_index(
     "embeddings",
-    index_name="emb_idx",
-    metric="euclidean"
+    index_name="cosine_idx",
+    metric="cosine",
 )
 
 # Create with custom parameters
 ds.create_vector_index(
     "embeddings",
-    index_name="emb_idx",
-    index_type="HNSW",
-    metric="cosine",
-    M=16,
-    ef_construction=200
+    index_name="hnsw_idx",
+    index_type="HNSWFLAT",
+    metric="l2",
+    m=16,
+    ef_construction=200,
 )
 ```
 
@@ -489,7 +703,9 @@ ds.create_vector_index(
 
 #### Overview
 
-Delete a vector index from a tensor.
+Delete a vector index from storage and remove it from the in-memory index map.
+
+Call this when an index is no longer needed, or before recreating it with different parameters if you do not want to use `overwrite=True`.
 
 #### Parameters
 
@@ -512,7 +728,7 @@ ds.drop_vector_index("embeddings", index_name="emb_idx")
 
 # Drop and recreate with different parameters
 ds.drop_vector_index("embeddings", index_name="old_idx")
-ds.create_vector_index("embeddings", index_name="new_idx", metric="euclidean")
+ds.create_vector_index("embeddings", index_name="new_idx", metric="cosine")
 ```
 
 ---
@@ -521,7 +737,9 @@ ds.create_vector_index("embeddings", index_name="new_idx", metric="euclidean")
 
 #### Overview
 
-Update a vector index after adding new samples to the dataset.
+Update a vector index after adding new samples and committing the dataset. The implementation compares the index commit id with the dataset commit id and only updates when they differ.
+
+Call this after append-only changes. The current implementation is designed for added rows; updates/deletes are not a general incremental vector-index path.
 
 #### Parameters
 
@@ -549,6 +767,7 @@ with ds:
         })
 
 # Update the vector index to include new samples
+ds.commit()
 ds.update_vector_index("embeddings", index_name="emb_idx")
 ```
 
@@ -558,12 +777,13 @@ ds.update_vector_index("embeddings", index_name="emb_idx")
 
 #### Overview
 
-Load a vector index into memory for faster search operations.
+Load a vector index into memory. `ds.vector_search()` requires the target index to be loaded; newly created indexes are cached immediately, but indexes from a freshly loaded dataset/session need an explicit load.
 
 #### Parameters
 
 - **tensor_name** (`str`): Name of the tensor.
 - **index_name** (`str`): Name of the vector index to load.
+- **kwargs**: Backend load parameters. FAISS indexes accept `device` (`"cpu"` by default, `"gpu"` when supported). `DISKANN` accepts `num_threads` (default `16`) and `num_nodes_to_cache` (default `10`).
 
 #### Returns
 
@@ -573,15 +793,16 @@ Load a vector index into memory for faster search operations.
 
 ```python
 import muller
+import numpy as np
 
 ds = muller.load("./my_dataset")
 
-# Load vector index into memory
+# Load an existing vector index into memory after loading a dataset/session
 ds.load_vector_index("embeddings", index_name="emb_idx")
 
-# Now searches will be faster
-query_vec = np.random.rand(512)
-results = ds.vector_search(query_vec, "embeddings", "emb_idx", k=10)
+# Now searches can run
+query_vec = np.random.rand(1, 512)
+distances, indices = ds.vector_search(query_vec, "embeddings", "emb_idx", topk=10)
 ```
 
 ---
@@ -590,7 +811,9 @@ results = ds.vector_search(query_vec, "embeddings", "emb_idx", k=10)
 
 #### Overview
 
-Unload a vector index from memory to free up resources.
+Unload a vector index from memory to free up resources while keeping the persisted index on disk/storage.
+
+Call this when you are done with searches in a long-running process and want to release memory. Call `ds.load_vector_index()` again before the next `ds.vector_search()`.
 
 #### Parameters
 
@@ -621,12 +844,27 @@ ds.load_vector_index("embeddings", index_name="emb_idx")
 
 #### Overview
 
-Create a hot shard index for frequently accessed data. This optimizes access patterns for hot data.
+Create a hot shard file for a vectorized inverted index by collecting the most frequent terms from existing shards.
+
+Call this after creating a vectorized inverted index when repeated queries are dominated by common terms and you want a cached hot shard.
+
+#### Signature
+
+```python
+ds.create_hot_shard_index(
+    tensor,
+    use_uuid=None,
+    max_workers=16,
+    n=100000,
+)
+```
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor to create hot shard index for.
-- **shard_size** (`int`, optional): Size of each shard. Defaults to automatic calculation.
+- **tensor** (`str`): Name of the tensor whose vectorized inverted index should receive a hot shard.
+- **use_uuid** (`bool`, optional): Whether the index uses UUIDs. Defaults to the index loader default when `None`.
+- **max_workers** (`int`, optional): Maximum parallel workers. Defaults to `16`.
+- **n** (`int`, optional): Number of most frequent terms to include in the hot shard. Defaults to `100000`.
 
 #### Returns
 
@@ -640,10 +878,10 @@ import muller
 ds = muller.load("./my_dataset")
 
 # Create hot shard index
-ds.create_hot_shard_index("labels")
+ds.create_hot_shard_index("description")
 
-# Create with custom shard size
-ds.create_hot_shard_index("embeddings", shard_size=1000)
+# Create with a smaller hot-term set
+ds.create_hot_shard_index("description", n=1000, max_workers=8)
 ```
 
 ---
@@ -652,12 +890,29 @@ ds.create_hot_shard_index("embeddings", shard_size=1000)
 
 #### Overview
 
-Reorganize index shards for better performance. This is useful after significant data changes.
+Re-shard an existing vectorized inverted index from one shard count to another. This is the maintenance path for changing `num_of_shards` after creation.
+
+The method rewrites shard contents but does not update the public `create_index_vectorized()` call that originally chose `num_of_shards`; keep track of the old and new shard counts you use.
+
+#### Signature
+
+```python
+ds.reshard_index(
+    tensor,
+    old_shard_num,
+    new_shard_num,
+    max_workers=16,
+    use_uuid=None,
+)
+```
 
 #### Parameters
 
-- **tensor_name** (`str`): Name of the tensor whose index to reshard.
-- **num_shards** (`int`, optional): Target number of shards. Defaults to automatic calculation.
+- **tensor** (`str`): Name of the tensor whose vectorized inverted index should be re-sharded.
+- **old_shard_num** (`int`): Current number of shards.
+- **new_shard_num** (`int`): Target number of shards.
+- **max_workers** (`int`, optional): Maximum parallel workers. Defaults to `16`.
+- **use_uuid** (`bool`, optional): Whether the index uses UUIDs. Defaults to the index loader default when `None`.
 
 #### Returns
 
@@ -671,10 +926,10 @@ import muller
 ds = muller.load("./my_dataset")
 
 # Reshard index
-ds.reshard_index("labels")
+ds.reshard_index("description", old_shard_num=4, new_shard_num=16)
 
-# Reshard with specific number of shards
-ds.reshard_index("categories", num_shards=10)
+# Limit parallelism
+ds.reshard_index("description", old_shard_num=4, new_shard_num=16, max_workers=8)
 ```
 
 ---
@@ -685,11 +940,29 @@ ds.reshard_index("categories", num_shards=10)
 
 #### Overview
 
-Load a saved view of the dataset. Views are filtered or transformed versions of the dataset that have been saved for reuse.
+Load a saved view by its view id. This is equivalent to `ds.get_view(view_id).load()`.
+
+#### Signature
+
+```python
+ds.load_view(
+    view_id,
+    optimize=False,
+    tensors=None,
+    num_workers=0,
+    scheduler="threaded",
+    progressbar=True,
+)
+```
 
 #### Parameters
 
-- **view_name** (`str`): Name of the view to load.
+- **view_id** (`str`): Id of the saved view to load.
+- **optimize** (`bool`, optional): If `True`, optimize the view by copying and rechunking the required data before loading. Defaults to `False`.
+- **tensors** (`list[str]`, optional): Tensor names to copy when `optimize=True`. If omitted, all tensors are copied.
+- **num_workers** (`int`, optional): Number of workers used for optimization. Only applies when `optimize=True`. Defaults to `0`.
+- **scheduler** (`str`, optional): Scheduler used for optimization. Supported values include `"serial"`, `"threaded"`, `"processed"`, and `"distributed"`. Defaults to `"threaded"`.
+- **progressbar** (`bool`, optional): Whether to show progress during optimization. Only applies when `optimize=True`. Defaults to `True`.
 
 #### Returns
 
@@ -702,17 +975,16 @@ import muller
 
 ds = muller.load("./my_dataset")
 
-# Load a saved view
+# Load a saved view by id
 view = ds.load_view("high_quality_samples")
 
 # Access view data
-print(f"View has {view.num_samples} samples")
+print(f"View has {len(view)} samples")
 for sample in view:
     print(sample)
 
-# Load and further filter
-view = ds.load_view("category_a")
-filtered_view = view.filter("score > 80")
+# Load and optimize for faster streaming
+optimized_view = ds.load_view("category_a", optimize=True, tensors=["images", "labels"])
 ```
 
 ---
@@ -721,16 +993,39 @@ filtered_view = view.filter("score > 80")
 
 #### Overview
 
-Save the current dataset view for later reuse. This is useful for saving filtered or transformed datasets.
+Save the current dataset view as a virtual dataset (VDS). The saved view can be loaded later by `view_id` if it is saved inside the parent dataset, or loaded by path with `muller.load()` when saved to an external path.
+
+#### Signature
+
+```python
+ds.save_view(
+    message=None,
+    path=None,
+    view_id=None,
+    optimize=False,
+    tensors=None,
+    num_workers=0,
+    scheduler="threaded",
+    ignore_errors=False,
+    **ds_args,
+)
+```
 
 #### Parameters
 
-- **view_name** (`str`): Name to save the view as.
-- **overwrite** (`bool`, optional): If `True`, overwrites existing view with same name. Defaults to `False`.
+- **message** (`str`, optional): Custom message stored with the view. If omitted, the dataset query string is used when available.
+- **path** (`str` or `pathlib.Path`, optional): External path where the VDS is saved. If omitted, the VDS is saved under the source dataset's `.queries` directory.
+- **view_id** (`str`, optional): Unique id for this view. If omitted, MULLER generates a deterministic hash-based id for the view.
+- **optimize** (`bool`, optional): If `True`, copy and rechunk the required data into the VDS. Defaults to `False`.
+- **tensors** (`list[str]`, optional): Tensor names to copy when `optimize=True`. If omitted, all tensors are copied.
+- **num_workers** (`int`, optional): Number of workers used for optimization. Only applies when `optimize=True`. Defaults to `0`.
+- **scheduler** (`str`, optional): Scheduler used for optimization. Supported values include `"serial"`, `"threaded"`, `"processed"`, and `"distributed"`. Defaults to `"threaded"`.
+- **ignore_errors** (`bool`, optional): Skip samples that fail while saving optimized views. Only applies when `optimize=True`. Defaults to `False`.
+- **ds_args**: Additional dataset creation arguments used when `path` is specified.
 
 #### Returns
 
-- **None**
+- **str**: Path to the saved VDS.
 
 #### Examples
 
@@ -741,16 +1036,22 @@ ds = muller.load("./my_dataset")
 
 # Create and save a filtered view
 filtered = ds.filter("labels == 5")
-filtered.save_view("label_5_samples")
+vds_path = filtered.save_view(view_id="label_5_samples")
 
-# Save a complex view
-view = ds.filter("age >= 18").filter("score > 80")
-view.save_view("qualified_adults")
+# Add a message
+view = ds.filter("score > 80")
+view.save_view(view_id="high_scores", message="Samples with score > 80")
 
-# Overwrite existing view
-new_view = ds.filter("labels == 3")
-new_view.save_view("label_3_samples", overwrite=True)
+# Save to an external dataset path
+external_path = view.save_view(path="./views/high_scores", view_id="high_scores")
+external_view = muller.load(external_path)
 ```
+
+#### Notes
+
+- The public parameter is `view_id`; older examples that use `id=` or `view_name` do not match the current code signature.
+- Saving an in-place view requires a committed source dataset head. If the dataset has uncommitted HEAD changes, `save_view()` raises `DatasetViewSavingError`.
+- External views saved with `path=` are not listed by the parent dataset's `get_views()` and cannot be loaded through `load_view()` on the parent dataset.
 
 ---
 
@@ -758,11 +1059,17 @@ new_view.save_view("label_3_samples", overwrite=True)
 
 #### Overview
 
-Delete a saved view from the dataset.
+Delete a saved in-place view from the dataset by view id.
+
+#### Signature
+
+```python
+ds.delete_view(view_id)
+```
 
 #### Parameters
 
-- **view_name** (`str`): Name of the view to delete.
+- **view_id** (`str`): Id of the view to delete.
 
 #### Returns
 
@@ -779,8 +1086,8 @@ ds = muller.load("./my_dataset")
 ds.delete_view("old_view")
 
 # Delete multiple views
-for view_name in ["temp_view1", "temp_view2", "test_view"]:
-    ds.delete_view(view_name)
+for view_id in ["temp_view1", "temp_view2", "test_view"]:
+    ds.delete_view(view_id)
 ```
 
 ---
@@ -789,15 +1096,21 @@ for view_name in ["temp_view1", "temp_view2", "test_view"]:
 
 #### Overview
 
-Get a list of all saved views in the dataset.
+Get saved view entries for the dataset.
+
+#### Signature
+
+```python
+ds.get_views(commit_id=None)
+```
 
 #### Parameters
 
-None
+- **commit_id** (`str`, optional): If provided, return only views whose source dataset version matches this commit id. If omitted, return views from all commits.
 
 #### Returns
 
-- **List[str]**: List of view names.
+- **list[ViewEntry]**: View entry objects. Each entry exposes properties such as `id`, `message`, `commit_id`, `virtual`, `query`, `tql_query`, and `source_dataset_path`.
 
 #### Examples
 
@@ -808,14 +1121,49 @@ ds = muller.load("./my_dataset")
 
 # Get all views
 views = ds.get_views()
-print(f"Available views: {views}")
+print([view.id for view in views])
 
 # Load each view
-for view_name in views:
-    view = ds.load_view(view_name)
-    print(f"{view_name}: {view.num_samples} samples")
+for entry in views:
+    view = entry.load()
+    print(f"{entry.id}: {len(view)} samples")
 
 # Check if view exists
-if "my_view" in ds.get_views():
+if any(entry.id == "my_view" for entry in ds.get_views()):
     view = ds.load_view("my_view")
+```
+
+---
+
+### ds.get_view()
+
+#### Overview
+
+Get the metadata entry for a saved view by id. Call `.load()` on the returned entry to load the view dataset.
+
+#### Signature
+
+```python
+ds.get_view(view_id)
+```
+
+#### Parameters
+
+- **view_id** (`str`): Id of the saved view to retrieve.
+
+#### Returns
+
+- **ViewEntry**: View metadata entry for the requested view.
+
+#### Examples
+
+```python
+import muller
+
+ds = muller.load("./my_dataset")
+
+entry = ds.get_view("label_5_samples")
+print(entry.id, entry.message, entry.commit_id)
+
+view = entry.load()
 ```
