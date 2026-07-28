@@ -84,7 +84,18 @@ class InvertedIndexVectorized(object):
 
     @staticmethod
     def _set_logger(path: Optional[str]):
-        logger = logging.getLogger('my_logger')
+        # ``logging.getLogger`` returns a process-wide singleton per name, so
+        # the name must encode the log destination. The legacy shared name
+        # ('my_logger') combined with the ``if not logger.handlers`` guard
+        # meant the FileHandler registered by the FIRST instance in the
+        # process was silently reused by every later instance, mixing logs
+        # across datasets (and, if the first instance was remote-backed,
+        # dropping file logging for all later local datasets). Instances that
+        # target the same log file share one logger, so handlers are still
+        # registered only once per destination. Remote-backed datasets
+        # (path=None) share a single console-only logger.
+        suffix = re.sub(r"[^0-9A-Za-z]+", "_", path) if path is not None else "console"
+        logger = logging.getLogger(f"muller.inverted_index.{suffix}")
         logger.setLevel(logging.DEBUG)
         logger.propagate = False
 

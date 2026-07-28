@@ -112,6 +112,70 @@ def test_update_with_cpp_refuses_remote(remote_path):
         )
 
 
+def test_loggers_are_isolated_per_dataset(tmp_path):
+    """Two datasets must not share a logger (nor its FileHandler).
+
+    The legacy code used ``logging.getLogger('my_logger')`` guarded by
+    ``if not logger.handlers``, so the FileHandler bound by the first
+    instance in the process was reused by every later instance and all
+    logs went to the first dataset's log file."""
+    path_a = tmp_path / "ds_a"
+    path_b = tmp_path / "ds_b"
+    path_a.mkdir()
+    path_b.mkdir()
+
+    inv_a = InvertedIndexVectorized(
+        _stub_dataset(str(path_a)), storage=None, branch="main", column_name="text"
+    )
+    inv_b = InvertedIndexVectorized(
+        _stub_dataset(str(path_b)), storage=None, branch="main", column_name="text"
+    )
+
+    assert inv_a.logger is not inv_b.logger
+
+    def _file_handler_targets(logger):
+        import logging
+        return {
+            h.baseFilename for h in logger.handlers
+            if isinstance(h, logging.FileHandler)
+        }
+
+    targets_a = _file_handler_targets(inv_a.logger)
+    targets_b = _file_handler_targets(inv_b.logger)
+    assert targets_a and all(str(path_a) in t for t in targets_a)
+    assert targets_b and all(str(path_b) in t for t in targets_b)
+
+
+def test_same_dataset_does_not_duplicate_handlers(tmp_path):
+    """Instances targeting the same log file share one logger and must not
+    register duplicate handlers (which would duplicate every log line)."""
+    inv_1 = InvertedIndexVectorized(
+        _stub_dataset(str(tmp_path)), storage=None, branch="main", column_name="text"
+    )
+    inv_2 = InvertedIndexVectorized(
+        _stub_dataset(str(tmp_path)), storage=None, branch="main", column_name="other"
+    )
+    assert inv_1.logger is inv_2.logger
+    assert len(inv_1.logger.handlers) == 2  # one FileHandler + one StreamHandler
+
+
+def test_remote_after_local_stays_console_only(tmp_path):
+    """A remote dataset constructed AFTER a local one must not inherit the
+    local dataset's FileHandler (legacy behavior made the remote
+    console-only branch effective only for the first-constructed instance)."""
+    import logging
+
+    InvertedIndexVectorized(
+        _stub_dataset(str(tmp_path)), storage=None, branch="main", column_name="text"
+    )
+    inv_remote = InvertedIndexVectorized(
+        _stub_dataset("s3://bucket/dataset"), storage=None, branch="main", column_name="text"
+    )
+    assert not any(
+        isinstance(h, logging.FileHandler) for h in inv_remote.logger.handlers
+    )
+
+
 @pytest.mark.parametrize("remote_path", REMOTE_PATHS)
 def test_create_cpp_index_refuses_remote(remote_path):
     inv = InvertedIndexVectorized(
