@@ -339,6 +339,19 @@ temp/
 # Project-specific
 # ======================
 
+# Local agent plans and workspace config
+.cursor/
+
+# Local architecture research notes
+code-details/
+
+# Test / demo run artifacts (datasets written by tests and notebooks).
+# Historically tests were run from arbitrary working directories, so these
+# patterns are intentionally not anchored to the repository root.
+results/
+temp_test/
+my_photos/
+
 # C++ build dependencies and generated files
 thirdparty/vendor/
 thirdparty/MurmurHash3.cpp

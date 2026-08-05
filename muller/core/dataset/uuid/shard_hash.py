@@ -15,8 +15,12 @@ from typing import List
 import numpy as np
 from cykhash import Int64toInt64Map, Int64toInt64Map_from_buffers
 
-# from muller.util.cykhash import cykhash_ext
 from muller.util.exceptions import FileAtPathException, CykhashPutError, CykhashGetError, CykhashLoadError
+
+# The cykhash_ext C extension (formerly imported from muller.util.cykhash) is
+# not shipped in this build; muller/util/cykhash/__init__.py is empty. Shard
+# table persistence is therefore unavailable until the extension is restored.
+cykhash_ext = None
 
 
 def process_shard(shard_index: int, shard_dir: str, sharded_uuid: np.ndarray, sharded_idx: np.ndarray):
@@ -117,6 +121,11 @@ class HashBuilder:
         shard_path = f"{self.shard_dir}/shard_{self.shard_idx}.bin"
         if os.path.exists(shard_path) and not overwrite:
             raise FileAtPathException(shard_path)
+        if cykhash_ext is None:
+            raise NotImplementedError(
+                "Saving UUID shard tables requires the cykhash_ext extension, "
+                "which is not available in this build."
+            )
         cykhash_ext.save_map(self.table, shard_path)
 
 
@@ -125,6 +134,11 @@ class HashBuilder:
         if not os.path.exists(self.shard_dir):
             raise FileNotFoundError(f"Shard file not found: {self.shard_dir}")
 
+        if cykhash_ext is None:
+            raise NotImplementedError(
+                "Loading UUID shard tables requires the cykhash_ext extension, "
+                "which is not available in this build."
+            )
         self.table.clear()
         try:
             cykhash_ext.load_map(self.shard_dir, self.table)

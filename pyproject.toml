@@ -14,9 +14,9 @@ authors = [
     {name = "Bingyu Liu", email = "liubingyu62@gmail.com"}
 ]
 dependencies = [
-    "numpy",
+    "numpy>=1.24,<3",
     "pillow>=9.5.0",
-    "pandas",
+    "pandas>=2.0,<3",
     "humbug>=0.3.1",
     "tqdm",
     "lz4",
@@ -30,19 +30,19 @@ dependencies = [
     "filetype",
     "cryptography",
     "PyJWT",
-    "pyarrow",
+    "pyarrow>=14,<23",
     "werkzeug",
     "jsonlines",
     "sortedcontainers",
     "jieba",
-    "boto3",
-    "redis",
+    "boto3>=1.26,<2",
+    "redis>=4,<8",
     "cykhash",
     "mmh3",
-    "pydantic",
+    "pydantic>=2,<3",
     # faiss-cpu 1.10+ imports numpy._core and fails with diskannpy's NumPy 1.25 pin.
     "faiss-cpu==1.9.0.post1",
-    "torch"
+    "torch>=2.0,<3"
 ]
 
 [project.optional-dependencies]
@@ -86,3 +86,20 @@ exclude = [
 
 [tool.setuptools.dynamic]
 version = { attr = "muller._version.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: long-running tests, deselect with -m 'not slow'",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["thirdparty", "site", "sigmod_demo_revision", "exp_scripts"]
+
+[tool.ruff.lint]
+# First pass keeps the gate to correctness-level rules only (syntax errors,
+# invalid prints/comparisons, undefined names) to avoid a repository-wide
+# style diff. Tighten incrementally once the baseline is clean.
+select = ["E9", "F63", "F7", "F82"]
