@@ -76,7 +76,7 @@ def ffw(func):
         v = inp.version
         if not _check_version(v):
             out = func(inp, v, **kwargs)
-            inp.version = _get_muller_version()
+            inp.version = __get_muller_version()
             return out
 
     return decor

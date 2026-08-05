@@ -11,7 +11,7 @@ import pytest
 
 import muller
 from muller.util.exceptions import DatasetCorruptError, MergeConflictError
-from tests.constants import TEST_DETECT_MERGE, TEST_DETECT_ERROR
+from tests.constants import TEST_DETECT_MERGE, TEST_DETECT_ERROR, TEST_TEMP_MERGE_PATH
 from tests.utils import official_path, official_creds
 
 
@@ -130,7 +130,7 @@ def test_add_tensor(storage):
 
 def test_rename_tensor(storage):
     """ Rename tensor: The dev branch rename one tensor columns from the main branch. """
-    ds = muller.dataset(path="temp_test", overwrite=True)
+    ds = muller.dataset(path=TEST_TEMP_MERGE_PATH, overwrite=True)
     ds.create_tensor(name="labels", htype="generic", dtype="int")
     ds.labels.extend([0, 1, 2, 3, 4])
     ds.create_tensor(name="categories", htype="text")
