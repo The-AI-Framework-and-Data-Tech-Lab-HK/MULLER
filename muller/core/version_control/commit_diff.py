@@ -157,29 +157,39 @@ class CommitDiff(MULLERMemoryObject):
         self.is_dirty = True
 
     def pop(self, index, id) -> None:
-        index = self.translate_index(index) # TODO: maybe wrong for base dataset
-        if index not in range(*self.data_added): # if translated index
-            self.data_deleted.add(index)
-            self.data_added[0] -= 1
+        """Records the removal of the sample at live (current) index ``index``.
+
+        ``data_added`` and ``data_updated`` are maintained in live coordinates,
+        while ``data_deleted`` records indices in the commit-start coordinate
+        space so the diff can report which pre-existing samples were removed.
+        """
+        if index in range(*self.data_added):
+            # Sample was added in this commit: it never existed in the parent
+            # commit, so it is not recorded as deleted.
+            self.data_added[1] -= 1
+        else:
+            self.data_deleted.add(self.translate_index(index))
             if id is not None:
                 self.data_deleted_ids.append(id)
-        self.data_added[1] -= 1
+            # Deleting a pre-existing sample shifts the added block down.
+            self.data_added[0] -= 1
+            self.data_added[1] -= 1
 
-        if index in self.data_updated:
-            self.data_updated.remove(index)
-
+        self.data_updated.discard(index)
         self.data_updated = {
             idx - 1 if idx > index else idx for idx in self.data_updated
         }
         self.is_dirty = True
 
     def translate_index(self, index):
-        if not self.data_deleted:
-            return index
-
-        import bisect
-        offset = bisect.bisect_left(self.data_deleted, index)
-        return index + offset
+        """Translates a live index into the commit-start coordinate space,
+        accounting for samples already deleted in this commit."""
+        offset = self.data_deleted.bisect_right(index)
+        while True:
+            new_offset = self.data_deleted.bisect_right(index + offset)
+            if new_offset == offset:
+                return index + offset
+            offset = new_offset
 
     def _update_flag_dataset_diff(self, commit_id: str, storage: LRUCache) -> None:
         """Set the commit_diff flag in dataset_diff to True"""
