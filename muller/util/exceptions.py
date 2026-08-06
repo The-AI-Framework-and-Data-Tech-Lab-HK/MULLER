@@ -729,8 +729,15 @@ class TensorTooLargeToDelete(Exception):
 
 # Sherry
 class RomaGetError(Exception):
-    def __init__(self):
-        super().__init__()
+    """Raised when reading from Roma storage keeps failing (non-404 errors, after retries)."""
+    def __init__(self, message: str = ""):
+        super().__init__(message)
+
+
+class RomaSetError(Exception):
+    """Raised when writing to Roma storage keeps failing after retries."""
+    def __init__(self, message: str = ""):
+        super().__init__(message)
 
 
 class InvalidShapeIntervalError(Exception):

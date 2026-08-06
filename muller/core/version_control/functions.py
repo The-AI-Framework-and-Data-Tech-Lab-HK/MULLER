@@ -54,12 +54,9 @@ all_src_keys = []
 
 def load_version_info(storage: LRUCache) -> Dict:
     """Load the version info."""
-    try:
-        return _version_info_from_json(
-            json.loads(storage["version_control_info.json"].decode("utf-8"))
-        )
-    except Exception as e:
-        raise e
+    return _version_info_from_json(
+        json.loads(storage["version_control_info.json"].decode("utf-8"))
+    )
 
 
 def _version_info_from_json(info):
@@ -410,10 +407,11 @@ def _create_new_head(
 
 def rebuild_version_info(storage: LRUCache):
     """Rebuilds version info from commit info."""
-    # don't do anything if first commit info is missing
+    # don't do anything if first commit info is missing; a present-but-corrupt
+    # commit info file is a real error and must propagate
     try:
         load_commit_info(FIRST_COMMIT_ID, storage)
-    except Exception:
+    except KeyError:
         return None
 
     stack = [FIRST_COMMIT_ID]
@@ -639,7 +637,10 @@ def _merge_version_info(old_info, new_info, cur_branch):
             commit_node_map = _merge_commit_node_maps(
                 old_info["commit_node_map"], new_info["commit_node_map"]
             )
-    except Exception:
+    except (KeyError, AttributeError) as e:
+        # Fast-forward detection walks maps/parents that may be missing for
+        # unusual histories; the full merge below is always a safe fallback.
+        logger.debug(f"fast-forward detection failed ({e!r}); falling back to full commit-map merge")
         commit_node_map = _merge_commit_node_maps(
             old_info["commit_node_map"], new_info["commit_node_map"]
         )
@@ -1137,7 +1138,7 @@ def delete_target_commit_chunk(storage, tensor_name, commit_id):
     chunk_map_key = get_tensor_commit_chunk_map_key(tensor_name, commit_id)
     try:
         chunk_map = storage.get_muller_object(chunk_map_key, CommitChunkMap).chunks
-    except Exception as e:
+    except KeyError as e:
         raise KeyError(f"commit {commit_id} has no chunk_set") from e
 
     key_set = set()
@@ -1198,13 +1199,14 @@ def get_branch_owner(dataset, branch_name: str) -> Optional[str]:
     Returns:
         Username of the branch owner, or None if not found
     """
-    # First try to load from branch metadata
+    # First try to load from branch metadata; fall back to the version state
+    # if the metadata file is missing or unreadable.
     try:
         metadata = load_branch_metadata(dataset.storage, branch_name)
         if metadata.get("owner"):
             return metadata["owner"]
-    except Exception:
-        pass
+    except (KeyError, json.JSONDecodeError, UnicodeDecodeError) as e:
+        logger.warning(f"Unable to load branch metadata for {branch_name}: {e}")
     
     # Fallback: infer from version state
     version_state = dataset.version_state
@@ -1250,14 +1252,14 @@ def auto_commit_before_checkout(dataset, target_address: str) -> bool:
         return False
     
     try:
-        from muller.client.log import logger
         commit_message = f"Auto-commit before checkout to {target_address} at {datetime.utcnow().isoformat()}"
         
         # Use the commit function from this module
         commit(dataset, message=commit_message)
         logger.info(f"Auto-committed changes before checkout to {target_address}")
         return True
-    except Exception as e:
-        from muller.client.log import logger
-        logger.warning(f"Auto-commit failed: {e}")
+    except Exception:
+        # Best-effort convenience: a failed auto-commit must not block the
+        # checkout itself, but the full traceback is kept in the log.
+        logger.warning(f"Auto-commit before checkout to {target_address} failed", exc_info=True)
         return False

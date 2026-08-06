@@ -95,6 +95,10 @@ TEST_DETECT_ERROR = _out("detect_error")
 
 TEST_TEMP_MERGE_PATH = _out("temp_merge_dataset")
 
+TEST_MERGE_SCHEMA_PATH = _out("merge_schema_dataset")
+
+TEST_UUID_INDEX_PATH = _out("uuid_index_dataset")
+
 TEST_PROCESS_INTERRUPT = _out("process_interrupt")
 
 GIST_DATA_DIR = _out("gist_dataset/gist.npy")
