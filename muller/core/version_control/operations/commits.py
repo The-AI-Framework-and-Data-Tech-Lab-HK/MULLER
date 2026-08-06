@@ -1041,8 +1041,6 @@ def _data_to_dataframe(original_dict, common_tensors, target_operations, force):
 
 
 def _read_from_upper_cache(ds, commit_id, tensor_name):
-    if 'uuids' not in ds.storage.upper_cache:
-        ds.storage.upper_cache['uuids'] = {}
     if commit_id in ds.storage.upper_cache['uuids']:
         if ds.use_dataset_uuid and DATASET_UUID_NAME in ds.storage.upper_cache['uuids'][commit_id]:
             return ds.storage.upper_cache['uuids'][commit_id][DATASET_UUID_NAME]

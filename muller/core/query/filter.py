@@ -524,8 +524,6 @@ def filter_dataset_with_cache(
         tuple(function_contents(function)))
     key = str(index_query).strip() + str(function_key) + connector
 
-    if "filter" not in dataset.storage.upper_cache:
-        dataset.storage.upper_cache["filter"] = {}
     cache_key = key + str(offset)
     if compute_future and cache_key in dataset.storage.upper_cache["filter"]:
         result = dataset.storage.upper_cache["filter"].pop(cache_key).result(timeout=None)  # index
@@ -536,7 +534,7 @@ def filter_dataset_with_cache(
         return result
     if bool(dataset.storage.upper_cache["filter"]) and cache_key not in dataset.storage.upper_cache[
         "filter"]:  # key doesn't match
-        dataset.storage.upper_cache["filter"] = {}  # clear cache
+        dataset.storage.upper_cache["filter"].clear()
 
     ids = []
     if index_query is not None:
@@ -570,7 +568,7 @@ def _filter_next(dataset, key, function, index_query, connector, offset, limit):
     with ThreadPoolExecutor() as executor:
         future = executor.submit(filter_dataset_with_cache, dataset, function=function, index_query=index_query,
                                  connector=connector, offset=offset, limit=limit)
-        dataset.storage.upper_cache["filter"].update({key: future})
+        dataset.storage.upper_cache["filter"][key] = future
 
 
 def _get_filter_res_from_conditions(dataset, function, connector, offset, limit, ids, index_query):
