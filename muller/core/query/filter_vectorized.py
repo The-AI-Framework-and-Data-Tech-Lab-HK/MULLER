@@ -10,14 +10,13 @@ import json
 import logging
 import os
 import re
-from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from typing import List, Optional
 
 import numpy as np
 
 import muller
-from muller.constants import FILTER_CACHE_SIZE, REGEX_BATCH_SIZE
+from muller.constants import REGEX_BATCH_SIZE
 from muller.util.exceptions import (FilterVectorizedConditionError,
                                    FilterVectorizedConnectorListError,
                                    FilterOperatorNegationUnsupportedError,
@@ -500,10 +499,6 @@ def _fetch_from_cache(
         offset,
         limit
 ):
-    if "filter_vectorized" not in dataset.storage.upper_cache:
-        # There is no filter_vec in upper_cache, so we need to create a new key for recording.
-        # Note: The value of the key is an OrderedDict()
-        dataset.storage.upper_cache["filter_vectorized"] = OrderedDict()
     cache_key = (str(condition_list), str(connector_list), dataset.branch)
     recompute_flag = 1
     recompute_range = (0, len(dataset))
@@ -536,9 +531,8 @@ def _fetch_from_cache(
             # Case 3: partial offset and limit are beyond the previous compute range. The result cannot be used.
 
     # A new query condition. We need to create a new key for record.
+    # The cache is a BoundedLRUDict, so the least recently used entry is evicted automatically.
     dataset.storage.upper_cache["filter_vectorized"][cache_key] = (offset, limit, None)
-    if len(dataset.storage.upper_cache["filter_vectorized"]) > FILTER_CACHE_SIZE:
-        dataset.storage.upper_cache["filter_vectorized"].popitem()
     return None, recompute_flag, recompute_range
 
 

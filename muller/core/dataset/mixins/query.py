@@ -120,8 +120,6 @@ class QueryMixin:
             tuple(function_contents(function)))
         key = str(index_query).strip() + str(function_key) + connector
 
-        if "filter" not in self.storage.upper_cache:
-            self.storage.upper_cache["filter"] = {}
         cache_key = key + str(offset)
         if compute_future and cache_key in self.storage.upper_cache["filter"]:
             result = self.storage.upper_cache["filter"].pop(cache_key).result(timeout=None)  # index
@@ -132,7 +130,7 @@ class QueryMixin:
             return result
         if bool(self.storage.upper_cache["filter"]) and cache_key not in self.storage.upper_cache[
             "filter"]:  # key doesn't match
-            self.storage.upper_cache["filter"] = {}  # clear cache
+            self.storage.upper_cache["filter"].clear()
 
         ids = []
         if index_query is not None:
@@ -165,7 +163,7 @@ class QueryMixin:
         with ThreadPoolExecutor() as executor:
             future = executor.submit(self.filter, function=function, index_query=index_query, connector=connector,
                                      offset=offset, limit=limit)
-            self.storage.upper_cache["filter"].update({key: future})
+            self.storage.upper_cache["filter"][key] = future
 
     def aggregate(
             self,

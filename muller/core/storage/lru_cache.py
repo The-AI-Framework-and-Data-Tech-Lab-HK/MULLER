@@ -17,7 +17,13 @@ from collections import OrderedDict
 from typing import Dict, Optional, Union, Set, Any, List, Iterable
 from typing import Tuple, Type, Callable, Sequence
 
-from muller.constants import VERSION_CONTROL_INFO_FILENAME, DATASET_META_FILENAME
+from muller.constants import (
+    FILTER_CACHE_SIZE,
+    MERGE_RECORDS_CACHE_COMMITS,
+    UUID_CACHE_COMMITS,
+    VERSION_CONTROL_INFO_FILENAME,
+    DATASET_META_FILENAME,
+)
 from muller.core.chunk.base_chunk import BaseChunk
 from muller.core.meta.tensor_meta import TensorMeta
 from muller.core.partial_reader import PartialReader
@@ -43,6 +49,54 @@ def obj_to_bytes(obj):
         temp_bytes = bytes(json.dumps(temp_dict, sort_keys=True, indent=4, cls=HubJsonEncoder), "utf-8")
         obj = temp_bytes
     return obj
+
+
+class BoundedLRUDict(OrderedDict):
+    """An OrderedDict holding at most ``maxsize`` entries, with LRU eviction.
+
+    Reading an existing key (``[]`` or ``get``) refreshes its recency; inserting
+    beyond ``maxsize`` silently evicts the least recently used entry. Only use it
+    for derived data that can be recomputed on a cache miss.
+    """
+
+    def __init__(self, maxsize: int):
+        if maxsize <= 0:
+            raise ValueError(f"`maxsize` must be > 0. Got: {maxsize}")
+        super().__init__()
+        self.maxsize = maxsize
+
+    def __getitem__(self, key):
+        value = super().__getitem__(key)
+        super().move_to_end(key)
+        return value
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        super().move_to_end(key)
+        while len(self) > self.maxsize:
+            super().popitem(last=False)
+
+
+def _make_upper_cache() -> Dict[str, BoundedLRUDict]:
+    """Sub-caches of ``LRUCache.upper_cache``. All hold derived (recomputable) data:
+
+    - "uuids": commit_id -> {tensor_name: uuid list}, read/written by
+      ``core/version_control/operations/commits.py``. Bounded per commit so uuid
+      lists of long-gone commits don't accumulate.
+    - "filter": prefetched filter futures, see ``core/query/filter.py``.
+    - "filter_vectorized": paged filter results, see ``core/query/filter_vectorized.py``.
+    """
+    return {
+        "uuids": BoundedLRUDict(maxsize=UUID_CACHE_COMMITS),
+        "filter": BoundedLRUDict(maxsize=FILTER_CACHE_SIZE),
+        "filter_vectorized": BoundedLRUDict(maxsize=FILTER_CACHE_SIZE),
+    }
 
 
 @dataclasses.dataclass
@@ -101,10 +155,13 @@ class LRUCache(StorageProvider):
 
         self.cache_used = 0
         self.muller_objects: Dict[str, MULLERMemoryObject] = {}
-        # Sherry: path for dataset_meta.json, version_control... and their values
-        # Sherry: BRING THIS BACK AFTER ASYNC IS FIXED
-        self.upper_cache = {}  # for uuids, future filter results, etc.
-        self.upper_cache_merge = {}
+        # Bounded caches of derived data (uuids, filter results); see _make_upper_cache.
+        self.upper_cache: Dict[str, BoundedLRUDict] = _make_upper_cache()
+        # merge_detect -> merge handoff records, keyed
+        # original_commit_id -> {target_commit_id: {tensor_name: records}}.
+        # Entries are dead once the merge commits (commit ids change), hence the LRU bound;
+        # on a miss, merge recomputes the records (see merge.py::_get_idxs).
+        self.upper_cache_merge = BoundedLRUDict(maxsize=MERGE_RECORDS_CACHE_COMMITS)
         # track the version states to record the commit users for authentication checking
         self.version_state = None  # will be updated by checkout/commit/auto_commit... in version control
         self.version_state_storage = None  # fetch and record the version state from storage
@@ -249,8 +306,8 @@ class LRUCache(StorageProvider):
         self.dirty_keys = OrderedDict()
         self.cache_used = 0
         self.muller_objects = {}
-        self.upper_cache = {}
-        self.upper_cache_merge = {}
+        self.upper_cache = _make_upper_cache()
+        self.upper_cache_merge = BoundedLRUDict(maxsize=MERGE_RECORDS_CACHE_COMMITS)
         self.version_state = None
         self.version_state_storage = None
 
@@ -635,8 +692,9 @@ class LRUCache(StorageProvider):
 
     def clear_target_upper_cache(self, filed, commit_id, tensor_name):
         """clear the given filed contains of upper cache."""
-        if self.upper_cache.get(filed, {}).get(commit_id, {}).get(tensor_name, {}):
-            self.upper_cache['uuids'][commit_id][tensor_name] = None
+        commit_entry = self.upper_cache.get(filed, {}).get(commit_id)
+        if commit_entry:
+            commit_entry.pop(tensor_name, None)
 
     def add_records_cache_merge(
             self,

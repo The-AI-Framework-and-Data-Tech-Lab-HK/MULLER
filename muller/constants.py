@@ -118,6 +118,12 @@ DATASET_UUID_NAME = "_uuid"
 
 FILTER_CACHE_SIZE = 100
 
+# Bounds for the derived-data caches on LRUCache (see core/storage/lru_cache.py).
+# UUID lists are cached for at most this many commits.
+UUID_CACHE_COMMITS = 4
+# merge_detect -> merge handoff records are kept for at most this many original commits.
+MERGE_RECORDS_CACHE_COMMITS = 4
+
 MAX_WORKERS_FOR_CHUNK_ENGINE = 50
 
 MAX_WORKERS_FOR_INVERTED_INDEX_SEARCH = 50
