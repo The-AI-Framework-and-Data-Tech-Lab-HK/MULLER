@@ -1,0 +1,5384 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://The-AI-Framework-and-Data-Tech-Lab-HK.github.io/MULLER/api/dataset-query/">
+      
+      
+        <link rel="prev" href="../tensor/">
+      
+      
+        <link rel="next" href="../dataset-version-control/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Dataset Query - MULLER</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dataset-query-filter-and-indexing" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MULLER" class="md-header__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MULLER
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dataset Query
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the bright mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Change to the bright mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Change to the dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Change to the dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Introduction
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting_started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../top-level-functions/" class="md-tabs__link">
+          
+  
+  
+  API Documents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../performance_optimization/%40muller.compute/batch_enable_optimization/" class="md-tabs__link">
+          
+  
+  
+  Performance Optimization
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MULLER" class="md-nav__button md-logo" aria-label="MULLER" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MULLER
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/1_read_muller_object/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read as MULLER object
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/2_create_muller_dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Construct a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/3_muller_dataset_operations%28load%2Cappend%2Cupdate%2Cdelete%2Cquery%29/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load, Append, Update, Delete, Query in a MULLER dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/4_muller_version_control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/5_advanced_operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Documents
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Documents
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../top-level-functions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Top-Level Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-creation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Creation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Query
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Query
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-and-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query and Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#indexing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Indexing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Views
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query-and-filter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query and Filter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Query and Filter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsfilter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.filter()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.filter()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsfilter_vectorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.filter_vectorized()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.filter_vectorized()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsaggregate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.aggregate()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.aggregate()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsaggregate_vectorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.aggregate_vectorized()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.aggregate_vectorized()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.query()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.query()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsvector_search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.vector_search()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.vector_search()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#indexing_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Indexing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Indexing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dscreate_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.create_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.create_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscreate_index_vectorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.create_index_vectorized()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.create_index_vectorized()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choosing-num_of_shards-num_of_batches-and-max_workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing num_of_shards, num_of_batches, and max_workers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-c-engine-use_cpptrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the C++ engine (use_cpp=True)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsoptimize_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.optimize_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.optimize_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscreate_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.create_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.create_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdrop_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.drop_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.drop_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsupdate_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.update_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.update_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsload_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.load_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.load_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsunload_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.unload_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.unload_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscreate_hot_shard_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.create_hot_shard_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.create_hot_shard_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsreshard_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.reshard_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.reshard_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#views_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Views
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Views">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsload_view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.load_view()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.load_view()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dssave_view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.save_view()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.save_view()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdelete_view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.delete_view()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.delete_view()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsget_views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.get_views()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.get_views()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsget_view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.get_view()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.get_view()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-version-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Version Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../htypes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Htypes Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Performance Optimization
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Performance Optimization
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance_optimization/%40muller.compute/batch_enable_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    @muller.compute batch_enable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance_optimization/chunk/to_numpy/USAGE_EXAMPLES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor.to_numpy Usage Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance_optimization/chunk/to_numpy/TECHNICAL_NOTES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor.to_numpy Technical Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../performance_optimization/chunk/to_numpy/OPTIMIZATION_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor.to_numpy Optimization Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table of Contents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-and-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query and Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#indexing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Indexing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Views
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query-and-filter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query and Filter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Query and Filter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsfilter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.filter()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.filter()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsfilter_vectorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.filter_vectorized()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.filter_vectorized()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsaggregate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.aggregate()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.aggregate()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsaggregate_vectorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.aggregate_vectorized()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.aggregate_vectorized()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.query()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.query()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsvector_search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.vector_search()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.vector_search()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#indexing_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Indexing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Indexing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dscreate_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.create_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.create_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscreate_index_vectorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.create_index_vectorized()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.create_index_vectorized()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choosing-num_of_shards-num_of_batches-and-max_workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing num_of_shards, num_of_batches, and max_workers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-c-engine-use_cpptrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the C++ engine (use_cpp=True)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsoptimize_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.optimize_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.optimize_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscreate_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.create_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.create_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdrop_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.drop_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.drop_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsupdate_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.update_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.update_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsload_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.load_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.load_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsunload_vector_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.unload_vector_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.unload_vector_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dscreate_hot_shard_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.create_hot_shard_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.create_hot_shard_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsreshard_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.reshard_index()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.reshard_index()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#views_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Views
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Views">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dsload_view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.load_view()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.load_view()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dssave_view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.save_view()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.save_view()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsdelete_view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.delete_view()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.delete_view()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsget_views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.get_views()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.get_views()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dsget_view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ds.get_view()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ds.get_view()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#signature_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Signature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="dataset-query-filter-and-indexing">Dataset Query, Filter, and Indexing</h1>
+<p>This page documents methods for querying, filtering, searching, and managing indexes in datasets.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<h3 id="query-and-filter">Query and Filter</h3>
+<ul>
+<li><a href="#dsfilter">ds.filter()</a></li>
+<li><a href="#dsfilter_vectorized">ds.filter_vectorized()</a></li>
+<li><a href="#dsaggregate">ds.aggregate()</a></li>
+<li><a href="#dsaggregate_vectorized">ds.aggregate_vectorized()</a></li>
+<li><a href="#dsquery">ds.query()</a></li>
+<li><a href="#dsvector_search">ds.vector_search()</a></li>
+</ul>
+<h3 id="indexing">Indexing</h3>
+<ul>
+<li><a href="#dscreate_index">ds.create_index()</a></li>
+<li><a href="#dscreate_index_vectorized">ds.create_index_vectorized()</a></li>
+<li><a href="#dsoptimize_index">ds.optimize_index()</a></li>
+<li><a href="#dscreate_vector_index">ds.create_vector_index()</a></li>
+<li><a href="#dsdrop_vector_index">ds.drop_vector_index()</a></li>
+<li><a href="#dsupdate_vector_index">ds.update_vector_index()</a></li>
+<li><a href="#dsload_vector_index">ds.load_vector_index()</a></li>
+<li><a href="#dsunload_vector_index">ds.unload_vector_index()</a></li>
+<li><a href="#dscreate_hot_shard_index">ds.create_hot_shard_index()</a></li>
+<li><a href="#dsreshard_index">ds.reshard_index()</a></li>
+</ul>
+<h3 id="views">Views</h3>
+<ul>
+<li><a href="#dsload_view">ds.load_view()</a></li>
+<li><a href="#dssave_view">ds.save_view()</a></li>
+<li><a href="#dsdelete_view">ds.delete_view()</a></li>
+<li><a href="#dsget_views">ds.get_views()</a></li>
+<li><a href="#dsget_view">ds.get_view()</a></li>
+</ul>
+<hr />
+<h2 id="query-and-filter_1">Query and Filter</h2>
+<h3 id="dsfilter">ds.filter()</h3>
+<h4 id="overview">Overview</h4>
+<p>Filter the dataset with a Python callable, a string query expression, an optional inverted-index query, or a combination of them. Returns a filtered view and does not modify the original dataset.</p>
+<h4 id="signature">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+    <span class="n">function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">index_query</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">connector</span><span class="o">=</span><span class="s2">&quot;AND&quot;</span><span class="p">,</span>
+    <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters">Parameters</h4>
+<ul>
+<li><strong>function</strong> (<code>callable</code> or <code>str</code>, optional): Filtering condition. A callable receives a sample and returns <code>True</code> for rows to keep; a string is evaluated as a dataset query expression such as <code>"labels == 1"</code>.</li>
+<li><strong>index_query</strong> (<code>str</code>, optional): Query expression evaluated against the dataset's <code>query_string</code> for inverted-index results.</li>
+<li><strong>connector</strong> (<code>str</code>, optional): How to combine <code>function</code> and <code>index_query</code>. Supported values are <code>"AND"</code> and <code>"OR"</code>. Defaults to <code>"AND"</code>.</li>
+<li><strong>offset</strong> (<code>int</code>, optional): Start filtering from this dataset index. Defaults to <code>0</code>.</li>
+<li><strong>limit</strong> (<code>int</code>, optional): Maximum number of matching rows to return. Defaults to <code>None</code>.</li>
+<li><strong>kwargs</strong>: Additional execution options passed to the filtering backend, including <code>num_workers</code>, <code>scheduler</code>, <code>progressbar</code>, <code>save_result</code>, <code>result_path</code>, <code>result_ds_args</code>, and <code>compute_future</code>.</li>
+</ul>
+<h4 id="returns">Returns</h4>
+<ul>
+<li><strong>Dataset</strong>: A filtered view of the dataset.</li>
+</ul>
+<h4 id="examples">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># String query expression</span>
+<span class="n">filtered_ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;labels == 1&quot;</span><span class="p">)</span>
+
+<span class="c1"># Callable filter</span>
+<span class="n">filtered_ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">sample</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">data</span><span class="p">()[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Pagination</span>
+<span class="n">page</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;labels &gt;= 2&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsfilter_vectorized">ds.filter_vectorized()</h3>
+<h4 id="overview_1">Overview</h4>
+<p>Filter the dataset with vectorized NumPy operations and, where requested, inverted indexes. Conditions are passed as tuples in <code>condition_list</code>; this method does not accept a single string expression.</p>
+<h4 id="signature_1">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">(</span>
+    <span class="n">condition_list</span><span class="p">,</span>
+    <span class="n">connector_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">compute_future</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_local_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">show_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_1">Parameters</h4>
+<ul>
+<li><strong>condition_list</strong> (<code>list[tuple]</code>): Filtering conditions. Each condition is <code>(tensor, operator, value)</code>, <code>(tensor, operator, value, use_inverted_index)</code>, or <code>(tensor, operator, value, use_inverted_index, negation)</code>.</li>
+<li><strong>connector_list</strong> (<code>list[str]</code>, optional): Connectors between conditions. Each value must be <code>"AND"</code> or <code>"OR"</code>, and the list length must be <code>len(condition_list) - 1</code>.</li>
+<li><strong>offset</strong> (<code>int</code>, optional): Start filtering from this dataset index. Defaults to <code>0</code>.</li>
+<li><strong>limit</strong> (<code>int</code>, optional): Maximum number of matching rows to return. Defaults to <code>None</code>.</li>
+<li><strong>compute_future</strong> (<code>bool</code>, optional): If <code>True</code>, precomputes the next page of results for limited queries. Defaults to <code>True</code>.</li>
+<li><strong>use_local_index</strong> (<code>bool</code>, optional): Use the vectorized local inverted index when a condition requests index lookup. Defaults to <code>True</code>.</li>
+<li><strong>max_workers</strong> (<code>int</code>, optional): Maximum workers used by indexed search paths. Defaults to <code>16</code>.</li>
+<li><strong>show_progress</strong> (<code>bool</code>, optional): Log progress while computing individual conditions. Defaults to <code>False</code>.</li>
+</ul>
+<p>Supported operators are <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>, <code>==</code>, <code>!=</code>, <code>CONTAINS</code>, <code>BETWEEN</code>, and <code>LIKE</code>. <code>CONTAINS</code> and <code>BETWEEN</code> use an inverted index; <code>LIKE</code> performs regex matching on text tensors. The optional <code>negation</code> value is <code>"NOT"</code>.</p>
+<h4 id="returns_1">Returns</h4>
+<ul>
+<li><strong>Dataset</strong>: A filtered view of the dataset with <code>filtered_index</code> set to the matching source indices.</li>
+</ul>
+<h4 id="examples_1">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Numeric comparison</span>
+<span class="n">filtered_ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<span class="c1"># Combine conditions</span>
+<span class="n">filtered_ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">(</span>
+    <span class="p">[(</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)],</span>
+    <span class="p">[</span><span class="s2">&quot;AND&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="c1"># Text search with an inverted index</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
+<span class="n">text_matches</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;CONTAINS&quot;</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span><span class="p">)])</span>
+</code></pre></div>
+<hr />
+<h3 id="dsaggregate">ds.aggregate()</h3>
+<h4 id="overview_2">Overview</h4>
+<p>Aggregate rows by one or more tensors, optionally after applying a callable filter. This implementation can run in-process or with compute workers.</p>
+<h4 id="signature_2">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+    <span class="n">group_by_tensors</span><span class="p">,</span>
+    <span class="n">selected_tensors</span><span class="p">,</span>
+    <span class="n">order_by_tensors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">aggregate_tensors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">order_direction</span><span class="o">=</span><span class="s2">&quot;DESC&quot;</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;processed&quot;</span><span class="p">,</span>
+    <span class="n">progressbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_2">Parameters</h4>
+<ul>
+<li><strong>group_by_tensors</strong> (<code>list[str]</code>): Tensor names used as the group-by keys.</li>
+<li><strong>selected_tensors</strong> (<code>list[str]</code>): Group-by tensor names to include in the output. Each selected tensor must also appear in <code>group_by_tensors</code>.</li>
+<li><strong>order_by_tensors</strong> (<code>list[str]</code>, optional): Tensor names used to sort the result. Values must be selected tensors or aggregate tensors.</li>
+<li><strong>aggregate_tensors</strong> (<code>list[str]</code>, optional): Tensor names to aggregate. For <code>method="count"</code>, <code>["*"]</code> counts rows and omitted values default to <code>["*"]</code>.</li>
+<li><strong>function</strong> (<code>callable</code>, optional): Row filter applied before aggregation.</li>
+<li><strong>order_direction</strong> (<code>str</code>, optional): <code>"DESC"</code> or <code>"ASC"</code>. Defaults to <code>"DESC"</code>.</li>
+<li><strong>num_workers</strong> (<code>int</code>, optional): Number of compute workers. <code>0</code> runs in-place. Defaults to <code>0</code>.</li>
+<li><strong>scheduler</strong> (<code>str</code>, optional): Compute scheduler when <code>num_workers &gt; 0</code>. Defaults to <code>"processed"</code>.</li>
+<li><strong>progressbar</strong> (<code>bool</code>, optional): Show progress during aggregation. Defaults to <code>True</code>.</li>
+<li><strong>method</strong> (<code>str</code>, optional): Aggregation method. The current non-vectorized implementation supports <code>"count"</code> and <code>"sum"</code>. Defaults to <code>"count"</code>.</li>
+</ul>
+<h4 id="returns_2">Returns</h4>
+<ul>
+<li><strong>numpy.ndarray</strong>: Aggregated result. Columns are selected tensors followed by aggregate columns.</li>
+</ul>
+<h4 id="examples_2">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="n">counts</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+    <span class="n">group_by_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;categories&quot;</span><span class="p">],</span>
+    <span class="n">selected_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;categories&quot;</span><span class="p">],</span>
+    <span class="n">aggregate_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">high_score_counts</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+    <span class="n">function</span><span class="o">=</span><span class="k">lambda</span> <span class="n">sample</span><span class="p">:</span> <span class="n">sample</span><span class="o">.</span><span class="n">score</span><span class="o">.</span><span class="n">data</span><span class="p">()[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="n">group_by_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;categories&quot;</span><span class="p">],</span>
+    <span class="n">selected_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;categories&quot;</span><span class="p">],</span>
+    <span class="n">aggregate_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsaggregate_vectorized">ds.aggregate_vectorized()</h3>
+<h4 id="overview_3">Overview</h4>
+<p>Aggregate rows using NumPy vectorized operations. This path supports more aggregate methods and does not accept a row-level filter function.</p>
+<h4 id="signature_3">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">aggregate_vectorized</span><span class="p">(</span>
+    <span class="n">group_by_tensors</span><span class="p">,</span>
+    <span class="n">selected_tensors</span><span class="p">,</span>
+    <span class="n">order_by_tensors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">aggregate_tensors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">order_direction</span><span class="o">=</span><span class="s2">&quot;DESC&quot;</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_3">Parameters</h4>
+<ul>
+<li><strong>group_by_tensors</strong> (<code>list[str]</code>): Tensor names used as the group-by keys.</li>
+<li><strong>selected_tensors</strong> (<code>list[str]</code>): Tensor names included in the output.</li>
+<li><strong>order_by_tensors</strong> (<code>list[str]</code>, optional): Tensor names used to sort the result. Values can refer to selected tensors or aggregate tensors.</li>
+<li><strong>aggregate_tensors</strong> (<code>list[str]</code>, optional): Tensor names to aggregate. For <code>method="count"</code>, use <code>["*"]</code> to append row counts.</li>
+<li><strong>order_direction</strong> (<code>str</code>, optional): <code>"DESC"</code> or <code>"ASC"</code>. Defaults to <code>"DESC"</code>.</li>
+<li><strong>method</strong> (<code>str</code>, optional): Aggregation method. Supported values are <code>"count"</code>, <code>"sum"</code>, <code>"avg"</code>, <code>"min"</code>, and <code>"max"</code>. Defaults to <code>"count"</code>.</li>
+</ul>
+<h4 id="returns_3">Returns</h4>
+<ul>
+<li><strong>numpy.ndarray</strong>: Aggregated result. Columns are selected tensors followed by aggregate columns when <code>aggregate_tensors</code> is provided.</li>
+</ul>
+<h4 id="examples_3">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="n">counts</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">aggregate_vectorized</span><span class="p">(</span>
+    <span class="n">group_by_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;categories&quot;</span><span class="p">],</span>
+    <span class="n">selected_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;categories&quot;</span><span class="p">],</span>
+    <span class="n">aggregate_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">price_sum</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">aggregate_vectorized</span><span class="p">(</span>
+    <span class="n">group_by_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;categories&quot;</span><span class="p">],</span>
+    <span class="n">selected_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;categories&quot;</span><span class="p">],</span>
+    <span class="n">aggregate_tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;price&quot;</span><span class="p">],</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsquery">ds.query()</h3>
+<h4 id="overview_4">Overview</h4>
+<p>Query a single tensor through its inverted index. Create the index before calling this method.</p>
+<h4 id="parameters_4">Parameters</h4>
+<ul>
+<li><strong>tensor_name</strong> (<code>str</code>): Name of the indexed tensor to query.</li>
+<li><strong>query</strong>: Query value or query string passed to the tensor's inverted index search implementation.</li>
+</ul>
+<h4 id="returns_4">Returns</h4>
+<ul>
+<li><strong>set</strong>: Source indices matching the indexed query. If the index stores UUIDs, they are mapped back to source indices.</li>
+</ul>
+<h4 id="examples_4">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index</span><span class="p">([</span><span class="s2">&quot;description&quot;</span><span class="p">])</span>
+
+<span class="n">matching_indices</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">matching_indices</span><span class="p">)]</span>
+</code></pre></div>
+<hr />
+<h3 id="dsvector_search">ds.vector_search()</h3>
+<h4 id="overview_5">Overview</h4>
+<p>Perform vector similarity search on a loaded vector index. This is useful for finding similar embeddings or features.</p>
+<p><code>vector_search()</code> returns the raw nearest-neighbor result arrays from the vector index. It does <strong>not</strong> return a Dataset view; use the returned sample ids/indices to slice the dataset when you need samples.</p>
+<h4 id="signature_4">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">vector_search</span><span class="p">(</span>
+    <span class="n">query_vector</span><span class="p">,</span>
+    <span class="n">tensor_name</span><span class="p">,</span>
+    <span class="n">index_name</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_5">Parameters</h4>
+<ul>
+<li><strong>query_vector</strong> (<code>np.ndarray</code> or <code>Tensor</code>): Query vector(s) to search for. FAISS-backed indexes expect a 2-D array shaped <code>(num_queries, dimension)</code>.</li>
+<li><strong>tensor_name</strong> (<code>str</code>): Name of the tensor to search in.</li>
+<li><strong>index_name</strong> (<code>str</code>): Name of the vector index to use.</li>
+<li><strong>topk</strong> (<code>int</code>, optional): Number of nearest neighbors to return per query. Defaults to <code>1</code> in the backend. The implementation reads <code>topk</code>; <code>k</code> is not a documented parameter for this API.</li>
+<li><strong>refine_factor</strong> (<code>float</code>, optional): For approximate indexes, search <code>topk * refine_factor</code> candidates and re-rank by exact distance when greater than <code>1</code>.</li>
+<li><strong>nprobe</strong> (<code>int</code>, optional): <code>IVFPQ</code> search parameter. Defaults to <code>8</code>.</li>
+<li><strong>ef_search</strong> (<code>int</code>, optional): <code>HNSWFLAT</code> search parameter. Defaults to <code>16</code>.</li>
+<li><strong>complexity</strong> (<code>int</code>, optional): <code>DISKANN</code> search parameter. Defaults to <code>8</code>.</li>
+<li><strong>beam_width</strong> (<code>int</code>, optional): <code>DISKANN</code> search parameter. Defaults to <code>1</code>.</li>
+<li><strong>num_threads</strong> (<code>int</code>, optional): <code>DISKANN</code> batch-search parameter. Defaults to <code>0</code>.</li>
+</ul>
+<h4 id="returns_5">Returns</h4>
+<ul>
+<li><strong>tuple[np.ndarray, np.ndarray]</strong>: <code>(dist_list, id_list)</code>. <code>dist_list</code> contains distances/scores for each query and <code>id_list</code> contains the matching sample ids/positional indices stored in the index. MULLER builds vector indexes with positional ids (<code>0..len(ds)-1</code>).</li>
+</ul>
+<h4 id="examples_5">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create vector index first</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;emb_idx&quot;</span><span class="p">)</span>
+
+<span class="c1"># Perform vector search</span>
+<span class="n">query_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+<span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">vector_search</span><span class="p">(</span>
+    <span class="n">query_vector</span><span class="o">=</span><span class="n">query_vec</span><span class="p">,</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span>
+    <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;emb_idx&quot;</span><span class="p">,</span>
+    <span class="n">topk</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Access matching samples explicitly</span>
+<span class="n">matches</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+<span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">sample_idx</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">distances</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rank </span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="s2">: sample=</span><span class="si">{</span><span class="n">sample_idx</span><span class="si">}</span><span class="s2">, distance=</span><span class="si">{</span><span class="n">distance</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Search with additional parameters</span>
+<span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">vector_search</span><span class="p">(</span>
+    <span class="n">query_vector</span><span class="o">=</span><span class="n">query_vec</span><span class="p">,</span>
+    <span class="n">tensor_name</span><span class="o">=</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span>
+    <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;emb_idx&quot;</span><span class="p">,</span>
+    <span class="n">topk</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">ef_search</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="indexing_1">Indexing</h2>
+<h3 id="dscreate_index">ds.create_index()</h3>
+<h4 id="overview_6">Overview</h4>
+<p>Create the legacy inverted index for one or more tensor columns. The dataset must be committed first; if there are uncommitted changes, the method warns and does nothing.</p>
+<p>This API indexes text-like, class-label, list, string, <code>int64</code>, and <code>float64</code> tensor data for <code>ds.query()</code> and indexed query paths. For the newer sharded/vectorized inverted index used by <code>filter_vectorized()</code>, prefer <code>ds.create_index_vectorized()</code>.</p>
+<h4 id="signature_5">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_index</span><span class="p">(</span>
+    <span class="n">columns</span><span class="p">,</span>
+    <span class="n">use_uuid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="n">INVERTED_INDEX_BATCH_SIZE</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_6">Parameters</h4>
+<ul>
+<li><strong>columns</strong> (<code>list[str]</code>): Tensor names to index. The implementation iterates over <code>columns</code>, so pass a list even for a single tensor.</li>
+<li><strong>use_uuid</strong> (<code>bool</code>, optional): Store tensor UUIDs in the index instead of positional sample indices. Defaults to <code>False</code>.</li>
+<li><strong>batch_size</strong> (<code>int</code>, optional): Batch size used to split legacy index files. Defaults to <code>INVERTED_INDEX_BATCH_SIZE</code>.</li>
+</ul>
+<h4 id="returns_6">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_6">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="c1"># Create a legacy index on one tensor</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index</span><span class="p">([</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+
+<span class="c1"># Create legacy indexes on multiple tensors</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index</span><span class="p">([</span><span class="s2">&quot;labels&quot;</span><span class="p">,</span> <span class="s2">&quot;categories&quot;</span><span class="p">,</span> <span class="s2">&quot;user_id&quot;</span><span class="p">])</span>
+</code></pre></div>
+<hr />
+<h3 id="dscreate_index_vectorized">ds.create_index_vectorized()</h3>
+<h4 id="overview_7">Overview</h4>
+<p>Create a <strong>vectorized inverted index</strong> on a tensor column to power fast full-text
+(<code>CONTAINS</code> / <code>LIKE</code>) and exact-match queries through <code>ds.filter_vectorized()</code> and
+<code>ds.query()</code>. The index is built in parallel and automatically optimized (shard files
+are merged) at the end of creation, so you do <strong>not</strong> need to call <code>ds.optimize_index()</code>
+separately after a successful build.</p>
+<p>If an index already exists for the column, calling this method again updates it in an
+<strong>append-only</strong> manner (only the newly added rows are indexed) unless you pass
+<code>force_create=True</code> to rebuild from scratch.</p>
+<blockquote>
+<p><strong>Note:</strong> The dataset must be committed (no uncommitted head changes) before building an
+index; otherwise the call warns and does nothing.</p>
+</blockquote>
+<h4 id="signature_6">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span>
+    <span class="n">tensor_column</span><span class="p">,</span>
+    <span class="n">index_type</span><span class="o">=</span><span class="s2">&quot;fuzzy_match&quot;</span><span class="p">,</span>
+    <span class="n">use_uuid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">force_create</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">delete_old_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_cpp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_7">Parameters</h4>
+<ul>
+<li><strong>tensor_column</strong> (<code>str</code>): Name of the tensor column to index.</li>
+<li><strong>index_type</strong> (<code>str</code>, optional): <code>"fuzzy_match"</code> (tokenized full-text search, the
+  default) or <code>"exact_match"</code> (whole-value match). <code>"exact_match"</code> is <strong>not</strong> supported
+  together with <code>use_cpp=True</code>.</li>
+<li><strong>use_uuid</strong> (<code>bool</code>, optional): Index by the row UUIDs instead of positional indices.
+  Defaults to <code>False</code>.</li>
+<li><strong>force_create</strong> (<code>bool</code>, optional): If <code>True</code>, delete any existing index and rebuild it
+  from scratch instead of appending. Defaults to <code>False</code>.</li>
+<li><strong>delete_old_index</strong> (<code>bool</code>, optional): Whether to delete the previous index folder once
+  the new one is built and promoted. Defaults to <code>True</code>.</li>
+<li><strong>use_cpp</strong> (<code>bool</code>, optional): Use the native C++ indexing engine instead of the pure
+  Python implementation. Defaults to <code>False</code>. See
+  <a href="#using-the-c-engine-use_cpptrue">Using the C++ engine</a> below.</li>
+</ul>
+<p>The following tuning options are accepted as keyword arguments (<code>**kwargs</code>):</p>
+<ul>
+<li><strong>num_of_shards</strong> (<code>int</code>, optional): Number of hash-partitioned shards the postings are
+  split across. Defaults to <code>1</code>. Controls <strong>search-time</strong> parallelism and storage layout,
+  and is <strong>fixed at creation time</strong> (changing it later requires <code>ds.reshard_index()</code>).</li>
+<li><strong>num_of_batches</strong> (<code>int</code>, optional): Number of independent batches the row range is split
+  into during construction. Defaults to <code>1</code>. Controls <strong>build-time</strong> parallelism.</li>
+<li><strong>max_workers</strong> (<code>int</code>, optional): Upper bound on the number of parallel
+  processes/threads used during build, optimize, and search. Defaults to <code>16</code>.</li>
+<li><strong>tokenizer</strong> (<code>str</code>, optional): Tokenizer for <code>fuzzy_match</code>. Defaults to <code>"jieba"</code>.</li>
+<li><strong>cut_all</strong> (<code>bool</code>, optional): Use jieba's full-cut mode. Defaults to <code>False</code>.</li>
+<li><strong>stop_words_list</strong> (<code>list[str]</code>, optional): Extra stop words to ignore during tokenization.</li>
+<li><strong>compulsory_words</strong> (<code>str</code>, optional): Words that must be kept as a single token.</li>
+<li><strong>case_sensitive</strong> (<code>bool</code>, optional): Whether matching is case sensitive. Defaults to <code>False</code>.</li>
+</ul>
+<h4 id="returns_7">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="choosing-num_of_shards-num_of_batches-and-max_workers">Choosing <code>num_of_shards</code>, <code>num_of_batches</code>, and <code>max_workers</code></h4>
+<p>These three options control different things and are commonly misunderstood. The key point:
+<strong><code>max_workers</code> is only an upper bound</strong> — the parallelism that actually happens is capped by
+how many work units exist.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Governs</th>
+<th>Effective parallelism</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>num_of_batches</code></td>
+<td><strong>Build</strong> (index creation)</td>
+<td><code>min(num_of_batches, max_workers)</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>num_of_shards</code></td>
+<td><strong>Search &amp; optimize</strong> + storage layout</td>
+<td><code>min(num_of_shards, max_workers)</code></td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>max_workers</code></td>
+<td>Cap on all of the above</td>
+<td>—</td>
+<td><code>16</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong><code>num_of_batches</code></strong> splits the dataset row range into independent construction tasks.
+  Because the default is <code>1</code>, <strong>raising <code>max_workers</code> alone does not parallelize the build</strong> —
+  you must increase <code>num_of_batches</code> first. Larger values also give finer restart granularity:
+  if a build is interrupted, only the unfinished batches need to be re-run by calling
+  <code>create_index_vectorized()</code> again.</li>
+<li><strong><code>num_of_shards</code></strong> hash-partitions the inverted index. It is persisted in the index
+  metadata at creation time and determines how many shards search and optimization can run in
+  parallel. More shards means more query-time parallelism and smaller per-shard files (good for
+  large datasets / large vocabularies), but too many shards on a small dataset only adds file
+  overhead. To change it after the fact, use <code>ds.reshard_index()</code>.</li>
+<li><strong><code>max_workers</code></strong> simply caps parallelism everywhere; set it close to the machine's CPU core
+  count.</li>
+</ul>
+<p><strong>Rules of thumb:</strong></p>
+<ul>
+<li><strong>Small datasets:</strong> keep the defaults (<code>num_of_shards=1</code>, <code>num_of_batches=1</code>, <code>max_workers=16</code>).</li>
+<li><strong>Large datasets, faster build:</strong> set <code>num_of_batches</code> to roughly <code>max_workers</code> (or a small
+  multiple) so every worker stays busy, and set <code>max_workers</code> near the CPU core count.</li>
+<li><strong>High query concurrency / large vocabulary:</strong> increase <code>num_of_shards</code> (e.g. into the tens)
+  to parallelize search and keep per-shard files small.</li>
+</ul>
+<h4 id="using-the-c-engine-use_cpptrue">Using the C++ engine (<code>use_cpp=True</code>)</h4>
+<p>MULLER ships a native C++ inverted-index engine that is significantly faster than the pure
+Python path for both construction and search. Enable it with <code>use_cpp=True</code>. Important
+constraints:</p>
+<ul>
+<li><strong>Requires the compiled C++ extension.</strong> It is built automatically during a standard
+  <code>pip install .</code> (via <code>muller/util/sparsehash/build_proj.sh</code>). If MULLER was installed with
+  <code>BUILD_CPP=false</code>, the C++ engine is unavailable.</li>
+<li><strong>Local datasets only.</strong> The C++ engine reads and writes the local filesystem directly
+  (bypassing MULLER's storage abstraction), so it raises <code>UnsupportedMethod</code> on remote-backed
+  datasets (e.g. S3/object storage). Use <code>use_cpp=False</code> for those.</li>
+<li><strong><code>fuzzy_match</code> only.</strong> Combining <code>index_type="exact_match"</code> with <code>use_cpp=True</code> raises
+  <code>UnsupportedMethod</code>; use the Python engine (<code>use_cpp=False</code>) for exact-match indexes.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>  <span class="c1"># an index requires a clean (committed) head</span>
+
+<span class="c1"># Build a C++ full-text index on a local dataset</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">use_cpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Parallel build on a large local dataset</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">,</span>
+    <span class="n">use_cpp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">num_of_batches</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>   <span class="c1"># parallelize construction</span>
+    <span class="n">num_of_shards</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>    <span class="c1"># parallelize search / shard the postings</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>      <span class="c1"># cap parallelism near CPU core count</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="examples_7">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="c1"># Create a vectorized full-text index (Python engine, defaults)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
+
+<span class="c1"># Query through the index</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter_vectorized</span><span class="p">([(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;CONTAINS&quot;</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span><span class="p">)])</span>
+
+<span class="c1"># Parallelize the build on a larger dataset</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">num_of_batches</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+<span class="c1"># Shard the index for query-time parallelism</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">num_of_shards</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="c1"># Exact-match index (Python engine only)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span><span class="s2">&quot;categories&quot;</span><span class="p">,</span> <span class="n">index_type</span><span class="o">=</span><span class="s2">&quot;exact_match&quot;</span><span class="p">)</span>
+
+<span class="c1"># Rebuild an existing index from scratch instead of appending</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">force_create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsoptimize_index">ds.optimize_index()</h3>
+<h4 id="overview_8">Overview</h4>
+<p>Optimize a vectorized inverted index by merging shard files. <code>create_index_vectorized()</code> already calls this after a successful create/update, so you usually only need this when recovering or manually finishing an interrupted vectorized index build.</p>
+<h4 id="signature_7">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">optimize_index</span><span class="p">(</span>
+    <span class="n">tensor</span><span class="p">,</span>
+    <span class="n">use_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">optimize_mode</span><span class="o">=</span><span class="s2">&quot;create&quot;</span><span class="p">,</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">delete_old_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_cpp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_8">Parameters</h4>
+<ul>
+<li><strong>tensor</strong> (<code>str</code>): Name of the tensor whose vectorized inverted index to optimize.</li>
+<li><strong>use_uuid</strong> (<code>bool</code>, optional): Whether the index uses UUIDs. Defaults to the index loader default when <code>None</code>.</li>
+<li><strong>optimize_mode</strong> (<code>str</code>, optional): <code>"create"</code> to merge only temporary build shards, or <code>"update"</code> to merge temporary update shards together with the existing index. Defaults to <code>"create"</code>.</li>
+<li><strong>max_workers</strong> (<code>int</code>, optional): Maximum parallel workers. Defaults to <code>16</code>.</li>
+<li><strong>delete_old_index</strong> (<code>bool</code>, optional): Delete the previous index folder/prefix after promotion. Defaults to <code>True</code> at the Dataset API layer.</li>
+<li><strong>use_cpp</strong> (<code>bool</code>, optional): Use the native C++ index files. Defaults to <code>False</code> at the Dataset API layer.</li>
+</ul>
+<h4 id="returns_8">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_8">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Normally create_index_vectorized() optimizes automatically.</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_index_vectorized</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">num_of_shards</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+<span class="c1"># Manual recovery/maintenance path</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">optimize_index</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">optimize_mode</span><span class="o">=</span><span class="s2">&quot;create&quot;</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dscreate_vector_index">ds.create_vector_index()</h3>
+<h4 id="overview_9">Overview</h4>
+<p>Create a vector index for similarity search on embedding tensors. The dataset must be committed first; if there are uncommitted changes, the method warns and does nothing.</p>
+<p>When the index is created, it is also cached in memory for immediate search. If you load the dataset in a later process/session, call <code>ds.load_vector_index()</code> before <code>ds.vector_search()</code>.</p>
+<h4 id="signature_8">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_vector_index</span><span class="p">(</span>
+    <span class="n">tensor_name</span><span class="p">,</span>
+    <span class="n">index_name</span><span class="p">,</span>
+    <span class="n">index_type</span><span class="o">=</span><span class="s2">&quot;FLAT&quot;</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;l2&quot;</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_9">Parameters</h4>
+<ul>
+<li><strong>tensor_name</strong> (<code>str</code>): Name of the tensor containing vectors/embeddings.</li>
+<li><strong>index_name</strong> (<code>str</code>): Name for the vector index.</li>
+<li><strong>index_type</strong> (<code>str</code>, optional): Type of vector index. Supported values in code are <code>"FLAT"</code>, <code>"IVFPQ"</code>, <code>"HNSWFLAT"</code>, and <code>"DISKANN"</code>. Defaults to <code>"FLAT"</code>.</li>
+<li><strong>metric</strong> (<code>str</code>, optional): Distance metric. FAISS-backed indexes support <code>"l2"</code>, <code>"cosine"</code>, and <code>"inner_product"</code>. Defaults to <code>"l2"</code>.</li>
+<li><strong>overwrite</strong> (<code>bool</code>, optional): If <code>True</code>, replace an existing vector index with the same name. Defaults to <code>False</code>; otherwise an existing index raises <code>IndexExistsError</code>.</li>
+<li><strong>nlist</strong> (<code>int</code>, optional): <code>IVFPQ</code> create parameter. Defaults to <code>128</code>.</li>
+<li><strong>m</strong> (<code>int</code>, optional): <code>IVFPQ</code> product-quantizer segments, default <code>1</code>; <code>HNSWFLAT</code> graph degree parameter, default <code>32</code>.</li>
+<li><strong>ef_construction</strong> (<code>int</code>, optional): <code>HNSWFLAT</code> build parameter. Defaults to <code>40</code>.</li>
+<li><strong>complexity</strong> (<code>int</code>, optional): <code>DISKANN</code> build parameter. Defaults to <code>5</code>.</li>
+<li><strong>graph_degree</strong> (<code>int</code>, optional): <code>DISKANN</code> build parameter. Defaults to <code>5</code>.</li>
+<li><strong>num_nodes_to_cache</strong> (<code>int</code>, optional): <code>DISKANN</code> build parameter. Defaults to <code>1</code>.</li>
+<li><strong>search_memory_maximum</strong> (<code>float</code>, optional): <code>DISKANN</code> build parameter in GB. Defaults to <code>0.01</code>.</li>
+<li><strong>build_memory_maximum</strong> (<code>float</code>, optional): <code>DISKANN</code> build parameter in GB. Defaults to <code>0.01</code>.</li>
+<li><strong>num_threads</strong> (<code>int</code>, optional): <code>DISKANN</code> build parameter. Defaults to <code>4</code>.</li>
+<li><strong>pq_disk_bytes</strong> (<code>int</code>, optional): <code>DISKANN</code> build parameter. Defaults to <code>0</code>.</li>
+</ul>
+<h4 id="returns_9">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_9">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="c1"># Create vector index with default settings</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;flat_idx&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create with specific metric</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_vector_index</span><span class="p">(</span>
+    <span class="s2">&quot;embeddings&quot;</span><span class="p">,</span>
+    <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;cosine_idx&quot;</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Create with custom parameters</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_vector_index</span><span class="p">(</span>
+    <span class="s2">&quot;embeddings&quot;</span><span class="p">,</span>
+    <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;hnsw_idx&quot;</span><span class="p">,</span>
+    <span class="n">index_type</span><span class="o">=</span><span class="s2">&quot;HNSWFLAT&quot;</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;l2&quot;</span><span class="p">,</span>
+    <span class="n">m</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">ef_construction</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsdrop_vector_index">ds.drop_vector_index()</h3>
+<h4 id="overview_10">Overview</h4>
+<p>Delete a vector index from storage and remove it from the in-memory index map.</p>
+<p>Call this when an index is no longer needed, or before recreating it with different parameters if you do not want to use <code>overwrite=True</code>.</p>
+<h4 id="parameters_10">Parameters</h4>
+<ul>
+<li><strong>tensor_name</strong> (<code>str</code>): Name of the tensor.</li>
+<li><strong>index_name</strong> (<code>str</code>): Name of the vector index to drop.</li>
+</ul>
+<h4 id="returns_10">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_10">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Drop a vector index</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">drop_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;emb_idx&quot;</span><span class="p">)</span>
+
+<span class="c1"># Drop and recreate with different parameters</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">drop_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;old_idx&quot;</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;new_idx&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsupdate_vector_index">ds.update_vector_index()</h3>
+<h4 id="overview_11">Overview</h4>
+<p>Update a vector index after adding new samples and committing the dataset. The implementation compares the index commit id with the dataset commit id and only updates when they differ.</p>
+<p>Call this after append-only changes. The current implementation is designed for added rows; updates/deletes are not a general incremental vector-index path.</p>
+<h4 id="parameters_11">Parameters</h4>
+<ul>
+<li><strong>tensor_name</strong> (<code>str</code>): Name of the tensor.</li>
+<li><strong>index_name</strong> (<code>str</code>): Name of the vector index to update.</li>
+</ul>
+<h4 id="returns_11">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_11">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Add new samples</span>
+<span class="k">with</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;embeddings&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">512</span><span class="p">),</span>
+            <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">i</span>
+        <span class="p">})</span>
+
+<span class="c1"># Update the vector index to include new samples</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">update_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;emb_idx&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsload_vector_index">ds.load_vector_index()</h3>
+<h4 id="overview_12">Overview</h4>
+<p>Load a vector index into memory. <code>ds.vector_search()</code> requires the target index to be loaded; newly created indexes are cached immediately, but indexes from a freshly loaded dataset/session need an explicit load.</p>
+<h4 id="parameters_12">Parameters</h4>
+<ul>
+<li><strong>tensor_name</strong> (<code>str</code>): Name of the tensor.</li>
+<li><strong>index_name</strong> (<code>str</code>): Name of the vector index to load.</li>
+<li><strong>kwargs</strong>: Backend load parameters. FAISS indexes accept <code>device</code> (<code>"cpu"</code> by default, <code>"gpu"</code> when supported). <code>DISKANN</code> accepts <code>num_threads</code> (default <code>16</code>) and <code>num_nodes_to_cache</code> (default <code>10</code>).</li>
+</ul>
+<h4 id="returns_12">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_12">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load an existing vector index into memory after loading a dataset/session</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">load_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;emb_idx&quot;</span><span class="p">)</span>
+
+<span class="c1"># Now searches can run</span>
+<span class="n">query_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
+<span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">vector_search</span><span class="p">(</span><span class="n">query_vec</span><span class="p">,</span> <span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="s2">&quot;emb_idx&quot;</span><span class="p">,</span> <span class="n">topk</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsunload_vector_index">ds.unload_vector_index()</h3>
+<h4 id="overview_13">Overview</h4>
+<p>Unload a vector index from memory to free up resources while keeping the persisted index on disk/storage.</p>
+<p>Call this when you are done with searches in a long-running process and want to release memory. Call <code>ds.load_vector_index()</code> again before the next <code>ds.vector_search()</code>.</p>
+<h4 id="parameters_13">Parameters</h4>
+<ul>
+<li><strong>tensor_name</strong> (<code>str</code>): Name of the tensor.</li>
+<li><strong>index_name</strong> (<code>str</code>): Name of the vector index to unload.</li>
+</ul>
+<h4 id="returns_13">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_13">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Unload vector index to free memory</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">unload_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;emb_idx&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load again when needed</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">load_vector_index</span><span class="p">(</span><span class="s2">&quot;embeddings&quot;</span><span class="p">,</span> <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;emb_idx&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dscreate_hot_shard_index">ds.create_hot_shard_index()</h3>
+<h4 id="overview_14">Overview</h4>
+<p>Create a hot shard file for a vectorized inverted index by collecting the most frequent terms from existing shards.</p>
+<p>Call this after creating a vectorized inverted index when repeated queries are dominated by common terms and you want a cached hot shard.</p>
+<h4 id="signature_9">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">create_hot_shard_index</span><span class="p">(</span>
+    <span class="n">tensor</span><span class="p">,</span>
+    <span class="n">use_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_14">Parameters</h4>
+<ul>
+<li><strong>tensor</strong> (<code>str</code>): Name of the tensor whose vectorized inverted index should receive a hot shard.</li>
+<li><strong>use_uuid</strong> (<code>bool</code>, optional): Whether the index uses UUIDs. Defaults to the index loader default when <code>None</code>.</li>
+<li><strong>max_workers</strong> (<code>int</code>, optional): Maximum parallel workers. Defaults to <code>16</code>.</li>
+<li><strong>n</strong> (<code>int</code>, optional): Number of most frequent terms to include in the hot shard. Defaults to <code>100000</code>.</li>
+</ul>
+<h4 id="returns_14">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_14">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create hot shard index</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_hot_shard_index</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create with a smaller hot-term set</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">create_hot_shard_index</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsreshard_index">ds.reshard_index()</h3>
+<h4 id="overview_15">Overview</h4>
+<p>Re-shard an existing vectorized inverted index from one shard count to another. This is the maintenance path for changing <code>num_of_shards</code> after creation.</p>
+<p>The method rewrites shard contents but does not update the public <code>create_index_vectorized()</code> call that originally chose <code>num_of_shards</code>; keep track of the old and new shard counts you use.</p>
+<h4 id="signature_10">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">reshard_index</span><span class="p">(</span>
+    <span class="n">tensor</span><span class="p">,</span>
+    <span class="n">old_shard_num</span><span class="p">,</span>
+    <span class="n">new_shard_num</span><span class="p">,</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">use_uuid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_15">Parameters</h4>
+<ul>
+<li><strong>tensor</strong> (<code>str</code>): Name of the tensor whose vectorized inverted index should be re-sharded.</li>
+<li><strong>old_shard_num</strong> (<code>int</code>): Current number of shards.</li>
+<li><strong>new_shard_num</strong> (<code>int</code>): Target number of shards.</li>
+<li><strong>max_workers</strong> (<code>int</code>, optional): Maximum parallel workers. Defaults to <code>16</code>.</li>
+<li><strong>use_uuid</strong> (<code>bool</code>, optional): Whether the index uses UUIDs. Defaults to the index loader default when <code>None</code>.</li>
+</ul>
+<h4 id="returns_15">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_15">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Reshard index</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">reshard_index</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">old_shard_num</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">new_shard_num</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="c1"># Limit parallelism</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">reshard_index</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">old_shard_num</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">new_shard_num</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="views_1">Views</h2>
+<h3 id="dsload_view">ds.load_view()</h3>
+<h4 id="overview_16">Overview</h4>
+<p>Load a saved view by its view id. This is equivalent to <code>ds.get_view(view_id).load()</code>.</p>
+<h4 id="signature_11">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">load_view</span><span class="p">(</span>
+    <span class="n">view_id</span><span class="p">,</span>
+    <span class="n">optimize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">tensors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;threaded&quot;</span><span class="p">,</span>
+    <span class="n">progressbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_16">Parameters</h4>
+<ul>
+<li><strong>view_id</strong> (<code>str</code>): Id of the saved view to load.</li>
+<li><strong>optimize</strong> (<code>bool</code>, optional): If <code>True</code>, optimize the view by copying and rechunking the required data before loading. Defaults to <code>False</code>.</li>
+<li><strong>tensors</strong> (<code>list[str]</code>, optional): Tensor names to copy when <code>optimize=True</code>. If omitted, all tensors are copied.</li>
+<li><strong>num_workers</strong> (<code>int</code>, optional): Number of workers used for optimization. Only applies when <code>optimize=True</code>. Defaults to <code>0</code>.</li>
+<li><strong>scheduler</strong> (<code>str</code>, optional): Scheduler used for optimization. Supported values include <code>"serial"</code>, <code>"threaded"</code>, <code>"processed"</code>, and <code>"distributed"</code>. Defaults to <code>"threaded"</code>.</li>
+<li><strong>progressbar</strong> (<code>bool</code>, optional): Whether to show progress during optimization. Only applies when <code>optimize=True</code>. Defaults to <code>True</code>.</li>
+</ul>
+<h4 id="returns_16">Returns</h4>
+<ul>
+<li><strong>Dataset</strong>: The loaded view.</li>
+</ul>
+<h4 id="examples_16">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load a saved view by id</span>
+<span class="n">view</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">load_view</span><span class="p">(</span><span class="s2">&quot;high_quality_samples&quot;</span><span class="p">)</span>
+
+<span class="c1"># Access view data</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;View has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">view</span><span class="p">)</span><span class="si">}</span><span class="s2"> samples&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">view</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+
+<span class="c1"># Load and optimize for faster streaming</span>
+<span class="n">optimized_view</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">load_view</span><span class="p">(</span><span class="s2">&quot;category_a&quot;</span><span class="p">,</span> <span class="n">optimize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tensors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+</code></pre></div>
+<hr />
+<h3 id="dssave_view">ds.save_view()</h3>
+<h4 id="overview_17">Overview</h4>
+<p>Save the current dataset view as a virtual dataset (VDS). The saved view can be loaded later by <code>view_id</code> if it is saved inside the parent dataset, or loaded by path with <code>muller.load()</code> when saved to an external path.</p>
+<h4 id="signature_12">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">save_view</span><span class="p">(</span>
+    <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">view_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">optimize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">tensors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;threaded&quot;</span><span class="p">,</span>
+    <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">ds_args</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_17">Parameters</h4>
+<ul>
+<li><strong>message</strong> (<code>str</code>, optional): Custom message stored with the view. If omitted, the dataset query string is used when available.</li>
+<li><strong>path</strong> (<code>str</code> or <code>pathlib.Path</code>, optional): External path where the VDS is saved. If omitted, the VDS is saved under the source dataset's <code>.queries</code> directory.</li>
+<li><strong>view_id</strong> (<code>str</code>, optional): Unique id for this view. If omitted, MULLER generates a deterministic hash-based id for the view.</li>
+<li><strong>optimize</strong> (<code>bool</code>, optional): If <code>True</code>, copy and rechunk the required data into the VDS. Defaults to <code>False</code>.</li>
+<li><strong>tensors</strong> (<code>list[str]</code>, optional): Tensor names to copy when <code>optimize=True</code>. If omitted, all tensors are copied.</li>
+<li><strong>num_workers</strong> (<code>int</code>, optional): Number of workers used for optimization. Only applies when <code>optimize=True</code>. Defaults to <code>0</code>.</li>
+<li><strong>scheduler</strong> (<code>str</code>, optional): Scheduler used for optimization. Supported values include <code>"serial"</code>, <code>"threaded"</code>, <code>"processed"</code>, and <code>"distributed"</code>. Defaults to <code>"threaded"</code>.</li>
+<li><strong>ignore_errors</strong> (<code>bool</code>, optional): Skip samples that fail while saving optimized views. Only applies when <code>optimize=True</code>. Defaults to <code>False</code>.</li>
+<li><strong>ds_args</strong>: Additional dataset creation arguments used when <code>path</code> is specified.</li>
+</ul>
+<h4 id="returns_17">Returns</h4>
+<ul>
+<li><strong>str</strong>: Path to the saved VDS.</li>
+</ul>
+<h4 id="examples_17">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create and save a filtered view</span>
+<span class="n">filtered</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;labels == 5&quot;</span><span class="p">)</span>
+<span class="n">vds_path</span> <span class="o">=</span> <span class="n">filtered</span><span class="o">.</span><span class="n">save_view</span><span class="p">(</span><span class="n">view_id</span><span class="o">=</span><span class="s2">&quot;label_5_samples&quot;</span><span class="p">)</span>
+
+<span class="c1"># Add a message</span>
+<span class="n">view</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;score &gt; 80&quot;</span><span class="p">)</span>
+<span class="n">view</span><span class="o">.</span><span class="n">save_view</span><span class="p">(</span><span class="n">view_id</span><span class="o">=</span><span class="s2">&quot;high_scores&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Samples with score &gt; 80&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save to an external dataset path</span>
+<span class="n">external_path</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">save_view</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;./views/high_scores&quot;</span><span class="p">,</span> <span class="n">view_id</span><span class="o">=</span><span class="s2">&quot;high_scores&quot;</span><span class="p">)</span>
+<span class="n">external_view</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">external_path</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="notes">Notes</h4>
+<ul>
+<li>The public parameter is <code>view_id</code>; older examples that use <code>id=</code> or <code>view_name</code> do not match the current code signature.</li>
+<li>Saving an in-place view requires a committed source dataset head. If the dataset has uncommitted HEAD changes, <code>save_view()</code> raises <code>DatasetViewSavingError</code>.</li>
+<li>External views saved with <code>path=</code> are not listed by the parent dataset's <code>get_views()</code> and cannot be loaded through <code>load_view()</code> on the parent dataset.</li>
+</ul>
+<hr />
+<h3 id="dsdelete_view">ds.delete_view()</h3>
+<h4 id="overview_18">Overview</h4>
+<p>Delete a saved in-place view from the dataset by view id.</p>
+<h4 id="signature_13">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">delete_view</span><span class="p">(</span><span class="n">view_id</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_18">Parameters</h4>
+<ul>
+<li><strong>view_id</strong> (<code>str</code>): Id of the view to delete.</li>
+</ul>
+<h4 id="returns_18">Returns</h4>
+<ul>
+<li><strong>None</strong></li>
+</ul>
+<h4 id="examples_18">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Delete a view</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">delete_view</span><span class="p">(</span><span class="s2">&quot;old_view&quot;</span><span class="p">)</span>
+
+<span class="c1"># Delete multiple views</span>
+<span class="k">for</span> <span class="n">view_id</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;temp_view1&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_view2&quot;</span><span class="p">,</span> <span class="s2">&quot;test_view&quot;</span><span class="p">]:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">delete_view</span><span class="p">(</span><span class="n">view_id</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsget_views">ds.get_views()</h3>
+<h4 id="overview_19">Overview</h4>
+<p>Get saved view entries for the dataset.</p>
+<h4 id="signature_14">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">get_views</span><span class="p">(</span><span class="n">commit_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_19">Parameters</h4>
+<ul>
+<li><strong>commit_id</strong> (<code>str</code>, optional): If provided, return only views whose source dataset version matches this commit id. If omitted, return views from all commits.</li>
+</ul>
+<h4 id="returns_19">Returns</h4>
+<ul>
+<li><strong>list[ViewEntry]</strong>: View entry objects. Each entry exposes properties such as <code>id</code>, <code>message</code>, <code>commit_id</code>, <code>virtual</code>, <code>query</code>, <code>tql_query</code>, and <code>source_dataset_path</code>.</li>
+</ul>
+<h4 id="examples_19">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get all views</span>
+<span class="n">views</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_views</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">view</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">view</span> <span class="ow">in</span> <span class="n">views</span><span class="p">])</span>
+
+<span class="c1"># Load each view</span>
+<span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">views</span><span class="p">:</span>
+    <span class="n">view</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">view</span><span class="p">)</span><span class="si">}</span><span class="s2"> samples&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check if view exists</span>
+<span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="s2">&quot;my_view&quot;</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_views</span><span class="p">()):</span>
+    <span class="n">view</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">load_view</span><span class="p">(</span><span class="s2">&quot;my_view&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="dsget_view">ds.get_view()</h3>
+<h4 id="overview_20">Overview</h4>
+<p>Get the metadata entry for a saved view by id. Call <code>.load()</code> on the returned entry to load the view dataset.</p>
+<h4 id="signature_15">Signature</h4>
+<div class="highlight"><pre><span></span><code><span class="n">ds</span><span class="o">.</span><span class="n">get_view</span><span class="p">(</span><span class="n">view_id</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="parameters_20">Parameters</h4>
+<ul>
+<li><strong>view_id</strong> (<code>str</code>): Id of the saved view to retrieve.</li>
+</ul>
+<h4 id="returns_20">Returns</h4>
+<ul>
+<li><strong>ViewEntry</strong>: View metadata entry for the requested view.</li>
+</ul>
+<h4 id="examples_20">Examples</h4>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">muller</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">muller</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./my_dataset&quot;</span><span class="p">)</span>
+
+<span class="n">entry</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_view</span><span class="p">(</span><span class="s2">&quot;label_5_samples&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">commit_id</span><span class="p">)</span>
+
+<span class="n">view</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.tracking", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
