@@ -19,12 +19,20 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional, Set, Dict, Any
 from urllib import request
+from urllib.error import URLError
 
 import psutil
 import requests
 
 from muller.client.log import logger
 from muller.core.storage.provider import StorageProvider
+from muller.util.exceptions import RomaGetError, RomaSetError
+
+# Errors worth retrying: Roma/CSB gateway errors and transport-level failures.
+# KeyError (missing object, HTTP 404) is deliberately excluded - retrying it
+# cannot succeed and callers rely on KeyError to detect missing keys.
+_RETRYABLE_GET_ERRORS = (RomaGetError, requests.RequestException)
+_RETRYABLE_SET_ERRORS = (RomaSetError, requests.RequestException)
 
 
 class RomaProvider(StorageProvider):
@@ -133,8 +141,8 @@ class RomaProvider(StorageProvider):
             bytes: The bytes of the object present at the path.
 
         Raises:
-            KeyError: If an object is not found at the path.
-            S3GetError: Any other error other than KeyError while retrieving the object.
+            KeyError: If an object is not found at the path (or is empty).
+            RomaGetError: Any other error while retrieving the object, after retries.
         """
         key = "".join((self.root, key))
         final_content = self.get_bytes(key)
@@ -150,23 +158,24 @@ class RomaProvider(StorageProvider):
             content (bytes): the value to be assigned at the path.
 
         Raises:
-            S3SetError: Any S3 error encountered while setting the value at the path.
-            ReadOnlyError: If the provider is in read-only mode.
+            RomaSetError: If the upload keeps failing after all retries.
+            ReadOnlyModeError: If the provider is in read-only mode.
         """
         self.check_readonly()
         key = "".join((self.root, key))
         content = bytes(memoryview(content))
-        try:
-            self._set(key, content)
-        except Exception:
-            for i in range(self.retry_times):
-                try:
-                    self._set(key, content)
-                    logger.info(f'{key} successfully set after {i + 1} retries')
-                    return
-                except Exception:
-                    pass
-            logger.info(f'{key} fails in set_item...')
+        attempts = 1 + self.retry_times
+        last_error: Optional[Exception] = None
+        for attempt in range(attempts):
+            try:
+                self._set(key, content)
+                if attempt:
+                    logger.info(f'{key} successfully set after {attempt} retries')
+                return
+            except _RETRYABLE_SET_ERRORS as e:
+                last_error = e
+                logger.warning(f'set failed for {key} (attempt {attempt + 1}/{attempts}): {e}')
+        raise RomaSetError(f'{key} could not be uploaded after {attempts} attempts') from last_error
 
     def __delitem__(self, key):
         pass
@@ -184,71 +193,93 @@ class RomaProvider(StorageProvider):
 
         Returns:
             bytes: The bytes of the object present at the path within the given byte range.
+
+        Raises:
+            KeyError: If no object is found at the path.
+            RomaGetError: If the download keeps failing after all retries.
         """
-        try:
-            return self._get_bytes(path, start_byte, end_byte)
-        except Exception:
-            # Retry for several times
-            for i in range(self.retry_times):
-                try:
-                    content = self._get_bytes(path, start_byte, end_byte)
-                    logger.info(f'{path} successfully got after {i + 1} retries')
-                    return content
-                except Exception:
-                    pass
-            logger.info(f'{path} fails in get_bytes...')
+        attempts = 1 + self.retry_times
+        last_error: Optional[Exception] = None
+        for attempt in range(attempts):
+            try:
+                content = self._get_bytes(path, start_byte, end_byte)
+                if attempt:
+                    logger.info(f'{path} successfully got after {attempt} retries')
+                return content
+            except _RETRYABLE_GET_ERRORS as e:
+                last_error = e
+                logger.warning(f'get failed for {path} (attempt {attempt + 1}/{attempts}): {e}')
+        raise RomaGetError(f'{path} could not be downloaded after {attempts} attempts') from last_error
 
     def get_object_from_full_url(self, url: str):
-        try:
-            content = self._get_single_obj_by_key(url)
-            return content
-        except Exception:
-            # Retry for several times
-            for i in range(self.retry_times):
-                try:
-                    content = self._get_single_obj_by_key(url)
-                    logger.info(f'{url} successfully got after {i + 1} retries')
-                    return content
-                except Exception:
-                    logger.info("fails in get_object_from_full_url")
-            logger.info(f'{url} fails in get_object_from_full_url...')
+        """Downloads an object addressed by a full URL, with retries.
+
+        Raises:
+            KeyError: If no object is found at the URL.
+            RomaGetError: If the download keeps failing after all retries.
+        """
+        attempts = 1 + self.retry_times
+        last_error: Optional[Exception] = None
+        for attempt in range(attempts):
+            try:
+                content = self._get_single_obj_by_key(url)
+                if attempt:
+                    logger.info(f'{url} successfully got after {attempt} retries')
+                return content
+            except _RETRYABLE_GET_ERRORS as e:
+                last_error = e
+                logger.warning(f'get failed for {url} (attempt {attempt + 1}/{attempts}): {e}')
+        raise RomaGetError(f'{url} could not be downloaded after {attempts} attempts') from last_error
 
     def get_items(self, keys: Set[str], ignore_key_error: bool = False, multi_retry: int = 3):
+        """Downloads multiple objects concurrently.
+
+        Raises:
+            KeyError: If any object is missing.
+            RomaGetError: If any download fails for a non-404 reason.
+            NotImplementedError: If ignore_key_error is requested.
+        """
         # Sherry: To improve the remote loading of tensor_meta.json files
         if ignore_key_error:
             raise NotImplementedError(f"ignore_key_error=True is not implemented for {self.__class__.__name__}")
         content_dict = {}
-        try:
-            with ThreadPoolExecutor(max_workers=self.thread_num + 4, thread_name_prefix="Python Downloader") as pool:
-                ls_thread = []
-                for file in keys:
-                    path = "".join((self.root, file))
-                    ls_thread.append(pool.submit(self._get_object_with_return_key, path))
-                results = as_completed(ls_thread)
-                for re in results:
-                    content_dict.update({re.result()[0][len(self.root):]: re.result()[1]})
-            return content_dict
-        except Exception:
-            logger.info("fails in get items")
+        with ThreadPoolExecutor(max_workers=self.thread_num + 4, thread_name_prefix="Python Downloader") as pool:
+            futures = [
+                pool.submit(self._get_object_with_return_key, "".join((self.root, file)))
+                for file in keys
+            ]
+            for future in as_completed(futures):
+                returned_key, content = future.result()
+                content_dict[returned_key[len(self.root):]] = content
+        return content_dict
 
     def set_items(self, contents: Dict[str, Any], multi_retry=3):
+        """Uploads multiple objects concurrently, retrying the whole batch on failure.
+
+        Raises:
+            RomaSetError: If uploads keep failing after all retries.
+        """
         # Sherry: To improve the remote uploading of multiple meta files
-        try:
-            with ThreadPoolExecutor(max_workers=self.thread_num + 4, thread_name_prefix="Python Uploader") as pool:
-                ls_thread = []
-                for file, content in contents.items():
-                    path = "".join((self.root, file))
-                    ls_thread.append(pool.submit(self._set_single_obj_by_key, path, content))
-            return
-        except Exception:
-            multi_retry -= 1
-            if multi_retry:
-                time.sleep(10)
-                try:
-                    return self.set_items(contents, multi_retry)
-                except Exception:
-                    logger.info("fails in set items")
-            logger.info(f'fails in set_items: {contents.keys()}...')
+        last_error: Optional[Exception] = None
+        for attempt in range(multi_retry):
+            try:
+                with ThreadPoolExecutor(max_workers=self.thread_num + 4,
+                                        thread_name_prefix="Python Uploader") as pool:
+                    futures = [
+                        pool.submit(self._set_single_obj_by_key, "".join((self.root, file)), content)
+                        for file, content in contents.items()
+                    ]
+                    for future in as_completed(futures):
+                        future.result()
+                return
+            except _RETRYABLE_SET_ERRORS as e:
+                last_error = e
+                logger.warning(f'set_items failed (attempt {attempt + 1}/{multi_retry}): {e}')
+                if attempt + 1 < multi_retry:
+                    time.sleep(10)
+        raise RomaSetError(
+            f'set_items could not upload {sorted(contents.keys())} after {multi_retry} attempts'
+        ) from last_error
 
     def del_items(self, keys: Set[str]):
         raise NotImplementedError(f"del_items is not implemented for {self.__class__.__name__}")
@@ -295,26 +326,26 @@ class RomaProvider(StorageProvider):
         }
         resp = self.session.put(self.csb_file_server + path, data=content, headers=headers)
         if resp.status_code != 200:
-            raise Exception(
+            raise RomaSetError(
                 f"upload file error. return code {resp.status_code}, exception:{resp.content.decode('utf-8')} ")
 
     def _get_file_server_endpoint(self):
+        url = self.endpoint + self.api
+        param = "?" + "bucketid=" + self.bucket_name + "&token=" \
+                + self.app_token + "&vendor=" + self.vendor + "&region=" + self.region
+        req = request.Request(url=url + param)
         try:
-            url = self.endpoint + self.api
-            param = "?" + "bucketid=" + self.bucket_name + "&token=" \
-                    + self.app_token + "&vendor=" + self.vendor + "&region=" + self.region
-            req = request.Request(url=url + param)
             res = request.urlopen(req, context=self.context)
             result = res.read().decode(encoding='utf-8')
-
-            if self.debug:
-                logger.info("request file server endpoint result: " + result)
             result_dict = json.loads(result)
-            if result_dict["success"]:
-                return result_dict["result"]
-            raise Exception(result_dict["msg"])
-        except Exception:
-            traceback.print_exc()
+        except (URLError, json.JSONDecodeError, UnicodeDecodeError) as e:
+            raise RomaGetError(f"Unable to obtain the CSB file server endpoint from {url}") from e
+
+        if self.debug:
+            logger.info("request file server endpoint result: " + result)
+        if result_dict["success"]:
+            return result_dict["result"]
+        raise RomaGetError(result_dict["msg"])
 
     def _bucket_auth(self):
         bucket_auth_endpoint = self.csb_file_server + '/rest/boto3/s3/bucket-auth?vendor=' + self.vendor \
@@ -334,7 +365,8 @@ class RomaProvider(StorageProvider):
         while result_dict["nextmarker"]:
             try:
                 result_dict = self._get_object_key(result_dict["nextmarker"], bucket_path)
-            except Exception:
+            except _RETRYABLE_GET_ERRORS as e:
+                logger.warning(f'listing objects failed for marker {result_dict["nextmarker"]}, retrying once: {e}')
                 self.error_map[result_dict["nextmarker"]] = time.time()
                 time.sleep(5)
                 result_dict = self._get_object_key(result_dict["nextmarker"], bucket_path)
@@ -356,7 +388,7 @@ class RomaProvider(StorageProvider):
         if not result_dict["success"]:
             logger.error(result.text)
             self.error_map["next_marker" + "@" + next_marker] = result.text
-            raise Exception("get object key failed")
+            raise RomaGetError("get object key failed")
         self.file_count += len(result_dict["objectKeys"])
         for object_key in result_dict["objectKeys"]:
             if int(object_key["size"]) > self.big_file:
@@ -382,7 +414,7 @@ class RomaProvider(StorageProvider):
             try:
                 download_content = self.download_queue.get(timeout=self.time_wait)
                 logger.info("download_content", download_content)
-            except Exception:
+            except queue.Empty:
                 break
             object_key = download_content["objectKey"]
             try:
@@ -396,7 +428,7 @@ class RomaProvider(StorageProvider):
                                                                 int((self.downloaded_count / self.file_count) * 100)),
                           "▋" * (int(self.downloaded_count / self.file_count * 50)) + self.current_speed, end="")
                     sys.stdout.flush()
-            except Exception:
+            except (KeyError, *_RETRYABLE_GET_ERRORS):
                 traceback.print_exc()
 
                 self.retry_map[str(download_content)] += 1
@@ -419,8 +451,10 @@ class RomaProvider(StorageProvider):
         }
 
         with self.session.get(self.csb_file_server + path, headers=headers) as result:
+            if result.status_code == 404:
+                raise KeyError(object_name)
             if result.status_code > 200:
-                raise Exception(
+                raise RomaGetError(
                     f"download file error. return code {result.status_code}, "
                     f"exception:{result.content.decode('utf-8')} ")
             return (object_name, result.content)
@@ -436,8 +470,10 @@ class RomaProvider(StorageProvider):
         }
 
         with self.session.get(self.csb_file_server + path, headers=headers) as result:
+            if result.status_code == 404:
+                raise KeyError(object_name)
             if result.status_code > 200:
-                raise Exception(
+                raise RomaGetError(
                     f"download file error. return code {result.status_code}, "
                     f"exception:{result.content.decode('utf-8')} ")
             return result.content

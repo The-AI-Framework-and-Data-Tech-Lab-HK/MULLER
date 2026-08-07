@@ -6,6 +6,7 @@
 #
 # Copyright (c) 2026 Xueling Lin
 
+import glob
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -17,10 +18,11 @@ from cykhash import Int64toInt64Map, Int64toInt64Map_from_buffers
 
 from muller.util.exceptions import FileAtPathException, CykhashPutError, CykhashGetError, CykhashLoadError
 
-# The cykhash_ext C extension (formerly imported from muller.util.cykhash) is
-# not shipped in this build; muller/util/cykhash/__init__.py is empty. Shard
-# table persistence is therefore unavailable until the extension is restored.
-cykhash_ext = None
+# Shard tables are persisted as ``.npy`` payloads holding a (2, n) int64 array
+# (row 0: keys, row 1: values). This pure-Python serialization replaces the
+# former ``cykhash_ext`` C extension, which was never shipped with the
+# repository (its save_map/load_map made create/load_uuid_index crash).
+_SHARD_FILE_GLOB = "shard_*.bin"
 
 
 def process_shard(shard_index: int, shard_dir: str, sharded_uuid: np.ndarray, sharded_idx: np.ndarray):
@@ -82,25 +84,27 @@ class HashBuilder:
             os.makedirs(shard_dir)
 
     def put_all(self, keys_arr, values_arr):
-        """Put all shards."""
+        """Bulk-load key/value arrays into the (still empty) table."""
         if not self.table:
             try:
                 self.table = Int64toInt64Map_from_buffers(keys_arr, values_arr)
                 self.size += len(keys_arr)
-            except Exception:
+            except (TypeError, ValueError):
+                # Inputs that are not contiguous int64 buffers fall back to
+                # element-wise insertion (which validates each pair).
                 for key, value in zip(keys_arr, values_arr):
                     self.put(key, value)
 
 
     def put(self, key, value):
-        """Put a shard."""
-        if isinstance(key, np.int64) and isinstance(value, np.int64):
-            try:
-                self.table.cput(key, value)
-            except Exception as e:
-                raise CykhashPutError from e
-            self.size += 1
-        raise TypeError(f"Expected key and value to be of type np.int64, but got {type(key)} and {type(value)}")
+        """Put a single key/value pair into the table."""
+        if not (isinstance(key, np.int64) and isinstance(value, np.int64)):
+            raise TypeError(f"Expected key and value to be of type np.int64, but got {type(key)} and {type(value)}")
+        try:
+            self.table.cput(key, value)
+        except Exception as e:
+            raise CykhashPutError from e
+        self.size += 1
 
 
     def get(self, key):
@@ -117,33 +121,39 @@ class HashBuilder:
 
 
     def save_table(self, overwrite=True):
-        """Save table."""
-        shard_path = f"{self.shard_dir}/shard_{self.shard_idx}.bin"
+        """Persist the table to ``shard_<idx>.bin`` inside the shard directory."""
+        shard_path = os.path.join(self.shard_dir, f"shard_{self.shard_idx}.bin")
         if os.path.exists(shard_path) and not overwrite:
             raise FileAtPathException(shard_path)
-        if cykhash_ext is None:
-            raise NotImplementedError(
-                "Saving UUID shard tables requires the cykhash_ext extension, "
-                "which is not available in this build."
-            )
-        cykhash_ext.save_map(self.table, shard_path)
+        pairs = np.empty((2, len(self.table)), dtype=np.int64)
+        for i, (key, value) in enumerate(self.table.items()):
+            pairs[0, i] = key
+            pairs[1, i] = value
+        # np.save gets a file object so the ".bin" name is kept as-is
+        # (given a plain path it would append ".npy").
+        with open(shard_path, "wb") as f:
+            np.save(f, pairs, allow_pickle=False)
 
 
     def load_table(self):
-        """Load table."""
-        if not os.path.exists(self.shard_dir):
-            raise FileNotFoundError(f"Shard file not found: {self.shard_dir}")
+        """Load and merge every shard file found in the shard directory."""
+        shard_paths = sorted(glob.glob(os.path.join(self.shard_dir, _SHARD_FILE_GLOB)))
+        if not shard_paths:
+            raise FileNotFoundError(f"No shard files found in: {self.shard_dir}")
 
-        if cykhash_ext is None:
-            raise NotImplementedError(
-                "Loading UUID shard tables requires the cykhash_ext extension, "
-                "which is not available in this build."
-            )
         self.table.clear()
-        try:
-            cykhash_ext.load_map(self.shard_dir, self.table)
-        except Exception as e:
-            raise CykhashLoadError from e
+        for shard_path in shard_paths:
+            try:
+                with open(shard_path, "rb") as f:
+                    pairs = np.load(f, allow_pickle=False)
+            except (OSError, ValueError) as e:
+                raise CykhashLoadError(f"Unable to read shard file: {shard_path}") from e
+            if pairs.ndim != 2 or pairs.shape[0] != 2 or pairs.dtype != np.int64:
+                raise CykhashLoadError(
+                    f"Shard file {shard_path} has an unexpected layout: "
+                    f"shape={pairs.shape}, dtype={pairs.dtype} (expected (2, n) int64)."
+                )
+            self.table.update(Int64toInt64Map_from_buffers(pairs[0], pairs[1]))
 
         self.size = len(self.table)
         logging.info(f"Table loaded from {self.shard_dir}, size: {self.size}")

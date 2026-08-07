@@ -948,7 +948,13 @@ def _validate_dataset_delete_indexes(dataset_delete_indexes, deleted_sample_dict
 
 
 def check_common_tensor_mismatches(tensor_names: Set[str], dataset, target_dataset):
-    """Checks common tensors for mismatches in htype, sample_compression and chunk_compression."""
+    """Checks common tensors for mismatches in dtype, htype, sample_compression and chunk_compression.
+
+    The merge copies raw chunks between branches, so incompatible schemas would
+    silently corrupt data. ``dtype`` is only compared when both branches have
+    materialized one: a tensor that never received data has ``dtype=None`` and
+    is compatible with any dtype (the merge fills it in from the other side).
+    """
     for tensor_name in tensor_names:
         target_meta = target_dataset[tensor_name].meta
         original_meta = dataset[tensor_name].meta
@@ -962,6 +968,9 @@ def check_common_tensor_mismatches(tensor_names: Set[str], dataset, target_datas
             "sample_compression": target_meta.sample_compression,
             "chunk_compression": target_meta.chunk_compression,
         }
+        if original_meta.dtype is not None and target_meta.dtype is not None:
+            original_details["dtype"] = original_meta.dtype
+            target_details["dtype"] = target_meta.dtype
         for key, value in original_details.items():
             if value != target_details.get(key, None):
                 raise MergeMismatchError(tensor_name, key, value, target_details.get(key, None))
