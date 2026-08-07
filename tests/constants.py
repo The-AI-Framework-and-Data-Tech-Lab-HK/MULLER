@@ -97,6 +97,10 @@ TEST_TEMP_MERGE_PATH = _out("temp_merge_dataset")
 
 TEST_MERGE_SCHEMA_PATH = _out("merge_schema_dataset")
 
+TEST_MERGE_EDGE_PATH = _out("merge_edge_dataset")
+
+TEST_COMPRESSION_PATH = _out("compression_dataset")
+
 TEST_UUID_INDEX_PATH = _out("uuid_index_dataset")
 
 TEST_PROCESS_INTERRUPT = _out("process_interrupt")
