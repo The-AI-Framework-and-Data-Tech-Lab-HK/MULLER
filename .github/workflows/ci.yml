@@ -27,8 +27,20 @@ jobs:
           cache: pip
       - name: Install package with test dependencies
         run: pip install -e ".[tests]"
-      - name: Run unit and security tests
-        run: pytest tests/unit tests/security -m "not slow"
+      - name: Run unit and security tests with coverage
+        run: >
+          pytest tests/unit tests/security -m "not slow"
+          --cov=muller
+          --cov-report=term
+          --cov-report=xml
+          --cov-fail-under=35
+      - name: Upload coverage XML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: ignore
   deploy:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest

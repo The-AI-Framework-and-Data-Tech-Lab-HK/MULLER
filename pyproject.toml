@@ -48,6 +48,7 @@ dependencies = [
 [project.optional-dependencies]
 tests = [
     "pytest",
+    "pytest-cov",
     "torchvision"
 ]
 demo = [
@@ -91,6 +92,27 @@ version = { attr = "muller._version.__version__" }
 testpaths = ["tests"]
 markers = [
     "slow: long-running tests, deselect with -m 'not slow'",
+]
+
+[tool.coverage.run]
+source = ["muller"]
+branch = false
+omit = [
+    "muller/cli/*",
+    "muller/util/sparsehash/*",
+]
+
+[tool.coverage.report]
+# Baseline measured 2026-08-07 on CI scope (tests/unit + tests/security,
+# -m "not slow"): ~36% line coverage. Floor is 35%; raise gradually.
+# Do not lower without documenting why in the PR.
+fail_under = 35
+show_missing = false
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
 ]
 
 [tool.ruff]
